@@ -1,0 +1,56 @@
+{
+	"schemaVersion": 1,
+	"id": "aurorascanvas",
+	"name": "Aurora's Canvas",
+	"version": "${version}",
+	"description": "A mod all about drawing and self-expression.",
+	"authors": [
+		"LambdAurora"
+	],
+	"contact": {
+		"homepage": "https://lambdaurora.dev/projects/aurorascanvas",
+		"sources": "https://github.com/LambdAurora/AurorasCanvas.git",
+		"issues": "https://github.com/LambdAurora/AurorasCanvas/issues"
+	},
+	"license": "Lambda License",
+	"icon": "assets/aurorascanvas/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.lambdaurora.aurorascanvas.AurorasCanvas"
+		],
+		"client": [
+			"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient"
+		],
+		"fabric-datagen": [
+			"dev.lambdaurora.aurorascanvas.resource.AurorasCanvasStaticDatagen"
+		],
+		"fabric-gametest": [
+			"dev.lambdaurora.aurorascanvas.test.RedstoneLanternTest",
+			"dev.lambdaurora.aurorascanvas.test.WallLanternTest"
+		]
+	},
+	"mixins": [
+		"aurorascanvas.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.20 <1.20.2-",
+		"java": ">=17",
+		"fabric-api": ">=0.86.1"
+	},
+	"breaks": {
+		"aurorasdeco": "<=1.0.0-beta.22"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.discord": "https://discord.lambdaurora.dev/",
+				"modmenu.github_releases": "https://github.com/LambdAurora/AurorasCanvas/releases",
+				"modmenu.modrinth": "https://modrinth.com/mod/aurorascanvas",
+				"modmenu.bluesky": "https://bsky.app/profile/lambdaurora.dev",
+				"modmenu.donate": "https://donate.lambdaurora.dev/"
+			}
+		}
+	}
+}

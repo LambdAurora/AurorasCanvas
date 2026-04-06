@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "aurorascanvas:block/glassboard/glassboard_ld_inner"
+		},
+		"facing=east": {
+			"model": "aurorascanvas:block/glassboard/glassboard_ld_inner",
+			"y": 90
+		},
+		"facing=south": {
+			"model": "aurorascanvas:block/glassboard/glassboard_ld_inner",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "aurorascanvas:block/glassboard/glassboard_ld_inner",
+			"y": 270
+		}
+	}
+}

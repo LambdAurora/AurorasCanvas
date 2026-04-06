@@ -1,0 +1,22 @@
+{
+	"aurorascanvas.change_modifier": "Modifier selected: %s",
+	"aurorascanvas.change_tool": "Tool selected: %s",
+	"aurorascanvas.modifier.darken": "Darken",
+	"aurorascanvas.modifier.lighten": "Lighten",
+	"aurorascanvas.modifier.saturation": "Toggle Saturation",
+	"aurorascanvas.tool.brush": "Brush",
+	"aurorascanvas.tool.fill": "Fill",
+	"aurorascanvas.tool.line": "Line",
+	"aurorascanvas.tool.pixel": "Pixel",
+	"aurorascanvas.tool.replace": "Replace",
+	"block.aurorascanvas.blackboard": "Blackboard",
+	"block.aurorascanvas.waxed_blackboard": "Waxed Blackboard",
+	"block.aurorascanvas.chalkboard": "Chalkboard",
+	"block.aurorascanvas.waxed_chalkboard": "Waxed Chalkboard",
+	"block.aurorascanvas.glassboard": "Glassboard",
+	"block.aurorascanvas.waxed_glassboard": "Waxed Glassboard",
+	"block.aurorascanvas.blackboard_press": "Blackboard Press",
+	"item.aurorascanvas.painter_palette": "Painter's Palette",
+	"tag.aurorascanvas.blackboards": "Blackboards",
+	"modmenu.bluesky": "Bluesky"
+}

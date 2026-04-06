@@ -1,0 +1,22 @@
+{
+	"aurorascanvas.change_modifier": "Modificateur sélectionné: %s",
+	"aurorascanvas.change_tool": "Outil sélectionné: %s",
+	"aurorascanvas.modifier.darken": "assombrir",
+	"aurorascanvas.modifier.lighten": "éclaircir",
+	"aurorascanvas.modifier.saturation": "échanger la saturation",
+	"aurorascanvas.tool.brush": "pinceau",
+	"aurorascanvas.tool.fill": "remplir",
+	"aurorascanvas.tool.line": "ligne",
+	"aurorascanvas.tool.pixel": "pixel",
+	"aurorascanvas.tool.replace": "remplacer",
+	"block.aurorascanvas.blackboard": "Tableau noir",
+	"block.aurorascanvas.waxed_blackboard": "Tableau noir ciré",
+	"block.aurorascanvas.chalkboard": "Tableau à craie",
+	"block.aurorascanvas.waxed_chalkboard": "Tableau à craie ciré",
+	"block.aurorascanvas.glassboard": "Tableau en verre",
+	"block.aurorascanvas.waxed_glassboard": "Tableau en verre ciré",
+	"block.aurorascanvas.blackboard_press": "Presse à tableau",
+	"item.aurorascanvas.painter_palette": "Palette de peintre",
+	"tag.aurorascanvas.blackboards": "Tableaux noirs",
+	"modmenu.bluesky": "Bluesky"
+}

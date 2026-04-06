@@ -1,0 +1,22 @@
+{
+	"aurorascanvas.change_modifier": "Обраний модифікатор: %s",
+	"aurorascanvas.change_tool": "Обраний інструмент: %s",
+	"aurorascanvas.modifier.darken": "Темна",
+	"aurorascanvas.modifier.lighten": "Світла",
+	"aurorascanvas.modifier.saturation": "Перемкнути насиченість",
+	"aurorascanvas.tool.brush": "Кісточка",
+	"aurorascanvas.tool.fill": "Заповнити",
+	"aurorascanvas.tool.line": "Лінія",
+	"aurorascanvas.tool.pixel": "Піксель",
+	"aurorascanvas.tool.replace": "Замінити",
+	"block.aurorascanvas.blackboard": "Чорна дошка",
+	"block.aurorascanvas.waxed_blackboard": "Вощена чорна дошка",
+	"block.aurorascanvas.chalkboard": "Крейдова дошка",
+	"block.aurorascanvas.waxed_chalkboard": "Вощена крейдова дошка",
+	"block.aurorascanvas.glassboard": "Скляна дошка",
+	"block.aurorascanvas.waxed_glassboard": "Вощена скляна дошка",
+	"block.aurorascanvas.blackboard_press": "Прес чорних дощок",
+	"item.aurorascanvas.painter_palette": "Палітра художника",
+	"tag.aurorascanvas.blackboards": "Чорні дошки",
+	"modmenu.bluesky": "Bluesky"
+}
