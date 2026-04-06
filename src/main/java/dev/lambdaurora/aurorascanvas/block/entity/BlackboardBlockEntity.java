@@ -22,13 +22,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
 /**
- * Represents a blackboard block entity, stores the pixels of a blackboard.
+ * Represents a canvas block entity, stores the pixels of a canvas.
  *
  * @author LambdAurora
  * @version 1.0.0
@@ -40,7 +41,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	private final Canvas blackboard = new AssignedCanvas();
 	private @Nullable Component customName;
 
-	public PlayerEntity lastUser;
+	public Player lastUser;
 	public int lastX;
 	public int lastY;
 
@@ -63,7 +64,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		if (this.blackboard.setPixel(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
-				this.markDirty();
+				this.setChanged();
 			}
 			return true;
 		}
@@ -75,7 +76,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		if (this.blackboard.brush(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
-				this.markDirty();
+				this.setChanged();
 			}
 			return true;
 		}
@@ -87,7 +88,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		if (this.blackboard.replace(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
-				this.markDirty();
+				this.setChanged();
 			}
 			return true;
 		}
@@ -99,7 +100,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		if (this.blackboard.fill(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
-				this.markDirty();
+				this.setChanged();
 			}
 			return true;
 		}
@@ -111,7 +112,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		if (this.blackboard.line(x1, y1, x2, y2, modifier)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
-				this.markDirty();
+				this.setChanged();
 			}
 			return true;
 		}
@@ -122,24 +123,24 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		this.blackboard.copy(source);
 		if (this.getLevel() instanceof ServerLevel) {
 			this.sync();
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
 	/**
-	 * Clears the blackboard.
+	 * Clears the canvas.
 	 */
 	public void clear() {
 		this.blackboard.clear();
 		this.lastUser = null;
-		if (this.getWorld() instanceof ServerWorld) {
+		if (this.getLevel() instanceof ServerLevel) {
 			this.sync();
-			this.markDirty();
+			this.setChanged();
 		}
 	}
 
 	/**
-	 * Returns whether this blackboard is empty or not.
+	 * Returns whether this canvas is empty or not.
 	 *
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
@@ -148,16 +149,16 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	}
 
 	@Override
-	public @Nullable Text getCustomName() {
+	public @Nullable Component getCustomName() {
 		return this.customName;
 	}
 
 	/**
-	 * Sets the blackboard custom name.
+	 * Sets the canvas custom name.
 	 *
 	 * @param customName the custom name
 	 */
-	public void setCustomName(@Nullable Text customName) {
+	public void setCustomName(@Nullable Component customName) {
 		this.customName = customName;
 	}
 
@@ -169,16 +170,16 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	@Override
 	public Component getName() {
 		return this.customName != null ? this.customName
-				: Text.translatable(this.getCachedState().getBlock().getTranslationKey());
+				: Component.translatable(this.getBlockState().getBlock().getDescriptionId());
 	}
 
 	public boolean isLocked() {
-		return ((BlackboardBlock) this.getCachedState().getBlock()).isLocked();
+		return ((BlackboardBlock) this.getBlockState().getBlock()).isLocked();
 	}
 
 	@Override
-	public void markRemoved() {
-		super.markRemoved();
+	public void setRemoved() {
+		super.setRemoved();
 
 		if (MinecraftQuiltLoader.getEnvironmentType() == EnvType.CLIENT) {
 			this.markBlackboardRemoved();
@@ -186,8 +187,8 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	}
 
 	@Override
-	public void cancelRemoval() {
-		super.cancelRemoval();
+	public void clearRemoved() {
+		super.clearRemoved();
 
 		if (MinecraftQuiltLoader.getEnvironmentType() == EnvType.CLIENT) {
 			ACTIVE_BLACKBOARDS.add(this);
@@ -238,7 +239,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 		super.readNbt(nbt);
 		this.readBlackBoardNbt(nbt);
 		this.lastUser = null;
-		if (this.world != null && this.world.isClient()) {
+		if (this.level != null && this.level.isClientSide()) {
 			this.refreshRendering();
 		}
 	}

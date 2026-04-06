@@ -162,9 +162,9 @@ public class Canvas implements CanvasHandler {
 	}
 
 	/**
-	 * Copies the blackboard data to this blackboard.
+	 * Copies the canvas data to this canvas.
 	 *
-	 * @param source the blackboard to copy
+	 * @param source the canvas to copy
 	 */
 	public void copy(Canvas source) {
 		System.arraycopy(source.pixels, 0, this.pixels, 0, this.pixels.length);
@@ -172,14 +172,14 @@ public class Canvas implements CanvasHandler {
 	}
 
 	/**
-	 * Clears the blackboard.
+	 * Clears the canvas.
 	 */
 	public void clear() {
 		Arrays.fill(this.pixels, (short) 0);
 	}
 
 	/**
-	 * Returns whether this blackboard is empty or not.
+	 * Returns whether this canvas is empty or not.
 	 *
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
@@ -306,7 +306,7 @@ public class Canvas implements CanvasHandler {
 	}
 
 	public enum DrawAction {
-		DEFAULT("aurorasdeco.blackboard.tool.pixel") {
+		DEFAULT("aurorasdeco.canvas.tool.pixel") {
 			@Override
 			public @Nullable Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return null;
@@ -318,7 +318,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.setPixel(x, y, modifier.apply(colorData));
 			}
 		},
-		BRUSH("aurorasdeco.blackboard.tool.brush") {
+		BRUSH("aurorasdeco.canvas.tool.brush") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.BRUSH;
@@ -330,7 +330,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.brush(x, y, modifier.apply(colorData));
 			}
 		},
-		FILL("aurorasdeco.blackboard.tool.fill") {
+		FILL("aurorasdeco.canvas.tool.fill") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.BUCKET;
@@ -342,7 +342,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.fill(x, y, modifier.apply(colorData));
 			}
 		},
-		REPLACE("aurorasdeco.blackboard.tool.replace") {
+		REPLACE("aurorasdeco.canvas.tool.replace") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.ENDER_PEARL;

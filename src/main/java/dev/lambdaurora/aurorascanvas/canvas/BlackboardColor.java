@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Represents a blackboard color.
+ * Represents a canvas color.
  *
  * @author LambdAurora
  * @version 1.0.0

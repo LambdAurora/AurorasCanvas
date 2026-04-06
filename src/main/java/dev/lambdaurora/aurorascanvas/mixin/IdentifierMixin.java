@@ -37,7 +37,7 @@ public class IdentifierMixin {
 	)
 	private void aurorascanvas$onInit(String namespace, String path, @Coerce Object dummy, CallbackInfo ci) {
 		if (this.namespace.equals("aurorasdeco")) {
-			if (this.path.equals("blackboard")) {
+			if (this.path.equals("canvas")) {
 				this.namespace = AurorasCanvas.NAMESPACE;
 			}
 		}

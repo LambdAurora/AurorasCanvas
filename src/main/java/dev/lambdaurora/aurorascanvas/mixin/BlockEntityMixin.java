@@ -33,7 +33,7 @@ public class BlockEntityMixin {
 	private static Optional aurorascanvas$backwardsCompat(
 			Registry<BlockEntity> instance, @NotNull Identifier id, Operation<Optional> original
 	) {
-		if (id.getNamespace().equals("aurorasdeco") && id.getPath().equals("blackboard")) {
+		if (id.getNamespace().equals("aurorasdeco") && id.getPath().equals("canvas")) {
 			return Optional.of(AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE);
 		} else {
 			return original.call(instance, id);

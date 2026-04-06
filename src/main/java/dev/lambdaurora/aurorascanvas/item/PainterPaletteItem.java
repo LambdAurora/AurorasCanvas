@@ -5,12 +5,17 @@
  *
  * Licensed under the Lambda License. For more information,
  * see the LICENSE file.
- */package dev.lambdaurora.aurorascanvas.item;
+ */
+
+package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.BlackboardColor;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
+import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
+import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
+import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -20,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
@@ -27,13 +33,14 @@ import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.logging.Level;
 
 /**
  * Represents a painter's palette item which can be used for easier painting on canvases.
@@ -50,13 +57,13 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getSubNbt("inventory"));
+		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
 
 		return inventory.getSelectedColor();
 	}
 
 	public ItemStack getCurrentToolAsItem(ItemStack paletteStack) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getSubNbt("inventory"));
+		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
 		if (inventory.selectedTool == -1) return ItemStack.EMPTY;
 
 		return inventory.getSelectedTool();
@@ -68,7 +75,7 @@ public class PainterPaletteItem extends Item {
 					var offHandTool = drawAction.getOffHandTool(enabledFeatures);
 					var selectedTool = inventory.getSelectedTool();
 
-					return (offHandTool == null && selectedTool.isEmpty()) || selectedTool.isOf(offHandTool);
+					return (offHandTool == null && selectedTool.isEmpty()) || selectedTool.is(offHandTool);
 				}).findFirst()
 				.map(Canvas.DrawAction::getName).orElseGet(() -> {
 					if (inventory.getSelectedTool().is(Items.STICK)) return Component.translatable(AurorasCanvas.NAMESPACE + ".tool.line");
@@ -80,17 +87,17 @@ public class PainterPaletteItem extends Item {
 
 	@Override
 	public boolean overrideOtherStackedOnMe(ItemStack thisStack, ItemStack otherStack, Slot thisSlot, ClickAction clickType, Player player, SlotAccess cursor) {
-		if (clickType == ClickAction.SECONDARY && otherStack.isEmpty() && !(player.containerMenu instanceof PainterPaletteScreenHandler)) {
-			NestedScreenHandler.OriginType originType = null;
+		if (clickType == ClickAction.SECONDARY && otherStack.isEmpty() && !(player.containerMenu instanceof PainterPaletteMenu)) {
+			NestedMenu.OriginType originType = null;
 			if (thisSlot.container == player.getInventory()) {
-				originType = NestedScreenHandler.OriginType.PLAYER;
+				originType = NestedMenu.OriginType.PLAYER;
 			} else if (thisSlot.container == player.getEnderChestInventory()) {
-				originType = NestedScreenHandler.OriginType.ENDER_CHEST;
+				originType = NestedMenu.OriginType.ENDER_CHEST;
 			}
 
 			if (originType != null && !player.level().isClientSide()) {
 				player.inventoryMenu.resumeRemoteUpdates();
-				player.openMenu(new PainterPaletteScreenHandler.Factory(thisStack, originType, thisSlot.getContainerSlot()));
+				player.openMenu(new PainterPaletteMenu.Factory(thisStack, originType, thisSlot.getContainerSlot()));
 			}
 
 			return true;
@@ -100,25 +107,25 @@ public class PainterPaletteItem extends Item {
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(Level world, Player user, InteractionHand hand) {
+	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
 		ItemStack stack = user.getItemInHand(hand);
 
-		if (user.isSneaking()) {
+		if (user.isShiftKeyDown()) {
 			if (!user.level().isClientSide()) {
-				int index = user.getInventory().getSlotWithStack(stack);
+				int index = user.getInventory().findSlotMatchingItem(stack);
 
 				user.containerMenu.resumeRemoteUpdates();
-				user.openHandledScreen(new PainterPaletteScreenHandler.Factory(stack, NestedScreenHandler.OriginType.PLAYER, index));
+				user.openMenu(new PainterPaletteMenu.Factory(stack, NestedMenu.OriginType.PLAYER, index));
 			}
 
-			return TypedActionResult.consume(stack);
+			return InteractionResultHolder.consume(stack);
 		}
 
 		return super.use(world, user, hand);
 	}
 
 	public boolean onScroll(Player player, ItemStack paletteStack, double scrollDelta, boolean toolModifier) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getSubNbt("inventory"));
+		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
 
 		if (inventory.isEmpty()) {
 			return false;
@@ -129,7 +136,8 @@ public class PainterPaletteItem extends Item {
 			buffer.writeDouble(scrollDelta);
 			buffer.writeBoolean(toolModifier);
 
-			ClientPlayNetworking.send(AurorasDecoPackets.PAINTER_PALETTE_SCROLL, buffer);
+			// TODO: networking.
+			//ClientPlayNetworking.send(AurorasDecoPackets.PAINTER_PALETTE_SCROLL, buffer);
 		} else {
 			if (!toolModifier) {
 				if (scrollDelta < 0) {
@@ -148,13 +156,13 @@ public class PainterPaletteItem extends Item {
 
 				var nbt = inventory.toNbt();
 				if (nbt != null) paletteStack.addTagElement("inventory", nbt);
-				else paletteStack.removeSubNbt("inventory");
-				player.playerScreenHandler.sendContentUpdates();
+				else paletteStack.removeTagKey("inventory");
+				player.inventoryMenu.broadcastChanges();
 
 				var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
 
 				if (!(modifier instanceof BlackboardColor) && modifier != null) {
-					player.sendMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
+					player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
 				}
 			} else {
 				byte nextTool = inventory.scrollTool(scrollDelta < 0);
@@ -163,15 +171,15 @@ public class PainterPaletteItem extends Item {
 					inventory.selectedTool = nextTool;
 					var nbt = inventory.toNbt();
 					if (nbt != null) paletteStack.addTagElement("inventory", nbt);
-					else paletteStack.removeSubNbt("inventory");
-					player.playerScreenHandler.sendContentUpdates();
+					else paletteStack.removeTagKey("inventory");
+					player.inventoryMenu.broadcastChanges();
 
-					var message = getSelectedToolMessage(inventory, player.getWorld().getEnabledFlags());
+					var message = getSelectedToolMessage(inventory, player.level().enabledFeatures());
 					BlackboardColor primaryColor = BlackboardColor.fromItem(inventory.getSelectedColor().getItem());
 
-					if (primaryColor != null && primaryColor != BlackboardColor.EMPTY) message.styled(style -> style.withColor(primaryColor.getColor()));
+					if (primaryColor != null && primaryColor != BlackboardColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
 
-					player.sendMessage(message, true);
+					player.displayClientMessage(message, true);
 				}
 			}
 		}
@@ -180,7 +188,7 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public int getColor(ItemStack paletteStack, int tintIndex) {
-		CompoundTag nbt = paletteStack.getSubNbt("inventory");
+		CompoundTag nbt = paletteStack.getTagElement("inventory");
 
 		DrawModifier primaryColor = null;
 		DrawModifier previousColor = null;
@@ -198,7 +206,7 @@ public class PainterPaletteItem extends Item {
 			ListTag colors = nbt.getList("colors", Tag.TAG_COMPOUND);
 
 			int previousSlot = -1, nextSlot = -1;
-			NbtCompound previousNbt = null, nextNbt = null;
+			CompoundTag previousNbt = null, nextNbt = null;
 
 			for (var colorNbt : colors) {
 				var slotNbt = (CompoundTag) colorNbt;
@@ -248,12 +256,12 @@ public class PainterPaletteItem extends Item {
 	}
 
 	@Override
-	public Optional<TooltipData> getTooltipData(ItemStack stack) {
-		var nbt = stack.getSubNbt("inventory");
+	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+		var nbt = stack.getTagElement("inventory");
 		if (nbt != null) {
 			return Optional.of(new PainterPaletteTooltipData(PainterPaletteInventory.fromNbt(nbt)));
 		}
-		return super.getTooltipData(stack);
+		return super.getTooltipImage(stack);
 	}
 
 	public static class PainterPaletteInventory extends SimpleContainer {

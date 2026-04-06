@@ -16,7 +16,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Represents a slot that only accepts items that can be used as {@link BlackboardColor blackboard colors}.
+ * Represents a slot that only accepts items that can be used as {@link BlackboardColor canvas colors}.
  *
  * @author LambdAurora
  * @version 1.0.0
