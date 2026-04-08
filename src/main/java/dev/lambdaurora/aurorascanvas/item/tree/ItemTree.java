@@ -17,12 +17,28 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
+
 public class ItemTree extends ItemTreeGroupNode {
+	private static final ItemTreeGroupNode BLACKBOARDS = ItemTreeGroupNode.create(
+			AurorasCanvas.id("blackboard"),
+			groupNode -> {
+				groupNode.add(BLACKBOARD.item().value());
+				groupNode.add(WAXED_BLACKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(CHALKBOARD.item().value());
+				groupNode.add(WAXED_CHALKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(GLASSBOARD.item().value());
+				groupNode.add(WAXED_GLASSBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				//groupNode.add(BLACKBOARD_PRESS_BLOCK);
+			}
+	);
+
 	private static final Identifier PHASE = AurorasCanvas.id("phase");
 	private static final Identifier ROOT = AurorasCanvas.id("root");
 
@@ -64,6 +80,7 @@ public class ItemTree extends ItemTreeGroupNode {
 
 	public static void init() {
 		register(CreativeModeTabs.FUNCTIONAL_BLOCKS, ItemTree::modifyFunctionalBlocks);
+		register(CreativeModeTabs.TOOLS_AND_UTILITIES, ItemTree::modifyToolsAndUtilities);
 	}
 
 	private static void register(ResourceKey<CreativeModeTab> tab, Consumer<ItemTree> modifier) {
@@ -87,5 +104,14 @@ public class ItemTree extends ItemTreeGroupNode {
 	}
 
 	private static void modifyFunctionalBlocks(ItemTree tree) {
+		var itemFrames = tree.collectItemsAsGroup(
+				new Identifier("minecraft", "item_frame"),
+				Items.ITEM_FRAME, Items.GLOW_ITEM_FRAME
+		);
+		tree.addAfter(itemFrames, BLACKBOARDS);
+	}
+
+	private static void modifyToolsAndUtilities(ItemTree tree) {
+		tree.addAfter(Items.BRUSH, PAINTER_PALETTE_ITEM);
 	}
 }

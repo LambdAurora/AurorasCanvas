@@ -29,6 +29,6 @@ public class ColorSlot extends Slot {
 
 	@Override
 	public boolean mayPlace(ItemStack stack) {
-		return BlackboardColor.fromItem(stack.getItem()) != null || DrawModifier.fromItem(stack) != null;
+		return DrawModifier.fromItem(stack) != null;
 	}
 }

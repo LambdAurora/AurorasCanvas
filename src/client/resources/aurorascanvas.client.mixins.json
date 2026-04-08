@@ -3,7 +3,8 @@
 	"package": "dev.lambdaurora.aurorascanvas.client.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-		"MinecraftMixin"
+		"MinecraftMixin",
+		"ModelBakeryAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

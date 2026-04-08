@@ -54,9 +54,9 @@ fabricApi {
 	configureDataGeneration {
 		client = true
 	}
-	configureTests {
+	/*configureTests {
 		eula = true
-	}
+	}*/
 }
 
 dependencies {

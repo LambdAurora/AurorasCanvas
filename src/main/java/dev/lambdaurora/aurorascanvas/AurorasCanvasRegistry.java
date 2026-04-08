@@ -30,7 +30,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -108,7 +107,8 @@ public final class AurorasCanvasRegistry {
 			new FabricItemSettings()
 	);
 
-	public static final Item PAINTER_PALETTE_ITEM = Items.registerItem(
+	public static final PainterPaletteItem PAINTER_PALETTE_ITEM = Registry.register(
+			BuiltInRegistries.ITEM,
 			id("painter_palette"),
 			new PainterPaletteItem(new Item.Properties().stacksTo(1))
 	);
@@ -136,7 +136,6 @@ public final class AurorasCanvasRegistry {
 			id("painter_palette"),
 			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new)
 	);
-
 
 	public static final TagKey<Item> BLACKBOARD_ITEMS = TagKey.create(Registries.ITEM, id("blackboards"));
 

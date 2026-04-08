@@ -241,13 +241,13 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 					return InteractionResult.sidedSuccess(world.isClientSide());
 				} else if (offhand.is(Items.STICK) && (modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
-					int y = (int) (Utils.posMod(hit.getBlockPos().getY(), 1) * 16.0);
+					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
 					y = 15 - y;
 
 					if (facing.getAxis() == Direction.Axis.Z) {
-						x = (int) (Utils.posMod(hit.getBlockPos().getX(), 1) * 16.0);
+						x = (int) (Utils.posMod(hit.getLocation().x(), 1) * 16.0);
 					} else {
-						x = 15 - (int) (Utils.posMod(hit.getBlockPos().getZ(), 1) * 16.0);
+						x = 15 - (int) (Utils.posMod(hit.getLocation().z(), 1) * 16.0);
 					}
 					if (facing.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
 						x = 15 - x;
@@ -261,13 +261,13 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 					return InteractionResult.sidedSuccess(world.isClientSide());
 				} else if ((modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
-					int y = (int) (Utils.posMod(hit.getBlockPos().getY(), 1) * 16.0);
+					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
 					y = 15 - y;
 
 					if (facing.getAxis() == Direction.Axis.Z) {
-						x = (int) (Utils.posMod(hit.getBlockPos().getX(), 1) * 16.0);
+						x = (int) (Utils.posMod(hit.getLocation().x(), 1) * 16.0);
 					} else {
-						x = 15 - (int) (Utils.posMod(hit.getBlockPos().getZ(), 1) * 16.0);
+						x = 15 - (int) (Utils.posMod(hit.getLocation().z(), 1) * 16.0);
 					}
 					if (facing.getAxisDirection() == Direction.AxisDirection.NEGATIVE) {
 						x = 15 - x;

@@ -16,12 +16,20 @@ import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedBlackboardModel;
 import dev.lambdaurora.aurorascanvas.client.renderer.BlackboardItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.renderer.BlackboardPressBlockEntityRenderer;
+import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
+import dev.lambdaurora.aurorascanvas.client.tooltip.BlackboardTooltipComponent;
+import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
+import dev.lambdaurora.aurorascanvas.tooltip.BlackboardTooltipData;
+import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -53,6 +61,20 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		this.registerBlackboardItemRenderer(WAXED_GLASSBOARD.block().value());
 
 		ClientBlackboardBlockEntityData.init();
+
+		MenuScreens.register(PAINTER_PALETTE_MENU_TYPE, PainterPaletteScreen::new);
+
+		TooltipComponentCallback.EVENT.register(data -> {
+			if (data instanceof BlackboardTooltipData blackboardTooltipData) {
+				return new BlackboardTooltipComponent(blackboardTooltipData);
+			} else if (data instanceof PainterPaletteTooltipData painterPaletteTooltipData) {
+				return new PainterPaletteTooltipComponent(painterPaletteTooltipData.inventory());
+			} else {
+				return null;
+			}
+		});
+
+		ColorProviderRegistry.ITEM.register(PAINTER_PALETTE_ITEM::getColor, PAINTER_PALETTE_ITEM);
 
 		ModelLoadingPlugin.register(context -> {
 			BlackboardPressBlockEntityRenderer.initModels(context);

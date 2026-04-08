@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class ItemTreeGroupNode implements ItemTreeNode {
@@ -29,7 +30,15 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 	private final Map<Identifier, ItemTreeGroupNode> groupNodes = new Object2ObjectOpenHashMap<>();
 	private final CreativeModeTab.TabVisibility visibility = CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS;
 
-	public ItemTreeGroupNode(Identifier id) {this.id = id;}
+	public ItemTreeGroupNode(Identifier id) {
+		this.id = id;
+	}
+
+	public static ItemTreeGroupNode create(Identifier id, Consumer<ItemTreeGroupNode> consumer) {
+		var group = new ItemTreeGroupNode(id);
+		consumer.accept(group);
+		return group;
+	}
 
 	public void add(ItemStack stack, CreativeModeTab.TabVisibility visibility) {
 		this.nodes.add(new ItemTreeItemNode(stack, visibility));
@@ -100,6 +109,36 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 
 	public void addAfter(ItemLike toFind, ItemLike toAdd) {
 		this.addAfter(new ItemStack(toFind), toAdd);
+	}
+
+	public void addAfter(ItemTreeGroupNode toFind, ItemTreeGroupNode toAdd) {
+		int index = this.nodes.indexOf(toFind);
+		this.add(index + 1, toAdd);
+	}
+
+	public @Nullable ItemTreeGroupNode collectItemsAsGroup(Identifier id, ItemLike from, ItemLike to) {
+		return this.collectItemsAsGroup(id, new ItemStack(from), new ItemStack(to));
+	}
+
+	public @Nullable ItemTreeGroupNode collectItemsAsGroup(Identifier id, ItemStack from, ItemStack to) {
+		int start = -1, end = -1;
+
+		for (int i = 0; i < this.nodes.size(); i++) {
+			if (this.nodes.get(i) instanceof ItemTreeItemNode item) {
+				if (ItemStack.isSameItemSameTags(item.stack(), from)) {
+					start = i;
+				}
+				if (ItemStack.isSameItemSameTags(item.stack(), to)) {
+					end = i;
+					break;
+				}
+			}
+		}
+
+		if (start == -1 || end == -1) return null;
+		if (end < start) return null;
+
+		return this.replaceNodesWithGroup(id, start, end);
 	}
 
 	public @Nullable ItemTreeGroupNode collectItemsAsGroup(Identifier id, Predicate<ItemStack> collector) {

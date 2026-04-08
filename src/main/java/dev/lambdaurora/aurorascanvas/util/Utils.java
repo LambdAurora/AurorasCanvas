@@ -9,17 +9,13 @@
 
 package dev.lambdaurora.aurorascanvas.util;
 
-import net.minecraft.core.Direction;
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
-import java.util.List;
-
 public final class Utils {
-	public static final List<Direction> DIRECTIONS = List.of(Direction.values());
-
 	private Utils() {
 		throw new UnsupportedOperationException("Utils only contains static definitions.");
 	}
@@ -33,7 +29,7 @@ public final class Utils {
 	public static void writeBlockEntityNbtToStack(ItemStack stack, BlockEntityType<?> type, CompoundTag nbt, boolean force) {
 		boolean hasDummy = false;
 		if (nbt.isEmpty() && force) {
-			nbt.putBoolean("aurorasdeco$dummy", true);
+			nbt.putBoolean(AurorasCanvas.NAMESPACE + "$dummy", true);
 			hasDummy = true;
 		}
 
@@ -41,7 +37,7 @@ public final class Utils {
 		nbt.remove("id");
 
 		if (hasDummy) {
-			nbt.remove("aurorasdeco$dummy");
+			nbt.remove(AurorasCanvas.NAMESPACE + "$dummy");
 		}
 	}
 

@@ -157,7 +157,7 @@ public class PainterPaletteMenu extends NestedMenu {
 
 		@Override
 		public Component getDisplayName() {
-			return this.self.getDisplayName();
+			return this.self.getHoverName();
 		}
 
 		@Override

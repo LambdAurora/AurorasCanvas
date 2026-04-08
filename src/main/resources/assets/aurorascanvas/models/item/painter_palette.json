@@ -1,0 +1,10 @@
+{
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "aurorascanvas:item/painter_palette/base",
+		"layer1": "aurorascanvas:item/painter_palette/primary_color",
+		"layer2": "aurorascanvas:item/painter_palette/brush_color",
+		"layer3": "aurorascanvas:item/painter_palette/previous_color",
+		"layer4": "aurorascanvas:item/painter_palette/next_color"
+	}
+}
