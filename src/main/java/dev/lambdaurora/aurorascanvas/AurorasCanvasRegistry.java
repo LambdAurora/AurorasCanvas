@@ -10,7 +10,9 @@
 package dev.lambdaurora.aurorascanvas;
 
 import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
+import dev.lambdaurora.aurorascanvas.block.BlackboardPressBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.BlackboardBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.BlackboardPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.item.BlackboardItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
@@ -23,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -32,10 +35,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static dev.lambdaurora.aurorascanvas.AurorasCanvas.id;
 
 public final class AurorasCanvasRegistry {
 	private AurorasCanvasRegistry() {
@@ -45,8 +51,8 @@ public final class AurorasCanvasRegistry {
 	//region Advancement Triggers
 	//endregion
 
-	public static final BlackboardBlock BLACKBOARD_BLOCK = registerBlockWithItem(
-			AurorasCanvas.id("blackboard"),
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> BLACKBOARD = registerBlockWithItem(
+			id("blackboard"),
 			properties -> new BlackboardBlock(properties, false),
 			FabricBlockSettings.create()
 					.strength(.2f)
@@ -56,85 +62,112 @@ public final class AurorasCanvasRegistry {
 			BlackboardItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlackboardBlock WAXED_BLACKBOARD_BLOCK = registerBlockWithItem(
-			AurorasCanvas.id("waxed_blackboard"),
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_BLACKBOARD = registerBlockWithItem(
+			id("waxed_blackboard"),
 			properties -> new BlackboardBlock(properties, true),
-			FabricBlockSettings.copyOf(BLACKBOARD_BLOCK),
+			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
 			BlackboardItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlackboardBlock CHALKBOARD_BLOCK = registerWithItem("chalkboard",
-			new BlackboardBlock(FabricBlockSettings.copyOf(BLACKBOARD_BLOCK), false),
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD),
-			BlackboardItem::new);
-	public static final BlackboardBlock WAXED_CHALKBOARD_BLOCK = registerWithItem("waxed_chalkboard",
-			new BlackboardBlock(FabricBlockSettings.copyOf(CHALKBOARD_BLOCK), true),
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD),
-			BlackboardItem::new);
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> CHALKBOARD = registerBlockWithItem(
+			id("chalkboard"),
+			properties -> new BlackboardBlock(properties, false),
+			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
+			BlackboardItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_CHALKBOARD = registerBlockWithItem(
+			id("waxed_chalkboard"),
+			properties -> new BlackboardBlock(properties, true),
+			FabricBlockSettings.copyOf(CHALKBOARD.block.value),
+			BlackboardItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
 
-	public static final BlackboardBlock GLASSBOARD_BLOCK = registerWithItem("glassboard",
-			new BlackboardBlock(FabricBlockSettings.copyOf(BLACKBOARD_BLOCK).nonOpaque().sounds(SoundType.GLASS), false),
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD),
-			BlackboardItem::new);
-	public static final BlackboardBlock WAXED_GLASSBOARD_BLOCK = registerWithItem("waxed_glassboard",
-			new BlackboardBlock(FabricBlockSettings.copyOf(GLASSBOARD_BLOCK), true),
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD),
-			BlackboardItem::new);
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> GLASSBOARD = registerBlockWithItem(
+			id("glassboard"),
+			properties -> new BlackboardBlock(properties, false),
+			FabricBlockSettings.copyOf(BLACKBOARD.block.value).nonOpaque().sounds(SoundType.GLASS),
+			BlackboardItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
+	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_GLASSBOARD = registerBlockWithItem(
+			id("waxed_glassboard"),
+			properties -> new BlackboardBlock(properties, true),
+			FabricBlockSettings.copyOf(GLASSBOARD.block.value),
+			BlackboardItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
 
-	public static final BlackboardPressBlock BLACKBOARD_PRESS_BLOCK = registerWithItem("blackboard_press",
-			new BlackboardPressBlock(FabricBlockSettings.create().mapColor(MapColor.METAL)),
+	public static final BlockItemEntry<BlackboardPressBlock, BlockItem> BLACKBOARD_PRESS = registerBlockWithItem(
+			id("blackboard_press"),
+			BlackboardPressBlock::new,
+			FabricBlockSettings.create().mapColor(MapColor.METAL),
+			BlockItem::new,
 			new FabricItemSettings()
 	);
 
 	public static final Item PAINTER_PALETTE_ITEM = Items.registerItem(
-			AurorasCanvas.id("painter_palette"),
+			id("painter_palette"),
 			new PainterPaletteItem(new Item.Properties().stacksTo(1))
 	);
 
 	public static final BlockEntityType<BlackboardBlockEntity> BLACKBOARD_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
-			AurorasCanvas.id("canvas"),
+			id("canvas"),
 			FabricBlockEntityTypeBuilder.create(
 					BlackboardBlockEntity::new,
-					BLACKBOARD_BLOCK, CHALKBOARD_BLOCK, GLASSBOARD_BLOCK,
-					WAXED_BLACKBOARD_BLOCK, WAXED_CHALKBOARD_BLOCK, WAXED_GLASSBOARD_BLOCK
+					BLACKBOARD.block.value, CHALKBOARD.block.value, GLASSBOARD.block.value,
+					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_GLASSBOARD.block.value
 			).build()
 	);
 	public static final BlockEntityType<BlackboardPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
-			AurorasCanvas.id("blackboard_press"),
+			id("blackboard_press"),
 			FabricBlockEntityTypeBuilder.create(
 					BlackboardPressBlockEntity::new,
-					BLACKBOARD_PRESS_BLOCK
+					BLACKBOARD_PRESS.block.value
 			).build()
 	);
 
 	public static final MenuType<PainterPaletteMenu> PAINTER_PALETTE_MENU_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
-			AurorasCanvas.id("painter_palette"),
+			id("painter_palette"),
 			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new)
 	);
 
-	static <T extends Block> T registerBlock(
+
+	public static final TagKey<Item> BLACKBOARD_ITEMS = TagKey.create(Registries.ITEM, id("blackboards"));
+
+	public static final TagKey<Block> BLACKBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("blackboards"));
+	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
+
+	static <T extends Block> BlockEntry<T> registerBlock(
 			Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties
 	) {
 		var key = ResourceKey.create(Registries.BLOCK, id);
 		var block = factory.apply(properties);
-		return Registry.register(BuiltInRegistries.BLOCK, id, block);
+		return new BlockEntry<>(key, Registry.register(BuiltInRegistries.BLOCK, key, block));
 	}
 
-	static <T extends Block> T registerBlockWithItem(
-			Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties,
-			BiFunction<T, Item.Properties, BlockItem> itemFactory, Item.Properties itemProperties
+	static <B extends Block, I extends BlockItem> BlockItemEntry<B, I> registerBlockWithItem(
+			Identifier id, Function<BlockBehaviour.Properties, B> factory, BlockBehaviour.Properties properties,
+			BiFunction<B, Item.Properties, I> itemFactory, Item.Properties itemProperties
 	) {
 		var block = registerBlock(id, factory, properties);
 
 		var key = ResourceKey.create(Registries.ITEM, id);
-		Registry.register(BuiltInRegistries.ITEM, id, itemFactory.apply(block, itemProperties));
+		var item = Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(block.value, itemProperties));
 
-		return block;
+		return new BlockItemEntry<>(block, new ItemEntry<>(key, item));
 	}
+
+	public record BlockEntry<T extends Block>(ResourceKey<Block> key, T value) {}
+
+	public record ItemEntry<T extends Item>(ResourceKey<Item> key, T value) {}
+
+	public record BlockItemEntry<B extends Block, I extends BlockItem>(BlockEntry<B> block, ItemEntry<I> item) {}
 
 	static void init() {
 	}

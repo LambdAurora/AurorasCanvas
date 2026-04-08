@@ -40,8 +40,8 @@ public record UnbakedForwardingModel(UnbakedModel baseModel, Function<BakedModel
 
 	@Override
 	public BakedModel bake(
-			ModelBaker loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
 	) {
-		return this.factory.apply(Objects.requireNonNull(this.baseModel.bake(loader, textureGetter, modelState, modelId)));
+		return this.factory.apply(Objects.requireNonNull(this.baseModel.bake(modelBaker, textureGetter, modelState, modelId)));
 	}
 }

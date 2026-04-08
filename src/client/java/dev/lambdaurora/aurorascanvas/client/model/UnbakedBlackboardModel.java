@@ -56,8 +56,8 @@ public class UnbakedBlackboardModel implements UnbakedModel {
 	}
 
 	protected BakedModel bakeBaseModel(
-			ModelBaker loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
 	) {
-		return Objects.requireNonNull(this.baseModel.bake(loader, textureGetter, modelState, modelId));
+		return Objects.requireNonNull(this.baseModel.bake(modelBaker, textureGetter, modelState, modelId));
 	}
 }

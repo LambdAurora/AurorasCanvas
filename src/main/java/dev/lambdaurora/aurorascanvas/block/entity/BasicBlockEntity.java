@@ -10,9 +10,16 @@
 package dev.lambdaurora.aurorascanvas.block.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.Objects;
 
 /**
  * Represents a basic block entity with common serialization and update packet code.
@@ -21,18 +28,35 @@ import net.minecraft.world.level.block.state.BlockState;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BasicBlockEntity extends BlockEntity implements QuiltBlockEntity {
-	public BasicBlockEntity(BlockEntityType<?> blockEntityType, BlockPos blockPos, BlockState blockState) {
-		super(blockEntityType, blockPos, blockState);
+public class BasicBlockEntity extends BlockEntity {
+	public BasicBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+		super(type, pos, blockState);
+	}
+
+	/**
+	 * Attempts to synchronize the block entity data to the client.
+	 *
+	 * @throws IllegalStateException if called on the logical client
+	 * @throws NullPointerException  if there's no level associated with the block entity
+	 */
+	protected void sync() {
+		var level = this.getLevel();
+
+		Objects.requireNonNull(level); // Maintain distinct failure case from below.
+		if (level instanceof ServerLevel serverLevel) {
+			serverLevel.getChunkSource().blockChanged(this.getBlockPos());
+		} else {
+			throw new UnsupportedOperationException("Cannot call sync() on the logical client!");
+		}
 	}
 
 	@Override
-	public NbtCompound toSyncedNbt() {
-		return this.toNbt();
+	public CompoundTag getUpdateTag() {
+		return this.saveWithoutMetadata();
 	}
 
 	@Override
-	public Packet<ClientPlayPacketListener> toUpdatePacket() {
-		return BlockEntityUpdateS2CPacket.of(this);
+	public Packet<ClientGamePacketListener> getUpdatePacket() {
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 }

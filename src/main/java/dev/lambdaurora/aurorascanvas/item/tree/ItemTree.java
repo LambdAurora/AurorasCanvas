@@ -14,15 +14,13 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.LanternBlock;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.AMETHYST_LANTERN_ITEM;
-import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.REDSTONE_LANTERN_ITEM;
 
 public class ItemTree extends ItemTreeGroupNode {
 	private static final Identifier PHASE = AurorasCanvas.id("phase");
@@ -66,7 +64,6 @@ public class ItemTree extends ItemTreeGroupNode {
 
 	public static void init() {
 		register(CreativeModeTabs.FUNCTIONAL_BLOCKS, ItemTree::modifyFunctionalBlocks);
-		register(CreativeModeTabs.REDSTONE_BLOCKS, ItemTree::modifyRedstoneBlocks);
 	}
 
 	private static void register(ResourceKey<CreativeModeTab> tab, Consumer<ItemTree> modifier) {
@@ -90,20 +87,5 @@ public class ItemTree extends ItemTreeGroupNode {
 	}
 
 	private static void modifyFunctionalBlocks(ItemTree tree) {
-		var lanterns = tree.collectItemsAsGroup(new Identifier(Identifier.DEFAULT_NAMESPACE, "lantern"),
-				stack -> stack.getItem() instanceof BlockItem blockItem
-						&& blockItem.getBlock() instanceof LanternBlock
-		);
-
-		if (lanterns == null) {
-			lanterns = tree;
-		}
-
-		lanterns.add(AMETHYST_LANTERN_ITEM);
-		lanterns.add(REDSTONE_LANTERN_ITEM);
-	}
-
-	private static void modifyRedstoneBlocks(ItemTree tree) {
-		tree.addAfter(Items.REDSTONE_TORCH, REDSTONE_LANTERN_ITEM);
 	}
 }

@@ -55,8 +55,8 @@ public class BlackboardColor extends DrawModifier {
 	public static final BlackboardColor EMPTY = new BlackboardColor((byte) 0, 0x00000000, Items.PAPER);
 	public static final byte FREE_COLOR_SPACE = (byte) (DyeColor.values().length + 1);
 	public static final BlackboardColor SWEET_BERRIES = new BlackboardColor(FREE_COLOR_SPACE, 0xffbb0000, Items.SWEET_BERRIES);
-	public static final BlackboardColor GLOW_BERRIES = new BlackboardColor(FREE_COLOR_SPACE + 1, 0xffff9737, Items.GLOW_BERRIES);
-	public static final BlackboardColor LAVENDER = new BlackboardColor(FREE_COLOR_SPACE + 3, 0xffb886db, AurorasDecoPlants.LAVENDER.item());
+	//public static final BlackboardColor GLOW_BERRIES = new BlackboardColor(FREE_COLOR_SPACE + 1, 0xffff9737, Items.GLOW_BERRIES);
+	//public static final BlackboardColor LAVENDER = new BlackboardColor(FREE_COLOR_SPACE + 3, 0xffb886db, AurorasDecoPlants.LAVENDER.item());
 
 	public static final int BLUEBERRIES_COLOR = 0xff006ac6;
 
@@ -214,14 +214,14 @@ public class BlackboardColor extends DrawModifier {
 		int red = (int) (color.getTextureDiffuseColors()[0] * 255.f);
 		int green = (int) (color.getTextureDiffuseColors()[1] * 255.f);
 		int blue = (int) (color.getTextureDiffuseColors()[2] * 255.f);
-		return new BlackboardColor(color.getId() + 1, 0xff000000 | (red << 16) | (green << 8) | blue, dyeItem);
+		return new BlackboardColor((byte) (color.getId() + 1), 0xff000000 | (red << 16) | (green << 8) | blue, dyeItem);
 	}
 
 	public static void tryRegisterColorFromItem(Identifier id, Item item) {
 		if (item instanceof DyeItem dyeItem) {
 			fromDye(dyeItem);
 		} else if (id.getNamespace().equals("ecotones") && id.getPath().equals("blueberries")) {
-			new BlackboardColor(FREE_COLOR_SPACE + 2, BLUEBERRIES_COLOR, item);
+			new BlackboardColor((byte) (FREE_COLOR_SPACE + 2), BLUEBERRIES_COLOR, item);
 		}
 	}
 

@@ -24,14 +24,14 @@
 		],
 		"fabric-datagen": [
 			"dev.lambdaurora.aurorascanvas.resource.AurorasCanvasStaticDatagen"
-		],
-		"fabric-gametest": [
-			"dev.lambdaurora.aurorascanvas.test.RedstoneLanternTest",
-			"dev.lambdaurora.aurorascanvas.test.WallLanternTest"
 		]
 	},
 	"mixins": [
-		"aurorascanvas.mixins.json"
+		"aurorascanvas.mixins.json",
+		{
+			"config": "aurorascanvas.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
 		"fabricloader": ">=0.16.9",

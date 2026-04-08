@@ -9,24 +9,24 @@
 
 package dev.lambdaurora.aurorascanvas.block.entity;
 
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.fabricmc.api.EnvType;
+import dev.yumi.commons.event.Event;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 /**
  * Represents a canvas block entity, stores the pixels of a canvas.
@@ -36,32 +36,42 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity, CanvasHandler {
-	@ClientOnly
-	private static final Set<BlackboardBlockEntity> ACTIVE_BLACKBOARDS = new ObjectOpenHashSet<>();
-	private final Canvas blackboard = new AssignedCanvas();
+	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
+			SidedLogic.class,
+			sidedLogics -> blockEntity -> {
+				for (var sidedLogic : sidedLogics) {
+					return sidedLogic.onAdded(blockEntity);
+				}
+
+				return NoOpSidedData.INSTANCE;
+			}
+	);
+
+	private final Canvas canvas = new AssignedCanvas();
 	private @Nullable Component customName;
 
-	public Player lastUser;
+	public @Nullable Player lastUser;
 	public int lastX;
 	public int lastY;
 
-	@ClientOnly
-	private Mesh mesh = null;
-	@ClientOnly
-	private boolean meshDirty = true;
+	private SidedData sidedData = NoOpSidedData.INSTANCE;
 
 	public BlackboardBlockEntity(BlockPos pos, BlockState state) {
 		super(AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE, pos, state);
 	}
 
+	public Canvas canvas() {
+		return this.canvas;
+	}
+
 	@Override
 	public short getPixel(int x, int y) {
-		return this.blackboard.getPixel(x, y);
+		return this.canvas.getPixel(x, y);
 	}
 
 	@Override
 	public boolean setPixel(int x, int y, int color) {
-		if (this.blackboard.setPixel(x, y, color)) {
+		if (this.canvas.setPixel(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
 				this.setChanged();
@@ -73,7 +83,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	@Override
 	public boolean brush(int x, int y, int color) {
-		if (this.blackboard.brush(x, y, color)) {
+		if (this.canvas.brush(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
 				this.setChanged();
@@ -85,7 +95,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	@Override
 	public boolean replace(int x, int y, int color) {
-		if (this.blackboard.replace(x, y, color)) {
+		if (this.canvas.replace(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
 				this.setChanged();
@@ -97,7 +107,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	@Override
 	public boolean fill(int x, int y, int color) {
-		if (this.blackboard.fill(x, y, color)) {
+		if (this.canvas.fill(x, y, color)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
 				this.setChanged();
@@ -109,7 +119,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	@Override
 	public boolean line(int x1, int y1, int x2, int y2, DrawModifier modifier) {
-		if (this.blackboard.line(x1, y1, x2, y2, modifier)) {
+		if (this.canvas.line(x1, y1, x2, y2, modifier)) {
 			if (this.getLevel() instanceof ServerLevel) {
 				this.sync();
 				this.setChanged();
@@ -120,7 +130,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	}
 
 	public void copy(Canvas source) {
-		this.blackboard.copy(source);
+		this.canvas.copy(source);
 		if (this.getLevel() instanceof ServerLevel) {
 			this.sync();
 			this.setChanged();
@@ -131,7 +141,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	 * Clears the canvas.
 	 */
 	public void clear() {
-		this.blackboard.clear();
+		this.canvas.clear();
 		this.lastUser = null;
 		if (this.getLevel() instanceof ServerLevel) {
 			this.sync();
@@ -145,7 +155,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
 	public boolean isEmpty() {
-		return this.blackboard.isEmpty();
+		return this.canvas.isEmpty();
 	}
 
 	@Override
@@ -181,100 +191,85 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	public void setRemoved() {
 		super.setRemoved();
 
-		if (MinecraftQuiltLoader.getEnvironmentType() == EnvType.CLIENT) {
-			this.markBlackboardRemoved();
-		}
+		this.sidedData.onRemoved();
+		this.sidedData = NoOpSidedData.INSTANCE;
 	}
 
 	@Override
 	public void clearRemoved() {
 		super.clearRemoved();
 
-		if (MinecraftQuiltLoader.getEnvironmentType() == EnvType.CLIENT) {
-			ACTIVE_BLACKBOARDS.add(this);
-		}
+		this.sidedData = SIDED_LOGIC.invoker().onAdded(this);
 	}
 
 	/* Client */
 
 	@Override
 	public @Nullable Object getRenderAttachmentData() {
-		if (this.meshDirty)
-			this.rebuildMesh();
-		return this.mesh;
-	}
-
-	@ClientOnly
-	public void markMeshDirty() {
-		this.meshDirty = true;
-	}
-
-	@ClientOnly
-	private void rebuildMesh() {
-		this.meshDirty = false;
-		int light = this.blackboard.isLit() ? 0xf000f0 : 0;
-		this.mesh = this.blackboard.buildMesh(this.getCachedState().get(BlackboardBlock.FACING), light);
-	}
-
-	@ClientOnly
-	public void markBlackboardRemoved() {
-		ACTIVE_BLACKBOARDS.remove(this);
-	}
-
-	@ClientOnly
-	public static void markAllMeshesDirty() {
-		ACTIVE_BLACKBOARDS.forEach(BlackboardBlockEntity::markMeshDirty);
-	}
-
-	@ClientOnly
-	public static void onWorldChange(@Nullable ClientWorld world) {
-		ACTIVE_BLACKBOARDS.removeIf(blackboardBlockEntity -> blackboardBlockEntity.world == null
-				|| blackboardBlockEntity.world != world);
+		return this.sidedData.getRenderAttachmentData();
 	}
 
 	/* Serialization */
 
 	@Override
-	public void readNbt(CompoundTag nbt) {
-		super.readNbt(nbt);
+	public void load(CompoundTag nbt) {
+		super.load(nbt);
 		this.readBlackBoardNbt(nbt);
 		this.lastUser = null;
-		if (this.level != null && this.level.isClientSide()) {
-			this.refreshRendering();
-		}
-	}
 
-	public void refreshRendering() {
-		if (this.world instanceof ClientWorld clientWorld) {
-			this.rebuildMesh();
-			clientWorld.scheduleBlockRenders(
-					ChunkSectionPos.getSectionCoord(this.getPos().getX()),
-					ChunkSectionPos.getSectionCoord(this.getPos().getY()),
-					ChunkSectionPos.getSectionCoord(this.getPos().getZ())
-			);
+		if (this.level != null && this.level.isClientSide()) {
+			this.sidedData.markChanged();
 		}
 	}
 
 	@Override
-	public void writeNbt(CompoundTag nbt) {
-		super.writeNbt(nbt);
+	public void saveAdditional(CompoundTag nbt) {
+		super.saveAdditional(nbt);
 		this.writeBlackBoardNbt(nbt);
 	}
 
 	public void readBlackBoardNbt(CompoundTag nbt) {
-		this.blackboard.readNbt(nbt);
+		this.canvas.readNbt(nbt);
 
-		if (nbt.contains("custom_name", NbtElement.STRING_TYPE)) {
-			this.customName = Text.Serializer.fromJson(nbt.getString("custom_name"));
+		if (nbt.contains("custom_name", Tag.TAG_STRING)) {
+			this.customName = Component.Serializer.fromJson(nbt.getString("custom_name"));
 		}
 	}
 
 	public CompoundTag writeBlackBoardNbt(CompoundTag nbt) {
-		this.blackboard.writeNbt(nbt);
+		this.canvas.writeNbt(nbt);
 		if (this.customName != null) {
-			nbt.putString("custom_name", Text.Serializer.toJson(this.customName));
+			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
 		}
 		return nbt;
+	}
+
+	public interface SidedData extends RenderAttachmentBlockEntity {
+		void markChanged();
+
+		void onRemoved();
+	}
+
+	static final class NoOpSidedData implements SidedData {
+		static final SidedData INSTANCE = new NoOpSidedData();
+
+		private NoOpSidedData() {}
+
+		@Override
+		public void markChanged() {}
+
+		@Override
+		public void onRemoved() {}
+
+		@Override
+		public @Nullable Object getRenderAttachmentData() {
+			return null;
+		}
+	}
+
+	@FunctionalInterface
+	public interface SidedLogic {
+		SidedData onAdded(BlackboardBlockEntity blockEntity);
 	}
 
 	private class AssignedCanvas extends Canvas {

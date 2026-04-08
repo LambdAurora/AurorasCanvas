@@ -10,14 +10,9 @@
 package dev.lambdaurora.aurorascanvas;
 
 import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
-import dev.lambdaurora.aurorascanvas.resource.AurorasCanvasRuntimeDatagen;
-import dev.lambdaurora.aurorascanvas.resource.InMemoryPackResources;
 import dev.yumi.commons.event.EventManager;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.PackType;
-
-import java.util.stream.Collectors;
 
 /**
  * Represents the Aurora's Canvas mod.
@@ -33,21 +28,6 @@ public final class AurorasCanvas implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		AurorasCanvasRegistry.init();
-
-		AurorasCanvasRuntimeDatagen.DATA_DATAGEN.register(registrar -> {
-			var pack = new InMemoryPackResources.Named(AurorasCanvas.id("generated").toString());
-			registrar.accept(pack);
-
-			pack.putText(PackType.SERVER_DATA, AurorasCanvas.id("tags/blocks/wall_lanterns.json"), """
-					{
-						"replace": false,
-						"values": [
-							%s
-						]
-					}
-					""".formatted(LanternRegistry.streamIds().map(id -> '"' + id.toString() + '"').collect(Collectors.joining(",\n\t\t")))
-			);
-		});
 
 		ItemTree.init();
 	}
