@@ -9,6 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.canvas;
 
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -306,7 +307,7 @@ public class Canvas implements CanvasHandler {
 	}
 
 	public enum DrawAction {
-		DEFAULT("aurorasdeco.canvas.tool.pixel") {
+		DEFAULT(AurorasCanvas.NAMESPACE + ".tool.pixel") {
 			@Override
 			public @Nullable Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return null;
@@ -318,7 +319,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.setPixel(x, y, modifier.apply(colorData));
 			}
 		},
-		BRUSH("aurorasdeco.canvas.tool.brush") {
+		BRUSH(AurorasCanvas.NAMESPACE + ".tool.brush") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.BRUSH;
@@ -330,7 +331,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.brush(x, y, modifier.apply(colorData));
 			}
 		},
-		FILL("aurorasdeco.canvas.tool.fill") {
+		FILL(AurorasCanvas.NAMESPACE + ".tool.fill") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.BUCKET;
@@ -342,7 +343,7 @@ public class Canvas implements CanvasHandler {
 				return blackboard.fill(x, y, modifier.apply(colorData));
 			}
 		},
-		REPLACE("aurorasdeco.canvas.tool.replace") {
+		REPLACE(AurorasCanvas.NAMESPACE + ".tool.replace") {
 			@Override
 			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
 				return Items.ENDER_PEARL;

@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas;
 import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
 import dev.yumi.commons.event.EventManager;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -30,6 +31,11 @@ public final class AurorasCanvas implements ModInitializer {
 		AurorasCanvasRegistry.init();
 
 		ItemTree.init();
+
+		ServerPlayNetworking.registerGlobalReceiver(
+				AurorasCanvasPackets.PAINTER_PALETTE_SCROLL,
+				AurorasCanvasPackets::handlePainterPaletteScroll
+		);
 	}
 
 	public static Identifier id(String path) {

@@ -16,7 +16,6 @@ import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -124,67 +123,56 @@ public class PainterPaletteItem extends Item {
 		return super.use(world, user, hand);
 	}
 
-	public boolean onScroll(Player player, ItemStack paletteStack, double scrollDelta, boolean toolModifier) {
+	public void onScroll(Player player, ItemStack paletteStack, double scrollDelta, boolean toolModifier) {
 		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
 
 		if (inventory.isEmpty()) {
-			return false;
+			return;
 		}
 
-		if (player.level().isClientSide()) {
-			var buffer = PacketByteBufs.create();
-			buffer.writeDouble(scrollDelta);
-			buffer.writeBoolean(toolModifier);
+		if (!toolModifier) {
+			if (scrollDelta < 0) {
+				byte nextColor = inventory.findFirstNextColor();
 
-			// TODO: networking.
-			//ClientPlayNetworking.send(AurorasDecoPackets.PAINTER_PALETTE_SCROLL, buffer);
-		} else {
-			if (!toolModifier) {
-				if (scrollDelta < 0) {
-					byte nextColor = inventory.findFirstNextColor();
-
-					if (nextColor != -1) {
-						inventory.selectedColor = nextColor;
-					}
-				} else {
-					byte previousColor = inventory.findFirstPreviousColor();
-
-					if (previousColor != -1) {
-						inventory.selectedColor = previousColor;
-					}
+				if (nextColor != -1) {
+					inventory.selectedColor = nextColor;
 				}
+			} else {
+				byte previousColor = inventory.findFirstPreviousColor();
 
+				if (previousColor != -1) {
+					inventory.selectedColor = previousColor;
+				}
+			}
+
+			var nbt = inventory.toNbt();
+			if (nbt != null) paletteStack.addTagElement("inventory", nbt);
+			else paletteStack.removeTagKey("inventory");
+			player.inventoryMenu.broadcastChanges();
+
+			var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
+
+			if (!(modifier instanceof BlackboardColor) && modifier != null) {
+				player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
+			}
+		} else {
+			byte nextTool = inventory.scrollTool(scrollDelta < 0);
+
+			if (inventory.selectedTool != nextTool) {
+				inventory.selectedTool = nextTool;
 				var nbt = inventory.toNbt();
 				if (nbt != null) paletteStack.addTagElement("inventory", nbt);
 				else paletteStack.removeTagKey("inventory");
 				player.inventoryMenu.broadcastChanges();
 
-				var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
+				var message = getSelectedToolMessage(inventory, player.level().enabledFeatures());
+				BlackboardColor primaryColor = BlackboardColor.fromItem(inventory.getSelectedColor().getItem());
 
-				if (!(modifier instanceof BlackboardColor) && modifier != null) {
-					player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
-				}
-			} else {
-				byte nextTool = inventory.scrollTool(scrollDelta < 0);
+				if (primaryColor != null && primaryColor != BlackboardColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
 
-				if (inventory.selectedTool != nextTool) {
-					inventory.selectedTool = nextTool;
-					var nbt = inventory.toNbt();
-					if (nbt != null) paletteStack.addTagElement("inventory", nbt);
-					else paletteStack.removeTagKey("inventory");
-					player.inventoryMenu.broadcastChanges();
-
-					var message = getSelectedToolMessage(inventory, player.level().enabledFeatures());
-					BlackboardColor primaryColor = BlackboardColor.fromItem(inventory.getSelectedColor().getItem());
-
-					if (primaryColor != null && primaryColor != BlackboardColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
-
-					player.displayClientMessage(message, true);
-				}
+				player.displayClientMessage(message, true);
 			}
 		}
-
-		return true;
 	}
 
 	public int getColor(ItemStack paletteStack, int tintIndex) {
