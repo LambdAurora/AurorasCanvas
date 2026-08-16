@@ -297,8 +297,8 @@ public class Canvas implements CanvasHandler {
 				converted[newIndex] = 0;
 				newIndex++;
 			} else {
-				converted[newIndex] = (byte) (pixel / 4);
-				converted[newIndex + 1] = (byte) ((pixel & 3) << 4);
+				converted[newIndex] = (byte) ((pixel & 0b11111100) >> 2);
+				converted[newIndex + 1] = (byte) ((pixel & 0b11) << 4);
 				newIndex += 2;
 			}
 		}

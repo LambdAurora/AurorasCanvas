@@ -8,7 +8,7 @@ mappings-yalmm = "1"
 yumi-commons = "1.0.0"
 
 # Gradle
-gradle-licenser = "3.0.1+"
+gradle-licenser = "4.0.+"
 gradle-loom = "1.13.+"
 gradle-lambdamcdev = "1.6.+"
 

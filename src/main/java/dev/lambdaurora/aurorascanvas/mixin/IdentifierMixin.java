@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.mixin;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import net.minecraft.resources.Identifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,8 +37,8 @@ public class IdentifierMixin {
 			at = @At("TAIL")
 	)
 	private void aurorascanvas$onInit(String namespace, String path, @Coerce Object dummy, CallbackInfo ci) {
-		if (this.namespace.equals("aurorasdeco")) {
-			if (this.path.equals("canvas")) {
+		if (this.namespace.equals(AurorasDecoDataUpper.OLD_NAMESPACE)) {
+			if (this.path.contains("blackboard") || this.path.contains("chalkboard") || this.path.contains("glassboard")) {
 				this.namespace = AurorasCanvas.NAMESPACE;
 			}
 		}

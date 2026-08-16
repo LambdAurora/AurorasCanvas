@@ -1,9 +1,7 @@
-import com.modrinth.minotaur.dependencies.ModDependency
 import dev.lambdaurora.mcdev.api.McVersionLookup
 import dev.lambdaurora.mcdev.api.ModUtils
 import dev.lambdaurora.mcdev.api.ModVersionDependency
 import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
-import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
 	alias(libs.plugins.loom)
@@ -11,8 +9,6 @@ plugins {
 	alias(libs.plugins.licenser)
 	`java-library`
 	`maven-publish`
-	id("com.modrinth.minotaur").version("2.+")
-	id("net.darkhax.curseforgegradle").version("1.1.+")
 }
 
 base.archivesName.set(project.property("mod_namespace") as String)
@@ -84,6 +80,69 @@ java {
 	withSourcesJar()
 }
 
+lambdamcdev {
+	/*manifests {
+		fmj {
+			val sourcesLink = "https://github.com/LambdAurora/AurorasLanterns"
+
+			withName(project.property("mod_name") as String)
+			withDescription(project.property("mod_description") as String)
+			withAuthors("LambdAurora")
+			withContact {
+				it.withHomepage("https://lambdaurora.dev/projects/aurorascanvas")
+					.withSources("$sourcesLink.git")
+					.withIssues("$sourcesLink/issues")
+			}
+			withLicense("Lambda License")
+			withIcon("assets/${namespace.get()}/icon.png")
+			withEnvironment("*")
+			withEntrypoints("yumi:init", "dev.lambdaurora.aurorascanvas.AurorasCanvas")
+			withEntrypoints("yumi:client_init", "dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient")
+			withEntrypoints("fabric-datagen", "dev.lambdaurora.aurorascanvas.resource.AurorasCanvasStaticDatagen")
+			withMixins(
+				MixinEntry("${namespace.get()}.mixins.json"),
+				MixinEntry("${namespace.get()}.client.mixins.json", ModEnvironment.CLIENT),
+			)
+			withDepend("fabricloader", ">=${libs.versions.fabric.loader.get()}")
+			withDepend("minecraft", project.property("fabric_mc_constraints").toString())
+			withDepend("java", ">=$targetJavaVersion")
+			withDepend("fabric-api", ">=${libs.versions.fabric.api.get()}")
+			withBreak("aurorasdeco", "<=1.0.0-beta.22")
+			withModMenu {
+				it.withCurseForge("https://www.curseforge.com/minecraft/mc-mods/aurorascanvas")
+					.withDiscord("https://discord.lambdaurora.dev/")
+					.withGitHubReleases("$sourcesLink/releases")
+					.withModrinth("https://modrinth.com/mod/aurorascanvas")
+					.withLink("modmenu.bluesky", "https://bsky.app/profile/lambdaurora.dev")
+					.withLink("modmenu.donate", "https://donate.lambdaurora.dev/")
+			}
+		}
+
+		if (supportNeoforge) {
+			val fmj = this.fmj().get()
+
+			nmt {
+				fmj.copyTo(this)
+				withLoaderVersion("[2,)")
+				withBlurIcon(false)
+				withYumiEntrypoints(
+					"yumi:init",
+					"dev.lambdaurora.auroraslanterns.AurorasLanterns",
+					"dev.lambdaurora.auroraslanterns.platform.neoforge.NeoAurorasLanterns",
+				)
+				withYumiEntrypoints("yumi:client_init", "dev.lambdaurora.auroraslanterns.client.AurorasLanternsClient")
+				withAccessTransformer("META-INF/accesstransformer.cfg")
+				withMixins("${namespace.get()}.mixins.json", "${namespace.get()}.client.mixins.json")
+				withDepend("minecraft", project.property("neoforge_mc_constraints").toString())
+				withDepend("yumi_mc_core", "[${libs.versions.yumi.mc.foundation.get()},)")
+				withDepend("fabric_api", "[${libs.versions.fabric.api.get()},)")
+			}
+		}
+	}
+
+	setupActionsRefCheck()*/
+}
+
 tasks.withType<JavaCompile>().configureEach {
 	options.encoding = "UTF-8"
 	options.isDeprecation = true
@@ -111,6 +170,7 @@ tasks.jar {
 
 license {
 	rule(file("metadata/HEADER"))
+	include("**/*.java")
 }
 
 val README = ModUtils.parseReadme(
@@ -118,7 +178,7 @@ val README = ModUtils.parseReadme(
 )
 val CHANGELOG_CONTENT = ModUtils.fetchChangelog(project, VERSION)
 
-val packageModrinth by tasks.registering(PackageModrinthTask::class) {
+tasks.register<PackageModrinthTask>("packageModrinth") {
 	this.group = "publishing"
 	this.versionType.set(ModUtils.getVersionType(VERSION, mcVersion))
 	this.versionName.set("${project.property("mod_name")} $VERSION (${McVersionLookup.getVersionTag(mcVersion)})")
@@ -132,74 +192,6 @@ val packageModrinth by tasks.registering(PackageModrinthTask::class) {
 	this.changelog.set(CHANGELOG_CONTENT)
 	this.readme.set(README)
 	this.files.setFrom(tasks.remapJar.get())
-}
-
-modrinth {
-	projectId.set(project.property("modrinth_id") as String)
-	versionName.set("${project.property("mod_name")} $VERSION (${McVersionLookup.getVersionTag(mcVersion)})")
-	versionType.set(ModUtils.fetchVersionType(VERSION, mcVersion))
-	uploadFile.set(tasks.remapJar)
-	loaders.set(listOf("fabric", "quilt"))
-	gameVersions.set(listOf(mcVersion) + compatibleMcVersions)
-	dependencies.set(
-		listOf(
-			ModDependency("P7dR8mSH", "required") // Fabric API
-		)
-	)
-	syncBodyFrom.set(README)
-
-	// Changelog fetching
-	if (CHANGELOG_CONTENT != null) {
-		changelog.set(CHANGELOG_CONTENT)
-	} else {
-		afterEvaluate {
-			tasks.modrinth.get().isEnabled = false
-		}
-	}
-
-	// If we don't have a MODRINTH_TOKEN, don't run the modrinth publish tasks.
-	if (System.getenv("MODRINTH_TOKEN") == null) {
-		project.logger.debug("MODRINTH_TOKEN is not set! Disabled modrinth and modrinthSyncBody tasks.")
-		tasks.modrinth.get().isEnabled = false
-		tasks.modrinthSyncBody.get().isEnabled = false
-	}
-}
-
-tasks.register<TaskPublishCurseForge>("curseforge") {
-	this.group = "publishing"
-
-	val token = System.getenv("CURSEFORGE_TOKEN")
-	if (token != null) {
-		this.apiToken = token
-	} else {
-		this.isEnabled = false
-		return@register
-	}
-
-	// Changelog fetching
-	var changelogContent = CHANGELOG_CONTENT
-
-	if (changelogContent != null) {
-		changelogContent = "Changelog:\n\n${changelogContent}"
-	} else {
-		this.isEnabled = false
-		return@register
-	}
-
-	val mainFile = upload(project.property("curseforge_id"), tasks.remapJar.get())
-	mainFile.releaseType = ModUtils.fetchVersionType(VERSION, mcVersion)
-	mainFile.addGameVersion(McVersionLookup.getCurseForgeEquivalent(mcVersion))
-	compatibleMcVersions.stream()
-		.map { McVersionLookup.getCurseForgeEquivalent(it) }
-		.forEach { mainFile.addGameVersion(it) }
-	mainFile.addModLoader("Fabric", "Quilt")
-	mainFile.addJavaVersion("Java 17", "Java 18", "Java 19", "Java 20", "Java 21", "Java 22")
-
-	mainFile.displayName = "${project.property("mod_name")} $VERSION (${McVersionLookup.getVersionTag(mcVersion)})"
-	mainFile.addRequirement("fabric-api")
-
-	mainFile.changelogType = "markdown"
-	mainFile.changelog = changelogContent
 }
 
 publishing {

@@ -9,6 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.canvas;
 
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
@@ -66,10 +67,10 @@ public class BlackboardColor extends DrawModifier {
 	public static final BlackboardColor GREEN = fromDye(14, Items.GREEN_DYE);
 	public static final BlackboardColor RED = fromDye(15, Items.RED_DYE);
 	public static final BlackboardColor BLACK = fromDye(16, Items.BLACK_DYE);
-	public static final BlackboardColor SWEET_BERRIES = new BlackboardColor(16, 0xffbb0000, Items.SWEET_BERRIES);
-	public static final BlackboardColor GLOW_BERRIES = new BlackboardColor(17, 0xffff9737, Items.GLOW_BERRIES);
-	public static final BlackboardColor BLUEBERRIES = new BlackboardColor(18, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
-	public static final BlackboardColor LAVENDER = new BlackboardColor(19, 0xffb886db, new CompatMatcher(new Identifier("aurorasdeco", "lavender")));
+	public static final BlackboardColor SWEET_BERRIES = new BlackboardColor(17, 0xffbb0000, Items.SWEET_BERRIES);
+	public static final BlackboardColor GLOW_BERRIES = new BlackboardColor(18, 0xffff9737, Items.GLOW_BERRIES);
+	public static final BlackboardColor BLUEBERRIES = new BlackboardColor(19, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
+	public static final BlackboardColor LAVENDER = new BlackboardColor(20, 0xffb886db, new CompatMatcher(AurorasDecoDataUpper.id("lavender")));
 
 	private final byte id;
 	private final Predicate<Item> itemMatcher;
@@ -79,6 +80,9 @@ public class BlackboardColor extends DrawModifier {
 		this.id = (byte) id;
 		this.itemMatcher = item;
 
+		if (COLORS.containsKey((byte) id)) {
+			throw new IllegalStateException("Cannot register color twice for the same identifier.");
+		}
 		COLORS.put((byte) id, this);
 	}
 
