@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.block;
 
 import com.google.common.collect.ImmutableMap;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
@@ -64,7 +64,7 @@ import java.util.Map;
  * @since 1.0.0
  */
 @SuppressWarnings("deprecation")
-public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -73,7 +73,7 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 
 	private final boolean locked;
 
-	public BlackboardBlock(Properties settings, boolean locked) {
+	public CanvasBlock(Properties settings, boolean locked) {
 		super(settings);
 		this.locked = locked;
 
@@ -127,7 +127,7 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 		Direction firstDirection = Direction.NORTH;
 		for (var direction : directions) {
 			var adjacentState = world.getBlockState(pos.relative(direction));
-			if (adjacentState.getBlock() instanceof BlackboardBlock) {
+			if (adjacentState.getBlock() instanceof CanvasBlock) {
 				return state.setValue(FACING, adjacentState.getValue(FACING));
 			}
 
@@ -312,7 +312,7 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 		return super.use(state, world, pos, player, hand, hit);
 	}
 
-	private void line(BlackboardBlockEntity blackboard, Player player, int x, int y, DrawModifier modifier) {
+	private void line(CanvasBlockEntity blackboard, Player player, int x, int y, DrawModifier modifier) {
 		if (blackboard.lastUser != player) {
 			blackboard.lastUser = player;
 			blackboard.lastX = x;
@@ -323,7 +323,7 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 		}
 	}
 
-	private boolean tryClear(Level world, BlackboardBlockEntity blackboard, @Nullable Player player) {
+	private boolean tryClear(Level world, CanvasBlockEntity blackboard, @Nullable Player player) {
 		if (!blackboard.isEmpty()) {
 			blackboard.clear();
 
@@ -381,9 +381,9 @@ public class BlackboardBlock extends BaseEntityBlock implements SimpleWaterlogge
 		return AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE.create(pos, state);
 	}
 
-	public @Nullable BlackboardBlockEntity getBlackboardEntity(BlockGetter world, BlockPos pos) {
+	public @Nullable CanvasBlockEntity getBlackboardEntity(BlockGetter world, BlockPos pos) {
 		var entity = world.getBlockEntity(pos);
-		if (entity instanceof BlackboardBlockEntity blackboard)
+		if (entity instanceof CanvasBlockEntity blackboard)
 			return blackboard;
 		return null;
 	}

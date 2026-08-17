@@ -39,13 +39,13 @@ public abstract class DrawModifier {
 
 		@Override
 		public short apply(short colorData) {
-			var color = BlackboardColor.fromRaw(colorData);
+			var color = CanvasColor.fromRaw(colorData);
 
-			if (color == BlackboardColor.EMPTY) return 0;
+			if (color == CanvasColor.EMPTY) return 0;
 
-			int shade = BlackboardColor.getShadeFromRaw(colorData);
-			boolean saturated = BlackboardColor.getSaturationFromRaw(colorData);
-			int newShade = BlackboardColor.increaseDarkness(shade);
+			int shade = CanvasColor.getShadeFromRaw(colorData);
+			boolean saturated = CanvasColor.getSaturationFromRaw(colorData);
+			int newShade = CanvasColor.increaseDarkness(shade);
 			return color.toRawId(newShade, saturated);
 		}
 	};
@@ -58,13 +58,13 @@ public abstract class DrawModifier {
 
 		@Override
 		public short apply(short colorData) {
-			var color = BlackboardColor.fromRaw(colorData);
+			var color = CanvasColor.fromRaw(colorData);
 
-			if (color == BlackboardColor.EMPTY) return 0;
+			if (color == CanvasColor.EMPTY) return 0;
 
-			int shade = BlackboardColor.getShadeFromRaw(colorData);
-			boolean saturated = BlackboardColor.getSaturationFromRaw(colorData);
-			int newShade = BlackboardColor.decreaseDarkness(shade);
+			int shade = CanvasColor.getShadeFromRaw(colorData);
+			boolean saturated = CanvasColor.getSaturationFromRaw(colorData);
+			int newShade = CanvasColor.decreaseDarkness(shade);
 			return color.toRawId(newShade, saturated);
 		}
 	};
@@ -77,10 +77,10 @@ public abstract class DrawModifier {
 
 		@Override
 		public short apply(short colorData) {
-			var color = BlackboardColor.fromRaw(colorData);
+			var color = CanvasColor.fromRaw(colorData);
 
-			int shade = BlackboardColor.getShadeFromRaw(colorData);
-			boolean saturated = !BlackboardColor.getSaturationFromRaw(colorData);
+			int shade = CanvasColor.getShadeFromRaw(colorData);
+			boolean saturated = !CanvasColor.getSaturationFromRaw(colorData);
 
 			return color.toRawId(shade, saturated);
 		}

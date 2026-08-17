@@ -10,9 +10,9 @@
 package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
-import dev.lambdaurora.aurorascanvas.tooltip.BlackboardTooltipData;
+import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
@@ -38,12 +38,12 @@ import java.util.Optional;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BlackboardItem extends BlockItem {
+public class CanvasItem extends BlockItem {
 	private final boolean locked;
 
-	public BlackboardItem(BlackboardBlock blackboardBlock, Properties settings) {
-		super(blackboardBlock, settings);
-		this.locked = blackboardBlock.isLocked();
+	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {
+		super(canvasBlock, settings);
+		this.locked = canvasBlock.isLocked();
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class BlackboardItem extends BlockItem {
 		var nbt = BlockItem.getBlockEntityData(stack);
 		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
 			var blackboard = Canvas.fromNbt(nbt);
-			return Optional.of(new BlackboardTooltipData(
+			return Optional.of(new CanvasTooltipData(
 					BuiltInRegistries.ITEM.getKey(this).getPath().replace("waxed_", ""),
 					blackboard, this.locked
 			));

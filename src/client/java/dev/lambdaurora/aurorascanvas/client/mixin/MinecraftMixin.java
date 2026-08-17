@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.client.mixin;
 
-import dev.lambdaurora.aurorascanvas.client.ClientBlackboardBlockEntityData;
+import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -24,6 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MinecraftMixin {
 	@Inject(method = "setLevel", at = @At("HEAD"))
 	private void aurorascanvas$onSetLevel(ClientLevel level, CallbackInfo ci) {
-		ClientBlackboardBlockEntityData.onLevelChange(level);
+		ClientCanvasBlockEntityData.onLevelChange(level);
 	}
 }

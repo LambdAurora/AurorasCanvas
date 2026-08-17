@@ -9,11 +9,11 @@
 
 package dev.lambdaurora.aurorascanvas;
 
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
-import dev.lambdaurora.aurorascanvas.block.BlackboardPressBlock;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardBlockEntity;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardPressBlockEntity;
-import dev.lambdaurora.aurorascanvas.item.BlackboardItem;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
+import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -50,58 +50,58 @@ public final class AurorasCanvasRegistry {
 	//region Advancement Triggers
 	//endregion
 
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> BLACKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> BLACKBOARD = registerBlockWithItem(
 			id("blackboard"),
-			properties -> new BlackboardBlock(properties, false),
+			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.create()
 					.strength(.2f)
 					.nonOpaque()
 					.pistonBehavior(PushReaction.DESTROY)
 					.sounds(SoundType.WOOD),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_BLACKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
 			id("waxed_blackboard"),
-			properties -> new BlackboardBlock(properties, true),
+			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> CHALKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> CHALKBOARD = registerBlockWithItem(
 			id("chalkboard"),
-			properties -> new BlackboardBlock(properties, false),
+			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_CHALKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
 			id("waxed_chalkboard"),
-			properties -> new BlackboardBlock(properties, true),
+			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(CHALKBOARD.block.value),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> GLASSBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
 			id("glassboard"),
-			properties -> new BlackboardBlock(properties, false),
+			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value).nonOpaque().sounds(SoundType.GLASS),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<BlackboardBlock, BlackboardItem> WAXED_GLASSBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
 			id("waxed_glassboard"),
-			properties -> new BlackboardBlock(properties, true),
+			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(GLASSBOARD.block.value),
-			BlackboardItem::new,
+			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<BlackboardPressBlock, BlockItem> BLACKBOARD_PRESS = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasPressBlock, BlockItem> BLACKBOARD_PRESS = registerBlockWithItem(
 			id("blackboard_press"),
-			BlackboardPressBlock::new,
+			CanvasPressBlock::new,
 			FabricBlockSettings.create().mapColor(MapColor.METAL),
 			BlockItem::new,
 			new FabricItemSettings()
@@ -113,20 +113,20 @@ public final class AurorasCanvasRegistry {
 			new PainterPaletteItem(new Item.Properties().stacksTo(1))
 	);
 
-	public static final BlockEntityType<BlackboardBlockEntity> BLACKBOARD_BLOCK_ENTITY_TYPE = Registry.register(
+	public static final BlockEntityType<CanvasBlockEntity> BLACKBOARD_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			id("canvas"),
 			FabricBlockEntityTypeBuilder.create(
-					BlackboardBlockEntity::new,
+					CanvasBlockEntity::new,
 					BLACKBOARD.block.value, CHALKBOARD.block.value, GLASSBOARD.block.value,
 					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_GLASSBOARD.block.value
 			).build()
 	);
-	public static final BlockEntityType<BlackboardPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
+	public static final BlockEntityType<CanvasPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			id("blackboard_press"),
 			FabricBlockEntityTypeBuilder.create(
-					BlackboardPressBlockEntity::new,
+					CanvasPressBlockEntity::new,
 					BLACKBOARD_PRESS.block.value
 			).build()
 	);

@@ -32,10 +32,10 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
-public class BlackboardItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
+public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
 	private final ModelResourceLocation modelId;
 
-	public BlackboardItemRenderer(ModelResourceLocation modelId) {
+	public CanvasItemRenderer(ModelResourceLocation modelId) {
 		this.modelId = modelId;
 	}
 

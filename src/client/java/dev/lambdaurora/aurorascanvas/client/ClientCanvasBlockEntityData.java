@@ -9,8 +9,8 @@
 
 package dev.lambdaurora.aurorascanvas.client;
 
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
@@ -23,15 +23,15 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 @Environment(EnvType.CLIENT)
-public final class ClientBlackboardBlockEntityData implements BlackboardBlockEntity.SidedData {
-	private static final Map<BlackboardBlockEntity, ClientBlackboardBlockEntityData> ACTIVE_BLACKBOARDS = new Reference2ObjectOpenHashMap<>();
+public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.SidedData {
+	private static final Map<CanvasBlockEntity, ClientCanvasBlockEntityData> ACTIVE_BLACKBOARDS = new Reference2ObjectOpenHashMap<>();
 
-	private final BlackboardBlockEntity blackboardBlockEntity;
+	private final CanvasBlockEntity canvasBlockEntity;
 	private @Nullable Mesh mesh = null;
 	private boolean meshDirty = true;
 
-	public ClientBlackboardBlockEntityData(BlackboardBlockEntity blackboardBlockEntity) {
-		this.blackboardBlockEntity = blackboardBlockEntity;
+	public ClientCanvasBlockEntityData(CanvasBlockEntity canvasBlockEntity) {
+		this.canvasBlockEntity = canvasBlockEntity;
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public final class ClientBlackboardBlockEntityData implements BlackboardBlockEnt
 
 	@Override
 	public void onRemoved() {
-		ACTIVE_BLACKBOARDS.remove(this.blackboardBlockEntity);
+		ACTIVE_BLACKBOARDS.remove(this.canvasBlockEntity);
 	}
 
 	@Override
@@ -57,17 +57,17 @@ public final class ClientBlackboardBlockEntityData implements BlackboardBlockEnt
 
 	private void rebuildMesh() {
 		this.meshDirty = false;
-		var canvas = this.blackboardBlockEntity.canvas();
+		var canvas = this.canvasBlockEntity.canvas();
 
 		int light = canvas.isLit() ? 0xf000f0 : 0;
-		this.mesh = CanvasMeshBaker.buildMesh(canvas, this.blackboardBlockEntity.getBlockState().getValue(BlackboardBlock.FACING), light);
+		this.mesh = CanvasMeshBaker.buildMesh(canvas, this.canvasBlockEntity.getBlockState().getValue(CanvasBlock.FACING), light);
 	}
 
 	private void refreshRendering() {
-		if (this.blackboardBlockEntity.getLevel() instanceof ClientLevel clientWorld) {
+		if (this.canvasBlockEntity.getLevel() instanceof ClientLevel clientWorld) {
 			this.rebuildMesh();
 
-			var pos = this.blackboardBlockEntity.getBlockPos();
+			var pos = this.canvasBlockEntity.getBlockPos();
 			clientWorld.setSectionDirtyWithNeighbors(
 					SectionPos.blockToSectionCoord(pos.getX()),
 					SectionPos.blockToSectionCoord(pos.getY()),
@@ -77,18 +77,18 @@ public final class ClientBlackboardBlockEntityData implements BlackboardBlockEnt
 	}
 
 	public static void markAllMeshesDirty() {
-		ACTIVE_BLACKBOARDS.values().forEach(ClientBlackboardBlockEntityData::markMeshDirty);
+		ACTIVE_BLACKBOARDS.values().forEach(ClientCanvasBlockEntityData::markMeshDirty);
 	}
 
 	public static void onLevelChange(@Nullable ClientLevel level) {
-		ACTIVE_BLACKBOARDS.keySet().removeIf(blackboardBlockEntity ->
-				blackboardBlockEntity.getLevel() == null || blackboardBlockEntity.getLevel() != level
+		ACTIVE_BLACKBOARDS.keySet().removeIf(canvasBlockEntity ->
+				canvasBlockEntity.getLevel() == null || canvasBlockEntity.getLevel() != level
 		);
 	}
 
 	public static void init() {
-		BlackboardBlockEntity.SIDED_LOGIC.register(blockEntity -> {
-			var data = new ClientBlackboardBlockEntityData(blockEntity);
+		CanvasBlockEntity.SIDED_LOGIC.register(blockEntity -> {
+			var data = new ClientCanvasBlockEntityData(blockEntity);
 			ACTIVE_BLACKBOARDS.put(blockEntity, data);
 			return data;
 		});

@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity, CanvasHandler {
+public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity, CanvasHandler {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
@@ -56,7 +56,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	private SidedData sidedData = NoOpSidedData.INSTANCE;
 
-	public BlackboardBlockEntity(BlockPos pos, BlockState state) {
+	public CanvasBlockEntity(BlockPos pos, BlockState state) {
 		super(AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE, pos, state);
 	}
 
@@ -184,7 +184,7 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 	}
 
 	public boolean isLocked() {
-		return ((BlackboardBlock) this.getBlockState().getBlock()).isLocked();
+		return ((CanvasBlock) this.getBlockState().getBlock()).isLocked();
 	}
 
 	@Override
@@ -269,13 +269,13 @@ public class BlackboardBlockEntity extends BasicBlockEntity implements Nameable,
 
 	@FunctionalInterface
 	public interface SidedLogic {
-		SidedData onAdded(BlackboardBlockEntity blockEntity);
+		SidedData onAdded(CanvasBlockEntity blockEntity);
 	}
 
 	private class AssignedCanvas extends Canvas {
 		@Override
 		public boolean isLit() {
-			return BlackboardBlockEntity.this.getBlockState().getValue(BlackboardBlock.LIT);
+			return CanvasBlockEntity.this.getBlockState().getValue(CanvasBlock.LIT);
 		}
 
 		@Override

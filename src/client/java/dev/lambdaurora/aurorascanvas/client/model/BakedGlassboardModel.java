@@ -9,9 +9,8 @@
 
 package dev.lambdaurora.aurorascanvas.client.model;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
-public class BakedGlassboardModel extends BakedBlackboardModel {
+public class BakedGlassboardModel extends BakedCanvasModel {
 	private final Int2ObjectMap<List<BakedModel>> models;
 
 	public BakedGlassboardModel(BakedModel baseModel, Int2ObjectMap<List<BakedModel>> models) {
@@ -44,7 +43,7 @@ public class BakedGlassboardModel extends BakedBlackboardModel {
 	private int isBlockSame(BlockAndTintGetter world, BlockPos pos, BlockState state, int mask) {
 		BlockState neighborState = world.getBlockState(pos);
 		if (neighborState.is(state.getBlock())) {
-			if (neighborState.getValue(BlackboardBlock.FACING) == state.getValue(BlackboardBlock.FACING)) {
+			if (neighborState.getValue(CanvasBlock.FACING) == state.getValue(CanvasBlock.FACING)) {
 				return mask;
 			}
 		}
@@ -57,7 +56,7 @@ public class BakedGlassboardModel extends BakedBlackboardModel {
 			BlockAndTintGetter world, BlockState state, BlockPos pos,
 			Supplier<RandomSource> randomSupplier, RenderContext context
 	) {
-		var facing = state.getValue(BlackboardBlock.FACING);
+		var facing = state.getValue(CanvasBlock.FACING);
 		int mask = 0;
 		BlockPos.MutableBlockPos neighborPos = pos.mutable();
 

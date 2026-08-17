@@ -31,8 +31,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
-public class BakedBlackboardModel extends ForwardingBakedModel {
-	public BakedBlackboardModel(BakedModel baseModel) {
+public class BakedCanvasModel extends ForwardingBakedModel {
+	public BakedCanvasModel(BakedModel baseModel) {
 		this.wrapped = baseModel;
 	}
 

@@ -21,20 +21,20 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
-public class UnbakedBlackboardModel implements UnbakedModel {
+public class UnbakedCanvasModel implements UnbakedModel {
 	protected final UnbakedModel baseModel;
 
-	public static UnbakedBlackboardModel of(ModelResourceLocation id, UnbakedModel baseModel, BiConsumer<Identifier, UnbakedModel> modelConsumer) {
+	public static UnbakedCanvasModel of(ModelResourceLocation id, UnbakedModel baseModel, BiConsumer<Identifier, UnbakedModel> modelConsumer) {
 		if (id.getPath().contains("glass")) {
 			return new UnbakedGlassboardModel(id, baseModel,
 					Minecraft.getInstance().getResourceManager(), new BlockModelDefinition.Context(), modelConsumer
 			);
 		} else {
-			return new UnbakedBlackboardModel(baseModel);
+			return new UnbakedCanvasModel(baseModel);
 		}
 	}
 
-	protected UnbakedBlackboardModel(UnbakedModel baseModel) {
+	protected UnbakedCanvasModel(UnbakedModel baseModel) {
 		this.baseModel = baseModel;
 	}
 
@@ -52,7 +52,7 @@ public class UnbakedBlackboardModel implements UnbakedModel {
 	public BakedModel bake(
 			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
 	) {
-		return new BakedBlackboardModel(this.bakeBaseModel(modelBaker, textureGetter, modelState, modelId));
+		return new BakedCanvasModel(this.bakeBaseModel(modelBaker, textureGetter, modelState, modelId));
 	}
 
 	protected BakedModel bakeBaseModel(

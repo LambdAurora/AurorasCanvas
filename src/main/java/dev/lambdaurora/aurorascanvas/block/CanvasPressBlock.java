@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.block;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardPressBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -36,7 +36,7 @@ import org.jspecify.annotations.Nullable;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BlackboardPressBlock extends BaseEntityBlock {
+public class CanvasPressBlock extends BaseEntityBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -58,7 +58,7 @@ public class BlackboardPressBlock extends BaseEntityBlock {
 			box(0, 7 / 16., 4 / 16., 1, 9 / 16., 12 / 16.)
 	);
 
-	public BlackboardPressBlock(Properties properties) {
+	public CanvasPressBlock(Properties properties) {
 		super(properties);
 
 		this.registerDefaultState(
@@ -126,9 +126,9 @@ public class BlackboardPressBlock extends BaseEntityBlock {
 		return AurorasCanvasRegistry.BLACKBOARD_PRESS_BLOCK_ENTITY.create(pos, state);
 	}
 
-	public @Nullable BlackboardPressBlockEntity getBlackboardPressEntity(BlockGetter world, BlockPos pos) {
+	public @Nullable CanvasPressBlockEntity getBlackboardPressEntity(BlockGetter world, BlockPos pos) {
 		var entity = world.getBlockEntity(pos);
-		if (entity instanceof BlackboardPressBlockEntity blackboardPress)
+		if (entity instanceof CanvasPressBlockEntity blackboardPress)
 			return blackboardPress;
 		return null;
 	}

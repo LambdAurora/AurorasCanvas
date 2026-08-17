@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.tooltip;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import dev.lambdaurora.aurorascanvas.canvas.BlackboardColor;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -125,7 +125,7 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 	}
 
 	private void drawColorOverlay(GuiGraphics graphics, ItemStack stack) {
-		var color = BlackboardColor.fromItem(stack.getItem());
+		var color = CanvasColor.fromItem(stack.getItem());
 		if (color != null) {
 			var matrices = graphics.pose();
 			matrices.pushPose();

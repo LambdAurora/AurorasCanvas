@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.menu;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
-import dev.lambdaurora.aurorascanvas.menu.slot.BlackboardToolSlot;
+import dev.lambdaurora.aurorascanvas.menu.slot.CanvasToolSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.network.FriendlyByteBuf;
@@ -51,7 +51,7 @@ public class PainterPaletteMenu extends NestedMenu {
 		}
 
 		for (int row = 0; row < 4; ++row) {
-			this.addSlot(new BlackboardToolSlot(
+			this.addSlot(new CanvasToolSlot(
 					inventory, playerInventory.player.level().enabledFeatures(),
 					(inventory.getContainerSize() - 4) + row, -16, 18 + row * 18
 			));
@@ -73,7 +73,7 @@ public class PainterPaletteMenu extends NestedMenu {
 		if (slot instanceof ColorSlot && !slot.getItem().isEmpty()) {
 			this.inventory.setSelectedColor(slot.getContainerSlot());
 			return true;
-		} else if (slot instanceof BlackboardToolSlot) {
+		} else if (slot instanceof CanvasToolSlot) {
 			if (slot.getItem().isEmpty()) this.inventory.setSelectedToolSlot(-1);
 			else this.inventory.setSelectedToolSlot(slot.getContainerSlot());
 			return true;

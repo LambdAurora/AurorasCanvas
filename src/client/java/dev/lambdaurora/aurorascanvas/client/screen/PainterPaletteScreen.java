@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.screen;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
-import dev.lambdaurora.aurorascanvas.menu.slot.BlackboardToolSlot;
+import dev.lambdaurora.aurorascanvas.menu.slot.CanvasToolSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.LockedSlot;
 import net.fabricmc.api.EnvType;
@@ -62,7 +62,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 		this.renderBackground(graphics);
 
 		for (var slot : this.menu.slots) {
-			if (slot instanceof BlackboardToolSlot) {
+			if (slot instanceof CanvasToolSlot) {
 				int x = this.getBackgroundX() + slot.x + 24 - 1;
 				int y = this.getBackgroundY() + slot.y - 1;
 
@@ -87,7 +87,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				graphics.blit(LOCK_TEXTURE, 0, 0, 46, 212, 16, 16, 256, 256);
 				matrices.popPose();
 			} else if ((slot instanceof ColorSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedColorSlot())
-					|| (slot instanceof BlackboardToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
+					|| (slot instanceof CanvasToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
 				matrices.pushPose();
 				matrices.translate(slot.x + 24, slot.y, 0);
 				this.drawSelectedIndicator(graphics);

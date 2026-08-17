@@ -14,8 +14,8 @@ import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.BlackboardPressBlock;
-import dev.lambdaurora.aurorascanvas.block.entity.BlackboardPressBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
+import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedVariantModel;
 import net.fabricmc.api.EnvType;
@@ -44,7 +44,7 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class BlackboardPressBlockEntityRenderer implements BlockEntityRenderer<BlackboardPressBlockEntity> {
+public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<CanvasPressBlockEntity> {
 	private static final Logger LOGGER = LogUtils.getLogger();
 	public static final Identifier PRESS_PLATE_ID = AurorasCanvas.id("blockstates/blackboard_press/press_plate.json");
 	public static final Identifier SCREW_ID = AurorasCanvas.id("blockstates/blackboard_press/screw.json");
@@ -53,11 +53,11 @@ public class BlackboardPressBlockEntityRenderer implements BlockEntityRenderer<B
 	private static final RandomSource RANDOM = new LegacyRandomSource(RandomSupport.generateUniqueSeed());
 	private final Minecraft client = Minecraft.getInstance();
 
-	public BlackboardPressBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
+	public CanvasPressBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
 
 	@Override
 	public void render(
-			BlackboardPressBlockEntity entity, float tickDelta,
+			CanvasPressBlockEntity entity, float tickDelta,
 			PoseStack matrices, MultiBufferSource vertexConsumers,
 			int light, int overlay
 	) {
@@ -135,7 +135,7 @@ public class BlackboardPressBlockEntityRenderer implements BlockEntityRenderer<B
 				var context = new BlockModelDefinition.Context();
 				context.setDefinition(AurorasCanvasRegistry.BLACKBOARD_PRESS.block().value().getStateDefinition());
 				var map = BlockModelDefinition.fromStream(context, reader);
-				return new UnbakedVariantModel<>(AurorasCanvasRegistry.BLACKBOARD_PRESS.block().value(), map.getVariants(), List.of(BlackboardPressBlock.WATERLOGGED));
+				return new UnbakedVariantModel<>(AurorasCanvasRegistry.BLACKBOARD_PRESS.block().value(), map.getVariants(), List.of(CanvasPressBlock.WATERLOGGED));
 			} catch (IOException e) {
 				LOGGER.warn("Failed to load the blackboard \"{}\" model.", modelId, e);
 				return null;

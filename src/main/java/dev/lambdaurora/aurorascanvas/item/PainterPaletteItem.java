@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.canvas.BlackboardColor;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
@@ -152,7 +152,7 @@ public class PainterPaletteItem extends Item {
 
 			var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
 
-			if (!(modifier instanceof BlackboardColor) && modifier != null) {
+			if (!(modifier instanceof CanvasColor) && modifier != null) {
 				player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
 			}
 		} else {
@@ -166,9 +166,9 @@ public class PainterPaletteItem extends Item {
 				player.inventoryMenu.broadcastChanges();
 
 				var message = getSelectedToolMessage(inventory, player.level().enabledFeatures());
-				BlackboardColor primaryColor = BlackboardColor.fromItem(inventory.getSelectedColor().getItem());
+				CanvasColor primaryColor = CanvasColor.fromItem(inventory.getSelectedColor().getItem());
 
-				if (primaryColor != null && primaryColor != BlackboardColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
+				if (primaryColor != null && primaryColor != CanvasColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
 
 				player.displayClientMessage(message, true);
 			}
@@ -226,12 +226,12 @@ public class PainterPaletteItem extends Item {
 			if (nextSlot == -1 || nextSlot == previousSlot) nextNbt = null;
 			if (previousSlot == -1) previousNbt = null;
 
-			previousColor = previousNbt == null ? BlackboardColor.EMPTY : modifierFromNbt(previousNbt);
-			nextColor = nextNbt == null ? BlackboardColor.EMPTY : modifierFromNbt(nextNbt);
+			previousColor = previousNbt == null ? CanvasColor.EMPTY : modifierFromNbt(previousNbt);
+			nextColor = nextNbt == null ? CanvasColor.EMPTY : modifierFromNbt(nextNbt);
 
-			if (primaryColor == BlackboardColor.EMPTY) primaryColor = null;
-			if (previousColor == BlackboardColor.EMPTY) previousColor = null;
-			if (nextColor == BlackboardColor.EMPTY) nextColor = null;
+			if (primaryColor == CanvasColor.EMPTY) primaryColor = null;
+			if (previousColor == CanvasColor.EMPTY) previousColor = null;
+			if (nextColor == CanvasColor.EMPTY) nextColor = null;
 		}
 
 		return switch (tintIndex) {
@@ -512,11 +512,11 @@ public class PainterPaletteItem extends Item {
 		var itemNbt = nbt.getCompound("item");
 		Identifier id = Identifier.tryParse(itemNbt.getString("id"));
 
-		if (id == null) return BlackboardColor.EMPTY;
+		if (id == null) return CanvasColor.EMPTY;
 
 		Item item = BuiltInRegistries.ITEM.get(id);
 		var modifier = DrawModifier.fromItem(item);
 
-		return modifier == null ? BlackboardColor.EMPTY : modifier;
+		return modifier == null ? CanvasColor.EMPTY : modifier;
 	}
 }

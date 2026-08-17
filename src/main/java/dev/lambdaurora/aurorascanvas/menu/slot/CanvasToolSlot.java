@@ -23,10 +23,10 @@ import net.minecraft.world.item.Items;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BlackboardToolSlot extends Slot {
+public class CanvasToolSlot extends Slot {
 	private final FeatureFlagSet enabledFeatures;
 
-	public BlackboardToolSlot(Container inventory, FeatureFlagSet enabledFeatures, int index, int x, int y) {
+	public CanvasToolSlot(Container inventory, FeatureFlagSet enabledFeatures, int index, int x, int y) {
 		super(inventory, index, x, y);
 		this.enabledFeatures = enabledFeatures;
 	}

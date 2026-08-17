@@ -31,8 +31,8 @@ import java.util.function.Predicate;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BlackboardColor extends DrawModifier {
-	private static final Byte2ObjectMap<BlackboardColor> COLORS = new Byte2ObjectOpenHashMap<>();
+public class CanvasColor extends DrawModifier {
+	private static final Byte2ObjectMap<CanvasColor> COLORS = new Byte2ObjectOpenHashMap<>();
 
 	/**
 	 * The color identifier mask ({@value}) for the raw color format.
@@ -50,32 +50,32 @@ public class BlackboardColor extends DrawModifier {
 	/**
 	 * Represents the absence of color.
 	 */
-	public static final BlackboardColor EMPTY = new BlackboardColor(0, 0x00000000, Items.PAPER);
-	public static final BlackboardColor WHITE = fromDye(1, Items.WHITE_DYE);
-	public static final BlackboardColor ORANGE = fromDye(2, Items.ORANGE_DYE);
-	public static final BlackboardColor MAGENTA = fromDye(3, Items.MAGENTA_DYE);
-	public static final BlackboardColor LIGHT_BLUE = fromDye(4, Items.LIGHT_BLUE_DYE);
-	public static final BlackboardColor YELLOW = fromDye(5, Items.YELLOW_DYE);
-	public static final BlackboardColor LIME = fromDye(6, Items.LIME_DYE);
-	public static final BlackboardColor PINK = fromDye(7, Items.PINK_DYE);
-	public static final BlackboardColor GRAY = fromDye(8, Items.GRAY_DYE);
-	public static final BlackboardColor LIGHT_GRAY = fromDye(9, Items.LIGHT_GRAY_DYE);
-	public static final BlackboardColor CYAN = fromDye(10, Items.CYAN_DYE);
-	public static final BlackboardColor PURPLE = fromDye(11, Items.PURPLE_DYE);
-	public static final BlackboardColor BLUE = fromDye(12, Items.BLUE_DYE);
-	public static final BlackboardColor BROWN = fromDye(13, Items.BROWN_DYE);
-	public static final BlackboardColor GREEN = fromDye(14, Items.GREEN_DYE);
-	public static final BlackboardColor RED = fromDye(15, Items.RED_DYE);
-	public static final BlackboardColor BLACK = fromDye(16, Items.BLACK_DYE);
-	public static final BlackboardColor SWEET_BERRIES = new BlackboardColor(17, 0xffbb0000, Items.SWEET_BERRIES);
-	public static final BlackboardColor GLOW_BERRIES = new BlackboardColor(18, 0xffff9737, Items.GLOW_BERRIES);
-	public static final BlackboardColor BLUEBERRIES = new BlackboardColor(19, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
-	public static final BlackboardColor LAVENDER = new BlackboardColor(20, 0xffb886db, new CompatMatcher(AurorasDecoDataUpper.id("lavender")));
+	public static final CanvasColor EMPTY = new CanvasColor(0, 0x00000000, Items.PAPER);
+	public static final CanvasColor WHITE = fromDye(1, Items.WHITE_DYE);
+	public static final CanvasColor ORANGE = fromDye(2, Items.ORANGE_DYE);
+	public static final CanvasColor MAGENTA = fromDye(3, Items.MAGENTA_DYE);
+	public static final CanvasColor LIGHT_BLUE = fromDye(4, Items.LIGHT_BLUE_DYE);
+	public static final CanvasColor YELLOW = fromDye(5, Items.YELLOW_DYE);
+	public static final CanvasColor LIME = fromDye(6, Items.LIME_DYE);
+	public static final CanvasColor PINK = fromDye(7, Items.PINK_DYE);
+	public static final CanvasColor GRAY = fromDye(8, Items.GRAY_DYE);
+	public static final CanvasColor LIGHT_GRAY = fromDye(9, Items.LIGHT_GRAY_DYE);
+	public static final CanvasColor CYAN = fromDye(10, Items.CYAN_DYE);
+	public static final CanvasColor PURPLE = fromDye(11, Items.PURPLE_DYE);
+	public static final CanvasColor BLUE = fromDye(12, Items.BLUE_DYE);
+	public static final CanvasColor BROWN = fromDye(13, Items.BROWN_DYE);
+	public static final CanvasColor GREEN = fromDye(14, Items.GREEN_DYE);
+	public static final CanvasColor RED = fromDye(15, Items.RED_DYE);
+	public static final CanvasColor BLACK = fromDye(16, Items.BLACK_DYE);
+	public static final CanvasColor SWEET_BERRIES = new CanvasColor(17, 0xffbb0000, Items.SWEET_BERRIES);
+	public static final CanvasColor GLOW_BERRIES = new CanvasColor(18, 0xffff9737, Items.GLOW_BERRIES);
+	public static final CanvasColor BLUEBERRIES = new CanvasColor(19, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
+	public static final CanvasColor LAVENDER = new CanvasColor(20, 0xffb886db, new CompatMatcher(AurorasDecoDataUpper.id("lavender")));
 
 	private final byte id;
 	private final Predicate<Item> itemMatcher;
 
-	private BlackboardColor(int id, int color, Predicate<Item> item) {
+	private CanvasColor(int id, int color, Predicate<Item> item) {
 		super("", color);
 		this.id = (byte) id;
 		this.itemMatcher = item;
@@ -86,7 +86,7 @@ public class BlackboardColor extends DrawModifier {
 		COLORS.put((byte) id, this);
 	}
 
-	private BlackboardColor(int id, int color, Item item) {
+	private CanvasColor(int id, int color, Item item) {
 		this(id, color, other -> other == item);
 	}
 
@@ -95,7 +95,7 @@ public class BlackboardColor extends DrawModifier {
 	 *
 	 * @param color the color identifier
 	 */
-	public static BlackboardColor byId(byte color) {
+	public static CanvasColor byId(byte color) {
 		return COLORS.getOrDefault(color, EMPTY);
 	}
 
@@ -105,11 +105,11 @@ public class BlackboardColor extends DrawModifier {
 	 * @param color the raw color format
 	 * @return the extracted color instance
 	 */
-	public static BlackboardColor fromRaw(int color) {
+	public static CanvasColor fromRaw(int color) {
 		return byId((byte) ((color & COLOR_MASK) >> 8));
 	}
 
-	public static @Nullable BlackboardColor fromItem(Item item) {
+	public static @Nullable CanvasColor fromItem(Item item) {
 		for (var color : COLORS.values()) {
 			if (color.matchItem(item)) {
 				return color;
@@ -119,7 +119,7 @@ public class BlackboardColor extends DrawModifier {
 		return null;
 	}
 
-	public static @UnmodifiableView Collection<BlackboardColor> getColors() {
+	public static @UnmodifiableView Collection<CanvasColor> getColors() {
 		return Collections.unmodifiableCollection(COLORS.values());
 	}
 
@@ -224,7 +224,7 @@ public class BlackboardColor extends DrawModifier {
 		return 0xff000000 | red << 16 | green << 8 | blue;
 	}
 
-	private static BlackboardColor fromDye(int id, Item item) {
+	private static CanvasColor fromDye(int id, Item item) {
 		if (!(item instanceof DyeItem dyeItem)) {
 			throw new IllegalArgumentException("Item must be a DyeItem.");
 		}
@@ -238,7 +238,7 @@ public class BlackboardColor extends DrawModifier {
 		int red = (int) (color.getTextureDiffuseColors()[0] * 255.f);
 		int green = (int) (color.getTextureDiffuseColors()[1] * 255.f);
 		int blue = (int) (color.getTextureDiffuseColors()[2] * 255.f);
-		return new BlackboardColor((byte) id, 0xff000000 | (red << 16) | (green << 8) | blue, dyeItem);
+		return new CanvasColor((byte) id, 0xff000000 | (red << 16) | (green << 8) | blue, dyeItem);
 	}
 
 	@Override

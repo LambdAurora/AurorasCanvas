@@ -9,14 +9,14 @@
 
 package dev.lambdaurora.aurorascanvas.menu.slot;
 
-import dev.lambdaurora.aurorascanvas.canvas.BlackboardColor;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Represents a slot that only accepts items that can be used as {@link BlackboardColor canvas colors}.
+ * Represents a slot that only accepts items that can be used as {@link CanvasColor canvas colors}.
  *
  * @author LambdAurora
  * @version 1.0.0

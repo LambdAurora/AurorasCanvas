@@ -40,7 +40,7 @@ public interface CanvasHandler {
 	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
 	 * @see #setPixel(int, int, int)
 	 */
-	default boolean setPixel(int x, int y, BlackboardColor color, int shade, boolean saturated) {
+	default boolean setPixel(int x, int y, CanvasColor color, int shade, boolean saturated) {
 		return this.setPixel(x, y, color.toRawId(shade, saturated));
 	}
 
@@ -52,7 +52,7 @@ public interface CanvasHandler {
 	 * @param color the color
 	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
 	 */
-	default boolean setPixel(int x, int y, BlackboardColor color) {
+	default boolean setPixel(int x, int y, CanvasColor color) {
 		return this.setPixel(x, y, color, 0, false);
 	}
 
@@ -64,15 +64,15 @@ public interface CanvasHandler {
 	 * @param saturated {@code true} if the color is saturated, or {@code false} otherwise
 	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
 	 * @see #setPixel(int, int, int)
-	 * @see #setPixel(int, int, BlackboardColor, int, boolean)
+	 * @see #setPixel(int, int, CanvasColor, int, boolean)
 	 */
 	default boolean setSaturated(int x, int y, boolean saturated) {
 		int color = this.getPixel(x, y);
-		if (BlackboardColor.getSaturationFromRaw(color) == saturated) return false;
+		if (CanvasColor.getSaturationFromRaw(color) == saturated) return false;
 
-		color &= ~BlackboardColor.SATURATION_MASK;
+		color &= ~CanvasColor.SATURATION_MASK;
 		if (saturated)
-			color |= BlackboardColor.SATURATION_MASK;
+			color |= CanvasColor.SATURATION_MASK;
 
 		this.setPixel(x, y, color);
 
@@ -81,13 +81,13 @@ public interface CanvasHandler {
 
 	boolean brush(int x, int y, int color);
 
-	default boolean brush(int x, int y, BlackboardColor color, int shade) {
-		return this.brush(x, y, color.toRawId(shade, BlackboardColor.getSaturationFromRaw(this.getPixel(x, y))));
+	default boolean brush(int x, int y, CanvasColor color, int shade) {
+		return this.brush(x, y, color.toRawId(shade, CanvasColor.getSaturationFromRaw(this.getPixel(x, y))));
 	}
 
 	boolean replace(int x, int y, int color);
 
-	default boolean replace(int x, int y, BlackboardColor color, int shade) {
+	default boolean replace(int x, int y, CanvasColor color, int shade) {
 		return this.replace(x, y, color.getRenderColor(shade, false));
 	}
 
@@ -95,7 +95,7 @@ public interface CanvasHandler {
 
 	boolean fill(int x, int y, int color);
 
-	default boolean fill(int x, int y, BlackboardColor color, int shade) {
-		return this.fill(x, y, color.toRawId(shade, BlackboardColor.getSaturationFromRaw(this.getPixel(x, y))));
+	default boolean fill(int x, int y, CanvasColor color, int shade) {
+		return this.fill(x, y, color.toRawId(shade, CanvasColor.getSaturationFromRaw(this.getPixel(x, y))));
 	}
 }

@@ -51,12 +51,12 @@ public class Canvas implements CanvasHandler {
 
 	public int getColor(int x, int y) {
 		int id = this.getPixel(x, y);
-		return BlackboardColor.getRenderColor(id);
+		return CanvasColor.getRenderColor(id);
 	}
 
 	@Override
 	public boolean setPixel(int x, int y, int color) {
-		if ((color & BlackboardColor.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
+		if ((color & CanvasColor.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
 
 		short id = (short) color;
 		if (this.pixels[y * 16 + x] != id) {

@@ -12,7 +12,7 @@ package dev.lambdaurora.aurorascanvas.client.tooltip;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasTexture;
-import dev.lambdaurora.aurorascanvas.tooltip.BlackboardTooltipData;
+import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -33,7 +33,7 @@ import org.joml.Matrix4f;
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
-public class BlackboardTooltipComponent implements ClientTooltipComponent {
+public class CanvasTooltipComponent implements ClientTooltipComponent {
 	private static final Identifier LOCK_ICON_TEXTURE = new Identifier("textures/gui/container/cartography_table.png");
 	private static final Identifier GLOW_TEXTURE = AurorasCanvas.id("textures/gui/glowing_sprite.png");
 
@@ -43,14 +43,14 @@ public class BlackboardTooltipComponent implements ClientTooltipComponent {
 	private final Canvas canvas;
 	private final boolean locked;
 
-	public BlackboardTooltipComponent(String background, Canvas canvas, boolean locked) {
+	public CanvasTooltipComponent(String background, Canvas canvas, boolean locked) {
 		this.background = RenderType.text(AurorasCanvas.id("textures/block/blackboard/" + background + ".png"));
 		this.canvas = canvas;
 		this.locked = locked;
 		this.texture = CanvasTexture.fromCanvas(canvas);
 	}
 
-	public BlackboardTooltipComponent(BlackboardTooltipData data) {
+	public CanvasTooltipComponent(CanvasTooltipData data) {
 		this(data.background(), data.canvas(), data.locked());
 	}
 

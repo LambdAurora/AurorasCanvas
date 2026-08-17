@@ -33,7 +33,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
-public class UnbakedGlassboardModel extends UnbakedBlackboardModel {
+public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 	private static final Logger LOGGER = LogUtils.getLogger();
 	static final int LEFT_UP_MASK = 0b00000001;
 	static final int UP_MASK = 0b00000010;

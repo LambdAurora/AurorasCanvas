@@ -17,5 +17,5 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public record BlackboardTooltipData(String background, Canvas canvas, boolean locked) implements TooltipComponent {
+public record CanvasTooltipData(String background, Canvas canvas, boolean locked) implements TooltipComponent {
 }

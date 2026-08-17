@@ -11,15 +11,15 @@ package dev.lambdaurora.aurorascanvas.client;
 
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.block.BlackboardBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
-import dev.lambdaurora.aurorascanvas.client.model.UnbakedBlackboardModel;
-import dev.lambdaurora.aurorascanvas.client.renderer.BlackboardItemRenderer;
-import dev.lambdaurora.aurorascanvas.client.renderer.BlackboardPressBlockEntityRenderer;
+import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
+import dev.lambdaurora.aurorascanvas.client.renderer.CanvasItemRenderer;
+import dev.lambdaurora.aurorascanvas.client.renderer.CanvasPressBlockEntityRenderer;
 import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
-import dev.lambdaurora.aurorascanvas.client.tooltip.BlackboardTooltipComponent;
+import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
 import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
-import dev.lambdaurora.aurorascanvas.tooltip.BlackboardTooltipData;
+import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -51,7 +51,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 				WAXED_GLASSBOARD.block().value()
 		);
 
-		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, BlackboardPressBlockEntityRenderer::new);
+		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, CanvasPressBlockEntityRenderer::new);
 
 		this.registerBlackboardItemRenderer(BLACKBOARD.block().value());
 		this.registerBlackboardItemRenderer(CHALKBOARD.block().value());
@@ -60,13 +60,13 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		this.registerBlackboardItemRenderer(WAXED_CHALKBOARD.block().value());
 		this.registerBlackboardItemRenderer(WAXED_GLASSBOARD.block().value());
 
-		ClientBlackboardBlockEntityData.init();
+		ClientCanvasBlockEntityData.init();
 
 		MenuScreens.register(PAINTER_PALETTE_MENU_TYPE, PainterPaletteScreen::new);
 
 		TooltipComponentCallback.EVENT.register(data -> {
-			if (data instanceof BlackboardTooltipData blackboardTooltipData) {
-				return new BlackboardTooltipComponent(blackboardTooltipData);
+			if (data instanceof CanvasTooltipData canvasTooltipData) {
+				return new CanvasTooltipComponent(canvasTooltipData);
 			} else if (data instanceof PainterPaletteTooltipData painterPaletteTooltipData) {
 				return new PainterPaletteTooltipComponent(painterPaletteTooltipData.inventory());
 			} else {
@@ -77,12 +77,12 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		ColorProviderRegistry.ITEM.register(PAINTER_PALETTE_ITEM::getColor, PAINTER_PALETTE_ITEM);
 
 		ModelLoadingPlugin.register(context -> {
-			BlackboardPressBlockEntityRenderer.initModels(context);
+			CanvasPressBlockEntityRenderer.initModels(context);
 
 			context.modifyModelOnLoad().register((model, ctx) -> {
 				if (ctx.id() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
 					if (modelId.getPath().endsWith("board")) {
-						return UnbakedBlackboardModel.of(modelId, model,
+						return UnbakedCanvasModel.of(modelId, model,
 								(partId, m) -> {
 									var modelLoader = (ModelBakeryAccessor) ctx.loader();
 									modelLoader.invokeCacheAndQueueDependencies(partId, m);
@@ -94,15 +94,15 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 				return model;
 			});
 
-			ClientBlackboardBlockEntityData.markAllMeshesDirty();
+			ClientCanvasBlockEntityData.markAllMeshesDirty();
 		});
 	}
 
-	private void registerBlackboardItemRenderer(BlackboardBlock blackboard) {
+	private void registerBlackboardItemRenderer(CanvasBlock blackboard) {
 		@SuppressWarnings("deprecation") var id = blackboard.builtInRegistryHolder().key().identifier();
 		var modelId = new ModelResourceLocation(new Identifier(id.getNamespace(), id.getPath() + "_base"),
 				"inventory");
-		BuiltinItemRendererRegistry.INSTANCE.register(blackboard, new BlackboardItemRenderer(modelId));
+		BuiltinItemRendererRegistry.INSTANCE.register(blackboard, new CanvasItemRenderer(modelId));
 		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
 	}
 }
