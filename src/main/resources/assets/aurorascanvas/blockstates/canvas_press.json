@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "aurorascanvas:block/canvas_press/base"
+		},
+		"facing=east": {
+			"model": "aurorascanvas:block/canvas_press/base",
+			"y": 90
+		},
+		"facing=south": {
+			"model": "aurorascanvas:block/canvas_press/base",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "aurorascanvas:block/canvas_press/base",
+			"y": 270
+		}
+	}
+}

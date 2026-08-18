@@ -16,6 +16,7 @@ import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasPressBlockEntityRenderer;
+import dev.lambdaurora.aurorascanvas.client.renderer.GlassCanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
 import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
@@ -36,6 +37,8 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
+import java.util.function.Function;
+
 import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 
 @Environment(EnvType.CLIENT)
@@ -53,12 +56,12 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, CanvasPressBlockEntityRenderer::new);
 
-		this.registerBlackboardItemRenderer(BLACKBOARD.block().value());
-		this.registerBlackboardItemRenderer(CHALKBOARD.block().value());
-		this.registerBlackboardItemRenderer(GLASSBOARD.block().value());
-		this.registerBlackboardItemRenderer(WAXED_BLACKBOARD.block().value());
-		this.registerBlackboardItemRenderer(WAXED_CHALKBOARD.block().value());
-		this.registerBlackboardItemRenderer(WAXED_GLASSBOARD.block().value());
+		this.registerCanvasItemRenderer(BLACKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(CHALKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_BLACKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_CHALKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
 
 		ClientCanvasBlockEntityData.init();
 
@@ -98,11 +101,11 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		});
 	}
 
-	private void registerBlackboardItemRenderer(CanvasBlock blackboard) {
-		@SuppressWarnings("deprecation") var id = blackboard.builtInRegistryHolder().key().identifier();
+	private void registerCanvasItemRenderer(CanvasBlock canvas, Function<ModelResourceLocation, CanvasItemRenderer> factory) {
+		@SuppressWarnings("deprecation") var id = canvas.builtInRegistryHolder().key().identifier();
 		var modelId = new ModelResourceLocation(new Identifier(id.getNamespace(), id.getPath() + "_base"),
 				"inventory");
-		BuiltinItemRendererRegistry.INSTANCE.register(blackboard, new CanvasItemRenderer(modelId));
+		BuiltinItemRendererRegistry.INSTANCE.register(canvas, factory.apply(modelId));
 		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
 	}
 }

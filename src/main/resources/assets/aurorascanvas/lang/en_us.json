@@ -15,8 +15,8 @@
 	"block.aurorascanvas.waxed_chalkboard": "Waxed Chalkboard",
 	"block.aurorascanvas.glassboard": "Glassboard",
 	"block.aurorascanvas.waxed_glassboard": "Waxed Glassboard",
-	"block.aurorascanvas.blackboard_press": "Blackboard Press",
+	"block.aurorascanvas.canvas_press": "Canvas Press",
 	"item.aurorascanvas.painter_palette": "Painter's Palette",
-	"tag.aurorascanvas.blackboards": "Blackboards",
+	"tag.aurorascanvas.canvases": "Canvases",
 	"modmenu.bluesky": "Bluesky"
 }

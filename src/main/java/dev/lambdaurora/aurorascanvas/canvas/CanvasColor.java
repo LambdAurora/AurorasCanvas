@@ -31,21 +31,8 @@ import java.util.function.Predicate;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class CanvasColor extends DrawModifier {
+public final class CanvasColor extends DrawModifier {
 	private static final Byte2ObjectMap<CanvasColor> COLORS = new Byte2ObjectOpenHashMap<>();
-
-	/**
-	 * The color identifier mask ({@value}) for the raw color format.
-	 */
-	public static final int COLOR_MASK /**/ = 0b1111111100000000;
-	/**
-	 * The saturation mask ({@value}) for the raw color format.
-	 */
-	public static final int SATURATION_MASK = 0b0000000010000000;
-	/**
-	 * The shade mask ({@value}) for the raw color format.
-	 */
-	public static final int SHADE_MASK /**/ = 0b0000000001110000;
 
 	/**
 	 * Represents the absence of color.
@@ -106,7 +93,7 @@ public class CanvasColor extends DrawModifier {
 	 * @return the extracted color instance
 	 */
 	public static CanvasColor fromRaw(int color) {
-		return byId((byte) ((color & COLOR_MASK) >> 8));
+		return byId((byte) ((color & CanvasPixel.COLOR_MASK) >> 8));
 	}
 
 	public static @Nullable CanvasColor fromItem(Item item) {
@@ -128,22 +115,6 @@ public class CanvasColor extends DrawModifier {
 	 */
 	public byte getId() {
 		return this.id;
-	}
-
-	/**
-	 * Returns the raw color format with shading and saturation of this color.
-	 *
-	 * @param shade the shade
-	 * @param saturated {@code true} if the color is saturated, or {@code false} otherwise
-	 * @return the raw color format
-	 */
-	public short toRawId(int shade, boolean saturated) {
-		if (this == EMPTY) return 0;
-
-		short id = (short) (this.getId() << 8);
-		id |= (short) (Mth.clamp(shade, 0, 7) << 4);
-		if (saturated) id |= SATURATION_MASK;
-		return id;
 	}
 
 	/**
@@ -178,15 +149,7 @@ public class CanvasColor extends DrawModifier {
 	 * @param color the raw color format
 	 */
 	public static int getRenderColor(int color) {
-		return fromRaw(color).getRenderColor(getShadeFromRaw(color), getSaturationFromRaw(color));
-	}
-
-	public static int getShadeFromRaw(int color) {
-		return (color & SHADE_MASK) >> 4;
-	}
-
-	public static boolean getSaturationFromRaw(int color) {
-		return (color & SATURATION_MASK) != 0;
+		return fromRaw(color).getRenderColor(CanvasPixel.getShadeFromRaw(color), CanvasPixel.getSaturationFromRaw(color));
 	}
 
 	public static int increaseDarkness(int shade) {
@@ -207,7 +170,7 @@ public class CanvasColor extends DrawModifier {
 		};
 	}
 
-	private int getSaturated() {
+	int getSaturated() {
 		final int value = 1;
 
 		int color = this.getColor();
@@ -247,8 +210,8 @@ public class CanvasColor extends DrawModifier {
 	}
 
 	@Override
-	public short apply(short colorData) {
-		return this.toRawId(0, false);
+	public CanvasPixel apply(CanvasPixel pixel) {
+		return pixel.withColor(this);
 	}
 
 	private record CompatMatcher(Identifier id) implements Predicate<Item> {

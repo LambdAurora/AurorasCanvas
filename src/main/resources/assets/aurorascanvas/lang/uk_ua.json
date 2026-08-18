@@ -15,8 +15,8 @@
 	"block.aurorascanvas.waxed_chalkboard": "Вощена крейдова дошка",
 	"block.aurorascanvas.glassboard": "Скляна дошка",
 	"block.aurorascanvas.waxed_glassboard": "Вощена скляна дошка",
-	"block.aurorascanvas.blackboard_press": "Прес чорних дощок",
+	"block.aurorascanvas.canvas_press": "Прес чорних дощок",
 	"item.aurorascanvas.painter_palette": "Палітра художника",
-	"tag.aurorascanvas.blackboards": "Чорні дошки",
+	"tag.aurorascanvas.canvases": "Чорні дошки",
 	"modmenu.bluesky": "Bluesky"
 }

@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_nbt",
+              "ops": [
+                {
+                  "op": "replace",
+                  "source": "pixels",
+                  "target": "BlockEntityTag.pixels"
+                },
+                {
+                  "op": "replace",
+                  "source": "version",
+                  "target": "BlockEntityTag.version"
+                },
+                {
+                  "op": "replace",
+                  "source": "lit",
+                  "target": "BlockEntityTag.lit"
+                }
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "aurorascanvas:waxed_blackboard"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

@@ -2,6 +2,6 @@
 	"credit": "Made by LambdAurora",
 	"parent": "aurorascanvas:block/glassboard/waxed/glassboard_ld",
 	"textures": {
-		"board": "aurorascanvas:block/blackboard/glassboard_vertical"
+		"board": "aurorascanvas:block/canvas/glassboard_vertical"
 	}
 }

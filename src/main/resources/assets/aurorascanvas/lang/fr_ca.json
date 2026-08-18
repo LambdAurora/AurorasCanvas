@@ -15,8 +15,8 @@
 	"block.aurorascanvas.waxed_chalkboard": "Tableau à craie ciré",
 	"block.aurorascanvas.glassboard": "Tableau en verre",
 	"block.aurorascanvas.waxed_glassboard": "Tableau en verre ciré",
-	"block.aurorascanvas.blackboard_press": "Presse à tableau",
+	"block.aurorascanvas.canvas_press": "Presse à tableau",
 	"item.aurorascanvas.painter_palette": "Palette de peintre",
-	"tag.aurorascanvas.blackboards": "Tableaux noirs",
+	"tag.aurorascanvas.canvases": "Supports de dessin",
 	"modmenu.bluesky": "Bluesky"
 }

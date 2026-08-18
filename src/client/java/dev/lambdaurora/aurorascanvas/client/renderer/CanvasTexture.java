@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.renderer;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.client.CanvasClientUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -84,12 +85,8 @@ public final class CanvasTexture {
 				.uv(mirror ? 1.f : 0.f, 0.f).uv2(light).endVertex();
 	}
 
-	public void update(Canvas blackboard) {
-		for (int y = 0; y < 16; y++) {
-			for (int x = 0; x < 16; x++) {
-				this.texture.getPixels().setPixelRGBA(x, y, blackboard.getColor(x, y));
-			}
-		}
+	public void update(Canvas canvas) {
+		CanvasClientUtils.exportToImage(canvas, this.texture.getPixels());
 		this.texture.upload();
 	}
 

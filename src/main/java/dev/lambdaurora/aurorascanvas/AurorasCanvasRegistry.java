@@ -11,11 +11,15 @@ package dev.lambdaurora.aurorascanvas;
 
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
-import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
+import dev.lambdaurora.aurorascanvas.item.GlassCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
+import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -30,6 +34,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -41,6 +48,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static dev.lambdaurora.aurorascanvas.AurorasCanvas.id;
+import static dev.lambdaurora.aurorascanvas.AurorasCanvasIds.*;
 
 public final class AurorasCanvasRegistry {
 	private AurorasCanvasRegistry() {
@@ -51,7 +59,7 @@ public final class AurorasCanvasRegistry {
 	//endregion
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> BLACKBOARD = registerBlockWithItem(
-			id("blackboard"),
+			BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.create()
 					.strength(.2f)
@@ -62,7 +70,7 @@ public final class AurorasCanvasRegistry {
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
-			id("waxed_blackboard"),
+			WAXED_BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
 			CanvasItem::new,
@@ -70,37 +78,37 @@ public final class AurorasCanvasRegistry {
 	);
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> CHALKBOARD = registerBlockWithItem(
-			id("chalkboard"),
+			CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
 			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
-			id("waxed_chalkboard"),
+			WAXED_CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(CHALKBOARD.block.value),
 			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
-			id("glassboard"),
-			properties -> new CanvasBlock(properties, false),
+	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
+			GLASSBOARD_ID,
+			properties -> new GlassCanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value).nonOpaque().sounds(SoundType.GLASS),
-			CanvasItem::new,
+			GlassCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
-			id("waxed_glassboard"),
-			properties -> new CanvasBlock(properties, true),
+	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
+			WAXED_GLASSBOARD_ID,
+			properties -> new GlassCanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(GLASSBOARD.block.value),
-			CanvasItem::new,
+			GlassCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<CanvasPressBlock, BlockItem> BLACKBOARD_PRESS = registerBlockWithItem(
-			id("blackboard_press"),
+	public static final BlockItemEntry<CanvasPressBlock, BlockItem> CANVAS_PRESS = registerBlockWithItem(
+			CANVAS_PRESS_ID,
 			CanvasPressBlock::new,
 			FabricBlockSettings.create().mapColor(MapColor.METAL),
 			BlockItem::new,
@@ -113,21 +121,29 @@ public final class AurorasCanvasRegistry {
 			new PainterPaletteItem(new Item.Properties().stacksTo(1))
 	);
 
-	public static final BlockEntityType<CanvasBlockEntity> BLACKBOARD_BLOCK_ENTITY_TYPE = Registry.register(
+	public static final BlockEntityType<SimpleCanvasBlockEntity> CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
-			id("canvas"),
+			CANVAS_ID,
 			FabricBlockEntityTypeBuilder.create(
-					CanvasBlockEntity::new,
-					BLACKBOARD.block.value, CHALKBOARD.block.value, GLASSBOARD.block.value,
-					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_GLASSBOARD.block.value
+					SimpleCanvasBlockEntity::new,
+					BLACKBOARD.block.value, CHALKBOARD.block.value,
+					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value
+			).build()
+	);
+	public static final BlockEntityType<GlassCanvasBlockEntity> GLASS_CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
+			BuiltInRegistries.BLOCK_ENTITY_TYPE,
+			GLASSBOARD_ID,
+			FabricBlockEntityTypeBuilder.create(
+					GlassCanvasBlockEntity::new,
+					GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value
 			).build()
 	);
 	public static final BlockEntityType<CanvasPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
-			id("blackboard_press"),
+			CANVAS_PRESS_ID,
 			FabricBlockEntityTypeBuilder.create(
 					CanvasPressBlockEntity::new,
-					BLACKBOARD_PRESS.block.value
+					CANVAS_PRESS.block.value
 			).build()
 	);
 
@@ -137,9 +153,15 @@ public final class AurorasCanvasRegistry {
 			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new)
 	);
 
-	public static final TagKey<Item> BLACKBOARD_ITEMS = TagKey.create(Registries.ITEM, id("blackboards"));
+	public static final RecipeSerializer<CanvasCloneRecipe> CANVAS_CLONE_RECIPE_SERIALIZER = Registry.register(
+			BuiltInRegistries.RECIPE_SERIALIZER,
+			id("crafting_special_canvas_clone"),
+			new SimpleCraftingRecipeSerializer<>(CanvasCloneRecipe::new)
+	);
 
-	public static final TagKey<Block> BLACKBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("blackboards"));
+	public static final TagKey<Item> CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("canvases"));
+
+	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
 
 	static <T extends Block> BlockEntry<T> registerBlock(
@@ -164,9 +186,20 @@ public final class AurorasCanvasRegistry {
 
 	public record BlockEntry<T extends Block>(ResourceKey<Block> key, T value) {}
 
-	public record ItemEntry<T extends Item>(ResourceKey<Item> key, T value) {}
+	public record ItemEntry<T extends Item>(ResourceKey<Item> key, T value) implements ItemLike {
+		@Override
+		public Item asItem() {
+			return this.value;
+		}
+	}
 
-	public record BlockItemEntry<B extends Block, I extends BlockItem>(BlockEntry<B> block, ItemEntry<I> item) {}
+	public record BlockItemEntry<B extends Block, I extends BlockItem>(BlockEntry<B> block, ItemEntry<I> item)
+			implements ItemLike {
+		@Override
+		public Item asItem() {
+			return this.item.value();
+		}
+	}
 
 	static void init() {
 	}

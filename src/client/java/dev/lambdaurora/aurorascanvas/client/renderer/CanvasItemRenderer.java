@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.BlockItem;
@@ -25,7 +26,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Represents the dynamic item renderer of blackboards.
+ * Represents the dynamic item renderer of canvases.
  *
  * @author LambdAurora
  * @version 1.0.0
@@ -44,73 +45,79 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 			ItemStack stack, ItemDisplayContext mode, PoseStack matrices,
 			MultiBufferSource vertexConsumers, int light, int overlay
 	) {
-		var model = Minecraft.getInstance().getModelManager().getModel(this.modelId);
+		var modelManager = Minecraft.getInstance().getModelManager();
+		var itemRenderer = Minecraft.getInstance().getItemRenderer();
+
+		var model = modelManager.getModel(this.modelId);
 
 		matrices.pushPose();
 
 		matrices.translate(0.5, 0.5, 0.5);
 		boolean leftHanded = mode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
 		if (mode == ItemDisplayContext.HEAD) {
-			var maskModel = Minecraft.getInstance().getModelManager().getModel(AurorasCanvasClient.BLACKBOARD_MASK);
-			Minecraft.getInstance().getItemRenderer().render(
+			var maskModel = modelManager.getModel(AurorasCanvasClient.BLACKBOARD_MASK);
+			itemRenderer.render(
 					stack, mode,
 					false, matrices, vertexConsumers, light, overlay, maskModel
 			);
 		}
 
 		matrices.pushPose();
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			float z = .933f;
-			if (mode == ItemDisplayContext.HEAD) {
-				matrices.translate(0.5, 0.5, z);
-				matrices.scale(-1, -1, 1);
-			} else if (mode == ItemDisplayContext.GUI) {
-				matrices.translate(0.27, -0.08, 0);
-				matrices.scale(-1, -1, 1);
-			} else if (mode == ItemDisplayContext.GROUND) {
-				matrices.translate(0.125, 0.5, 0.23333333);
-				matrices.scale(-1, -1, 1);
-			} else if (mode != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-					&& mode != ItemDisplayContext.THIRD_PERSON_LEFT_HAND && !mode.firstPerson()) {
-				matrices.scale(-1, -1, 1);
-			}
-
-			model.getTransforms().getTransform(mode).apply(leftHanded, matrices);
-			matrices.translate(0, 0, -0.5);
-
-			if (mode == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-					|| mode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-					|| mode.firstPerson()) {
-				matrices.translate(0.5, 0.5, z);
-				matrices.scale(-1, -1, 1);
-			}
-
-			var canvas = Canvas.fromNbt(nbt);
-			CanvasTexture.fromCanvas(canvas)
-					.render(
-							matrices.last().pose(), vertexConsumers,
-							canvas.isLit() ? LightTexture.FULL_BLOCK : light,
-							false
-					);
-
-			if (stack.getDescriptionId().contains("glass")) {
-				CanvasTexture.fromCanvas(canvas)
-						.render(
-								matrices.last().pose(), vertexConsumers,
-								canvas.isLit() ? LightTexture.FULL_BLOCK : light,
-								true
-						);
-			}
-		}
+		this.renderCanvas(stack, mode, matrices, vertexConsumers, light, leftHanded, model);
 		matrices.popPose();
 
-		Minecraft.getInstance().getItemRenderer().render(
+		itemRenderer.render(
 				stack, mode,
 				leftHanded,
 				matrices, vertexConsumers, light, overlay, model
 		);
 
 		matrices.popPose();
+	}
+
+	protected void applyPose(ItemDisplayContext mode, PoseStack matrices, boolean leftHanded, BakedModel model) {
+		float z = .933f;
+		if (mode == ItemDisplayContext.HEAD) {
+			matrices.translate(0.5, 0.5, z);
+			matrices.scale(-1, -1, 1);
+		} else if (mode == ItemDisplayContext.GUI) {
+			matrices.translate(0.27, -0.08, 0);
+			matrices.scale(-1, -1, 1);
+		} else if (mode == ItemDisplayContext.GROUND) {
+			matrices.translate(0.125, 0.5, 0.23333333);
+			matrices.scale(-1, -1, 1);
+		} else if (mode != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+				&& mode != ItemDisplayContext.THIRD_PERSON_LEFT_HAND && !mode.firstPerson()) {
+			matrices.scale(-1, -1, 1);
+		}
+
+		model.getTransforms().getTransform(mode).apply(leftHanded, matrices);
+		matrices.translate(0, 0, -0.5);
+
+		if (mode == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+				|| mode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+				|| mode.firstPerson()) {
+			matrices.translate(0.5, 0.5, z);
+			matrices.scale(-1, -1, 1);
+		}
+	}
+
+	protected void renderCanvas(
+			ItemStack stack, ItemDisplayContext mode, PoseStack matrices,
+			MultiBufferSource vertexConsumers, int light,
+			boolean leftHanded, BakedModel model
+	) {
+		var nbt = BlockItem.getBlockEntityData(stack);
+		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
+			this.applyPose(mode, matrices, leftHanded, model);
+
+			var canvas = Canvas.fromNbt(nbt);
+			CanvasTexture.fromCanvas(canvas)
+					.render(
+							matrices.last().pose(), vertexConsumers,
+							canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
+							false
+					);
+		}
 	}
 }

@@ -29,6 +29,7 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,7 +40,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public class CanvasItem extends BlockItem {
-	private final boolean locked;
+	protected final boolean locked;
 
 	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {
 		super(canvasBlock, settings);
@@ -51,12 +52,8 @@ public class CanvasItem extends BlockItem {
 		if (clickType == ClickAction.SECONDARY) {
 			if (otherStack.is(Items.WATER_BUCKET)
 					|| (otherStack.is(Items.POTION) && PotionUtils.getPotion(otherStack) == Potions.WATER)) {
-				var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE);
-				var blackboard = Canvas.fromNbt(nbt);
-				if (blackboard.isEmpty())
+				if (!this.clearContents(self))
 					return false;
-				blackboard.clear();
-				blackboard.writeNbt(nbt);
 
 				if (otherStack.is(Items.POTION)) {
 					if (!player.getAbilities().instabuild) {
@@ -79,6 +76,17 @@ public class CanvasItem extends BlockItem {
 		return false;
 	}
 
+	protected boolean clearContents(ItemStack self) {
+		var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
+		var blackboard = Canvas.fromNbt(nbt);
+		if (blackboard.isEmpty())
+			return false;
+		blackboard.clear();
+		blackboard.writeNbt(nbt);
+
+		return true;
+	}
+
 	@Override
 	public void onCraftedBy(ItemStack stack, Level world, Player player) {
 		this.ensureValidStack(stack);
@@ -91,7 +99,7 @@ public class CanvasItem extends BlockItem {
 
 	private ItemStack ensureValidStack(ItemStack stack) {
 		if (BlockItem.getBlockEntityData(stack) == null) {
-			var nbt = Utils.getOrCreateBlockEntityNbt(stack, AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE);
+			var nbt = Utils.getOrCreateBlockEntityNbt(stack, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
 			var blackboard = new Canvas();
 			blackboard.writeNbt(nbt);
 		}
@@ -102,10 +110,10 @@ public class CanvasItem extends BlockItem {
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
 		var nbt = BlockItem.getBlockEntityData(stack);
 		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			var blackboard = Canvas.fromNbt(nbt);
+			var canvas = Canvas.fromNbt(nbt);
 			return Optional.of(new CanvasTooltipData(
 					BuiltInRegistries.ITEM.getKey(this).getPath().replace("waxed_", ""),
-					blackboard, this.locked
+					List.of(canvas), this.locked
 			));
 		}
 		return super.getTooltipImage(stack);

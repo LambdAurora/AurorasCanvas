@@ -46,10 +46,10 @@ import java.util.List;
 @Environment(EnvType.CLIENT)
 public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<CanvasPressBlockEntity> {
 	private static final Logger LOGGER = LogUtils.getLogger();
-	public static final Identifier PRESS_PLATE_ID = AurorasCanvas.id("blockstates/blackboard_press/press_plate.json");
-	public static final Identifier SCREW_ID = AurorasCanvas.id("blockstates/blackboard_press/screw.json");
-	public static final ModelResourceLocation PRESS_PLATE_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("blackboard_press/press_plate"), "special");
-	public static final ModelResourceLocation SCREW_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("blackboard_press/screw"), "special");
+	public static final Identifier PRESS_PLATE_ID = AurorasCanvas.id("blockstates/canvas_press/press_plate.json");
+	public static final Identifier SCREW_ID = AurorasCanvas.id("blockstates/canvas_press/screw.json");
+	public static final ModelResourceLocation PRESS_PLATE_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("canvas_press/press_plate"), "special");
+	public static final ModelResourceLocation SCREW_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("canvas_press/screw"), "special");
 	private static final RandomSource RANDOM = new LegacyRandomSource(RandomSupport.generateUniqueSeed());
 	private final Minecraft client = Minecraft.getInstance();
 
@@ -133,9 +133,9 @@ public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<Canva
 		var model = Minecraft.getInstance().getResourceManager().getResource(resourceId).map(resource -> {
 			try (var reader = new InputStreamReader(resource.open())) {
 				var context = new BlockModelDefinition.Context();
-				context.setDefinition(AurorasCanvasRegistry.BLACKBOARD_PRESS.block().value().getStateDefinition());
+				context.setDefinition(AurorasCanvasRegistry.CANVAS_PRESS.block().value().getStateDefinition());
 				var map = BlockModelDefinition.fromStream(context, reader);
-				return new UnbakedVariantModel<>(AurorasCanvasRegistry.BLACKBOARD_PRESS.block().value(), map.getVariants(), List.of(CanvasPressBlock.WATERLOGGED));
+				return new UnbakedVariantModel<>(AurorasCanvasRegistry.CANVAS_PRESS.block().value(), map.getVariants(), List.of(CanvasPressBlock.WATERLOGGED));
 			} catch (IOException e) {
 				LOGGER.warn("Failed to load the blackboard \"{}\" model.", modelId, e);
 				return null;

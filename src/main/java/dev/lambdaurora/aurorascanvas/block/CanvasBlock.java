@@ -25,9 +25,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,6 +38,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -66,7 +65,6 @@ import java.util.Map;
 @SuppressWarnings("deprecation")
 public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
 	private static final Map<Direction, VoxelShape> SHAPES;
@@ -79,7 +77,6 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 		this.registerDefaultState(this.defaultBlockState()
 				.setValue(FACING, Direction.NORTH)
-				.setValue(LIT, false)
 				.setValue(WATERLOGGED, false)
 		);
 	}
@@ -95,7 +92,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING, LIT, WATERLOGGED);
+		builder.add(FACING, WATERLOGGED);
 	}
 
 	/* Shapes */
@@ -118,11 +115,6 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		var fluidState = world.getFluidState(pos);
 		var state = this.defaultBlockState().setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
 		var directions = ctx.getNearestLookingDirections();
-
-		var nbt = BlockItem.getBlockEntityData(ctx.getItemInHand());
-		if (nbt != null && nbt.contains("lit")) {
-			state = state.setValue(LIT, nbt.getBoolean("lit"));
-		}
 
 		Direction firstDirection = Direction.NORTH;
 		for (var direction : directions) {
@@ -158,20 +150,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		var blackboard = this.getBlackboardEntity(world, pos);
+		var blackboard = this.getCanvasEntity(world, pos);
 		if (blackboard != null) {
 			if (stack.hasCustomHoverName()) {
 				blackboard.setCustomName(stack.getHoverName());
-			}
-
-			var nbt = BlockItem.getBlockEntityData(stack);
-			if (state.getValue(WATERLOGGED) && !this.isLocked())
-				return;
-
-			if (nbt != null && Canvas.shouldConvert(nbt)) {
-				var blackboardData = new Canvas();
-				blackboardData.readNbt(nbt);
-				blackboard.copy(blackboardData);
 			}
 		}
 	}
@@ -188,7 +170,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		}
 
 		if (!this.isLocked()) {
-			var blackboard = this.getBlackboardEntity(world, pos);
+			var blackboard = this.getCanvasEntity(world, pos);
 			if (blackboard != null && !world.isClientSide()) {
 				if (state.getValue(WATERLOGGED) && !blackboard.isEmpty()) {
 					blackboard.clear();
@@ -201,18 +183,20 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 	/* Interaction */
 
+	protected boolean isUseFaceValid(BlockState state, Direction direction) {
+		return direction.equals(state.getValue(FACING));
+	}
+
 	@Override
 	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		var stack = player.getItemInHand(hand);
 		var offhand = player.getItemInHand(InteractionHand.OFF_HAND);
-		var facing = state.getValue(FACING);
+		var facing = hit.getDirection();
 
-		if (!this.isLocked() && hit.getDirection() == facing) {
-			var blackboard = this.getBlackboardEntity(world, pos);
-			if (blackboard != null) {
-				if (blackboard.lastUser != null && blackboard.lastUser.isRemoved()) {
-					blackboard.lastUser = null;
-				}
+		if (!this.isLocked() && this.isUseFaceValid(state, facing)) {
+			var canvasEntity = this.getCanvasEntity(world, pos);
+			if (canvasEntity != null) {
+				var syncedCanvas = canvasEntity.getSyncedCanvas(facing);
 
 				if (stack.getItem() instanceof PainterPaletteItem paletteItem) {
 					if (offhand.isEmpty()) {
@@ -223,10 +207,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 				}
 
 				var modifier = DrawModifier.fromItem(stack);
-				if (stack.is(Items.WATER_BUCKET) && this.tryClear(world, blackboard, player)) {
+				if (stack.is(Items.WATER_BUCKET) && this.tryClear(world, canvasEntity, player)) {
 					world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 2.f, 1.f);
 					return InteractionResult.sidedSuccess(world.isClientSide());
-				} else if (stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER && this.tryClear(world, blackboard, player)) {
+				} else if (stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER && this.tryClear(world, canvasEntity, player)) {
 					player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 					if (!player.getAbilities().instabuild) {
 						stack.shrink(1);
@@ -255,7 +239,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 					player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 
-					this.line(blackboard, player, x, y, modifier);
+					syncedCanvas.tryDrawLine(player, x, y, modifier);
 
 					world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 					return InteractionResult.sidedSuccess(world.isClientSide());
@@ -283,20 +267,20 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						}
 					}
 
-					if (action.execute(blackboard, x, y, modifier)) {
+					if (action.execute(syncedCanvas, x, y, modifier)) {
 						player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 						return InteractionResult.sidedSuccess(world.isClientSide());
 					}
 				} else if (stack.is(Items.GLOW_INK_SAC) || stack.is(Items.INK_SAC)) {
 					boolean lit = stack.is(Items.GLOW_INK_SAC);
-					if (lit != state.getValue(LIT)) {
+					if (lit != syncedCanvas.isGlowing()) {
 						if (lit) {
 							world.playSound(null, pos, SoundEvents.GLOW_INK_SAC_USE, SoundSource.BLOCKS, 1.f, 1.f);
-							world.setBlockAndUpdate(pos, state.setValue(LIT, true));
+							syncedCanvas.setGlowing(true);
 						} else {
 							world.playSound(null, pos, SoundEvents.INK_SAC_USE, SoundSource.BLOCKS, 1.f, 1.f);
-							world.setBlockAndUpdate(pos, state.setValue(LIT, false));
+							syncedCanvas.setGlowing(false);
 						}
 
 						if (!player.isCreative()) {
@@ -312,17 +296,6 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return super.use(state, world, pos, player, hand, hit);
 	}
 
-	private void line(CanvasBlockEntity blackboard, Player player, int x, int y, DrawModifier modifier) {
-		if (blackboard.lastUser != player) {
-			blackboard.lastUser = player;
-			blackboard.lastX = x;
-			blackboard.lastY = y;
-		} else {
-			blackboard.line(blackboard.lastX, blackboard.lastY, x, y, modifier);
-			blackboard.lastUser = null;
-		}
-	}
-
 	private boolean tryClear(Level world, CanvasBlockEntity blackboard, @Nullable Player player) {
 		if (!blackboard.isEmpty()) {
 			blackboard.clear();
@@ -334,36 +307,25 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	}
 
 	@Override
-	public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
-		var blackboard = this.getBlackboardEntity(world, pos);
-		if (blackboard != null) {
-			if (!world.isClientSide() && player.isCreative()) {
-				var stack = new ItemStack(this);
-				var nbt = blackboard.writeBlackBoardNbt(new CompoundTag());
-				nbt.remove("custom_name");
-				Utils.writeBlockEntityNbtToStack(stack, AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE, nbt, false);
-
-				if (blackboard.hasCustomName()) {
-					stack.setHoverName(blackboard.getCustomName());
-				}
-
-				var itemEntity = new ItemEntity(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
-				itemEntity.setDefaultPickUpDelay();
-				world.addFreshEntity(itemEntity);
+	public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+		var canvasEntity = this.getCanvasEntity(level, pos);
+		if (canvasEntity != null) {
+			if (!level.isClientSide() && player.isCreative()) {
+				this.playerDestroy(level, player, pos, state, canvasEntity, player.getMainHandItem().copy());
 			}
 		}
 
-		super.playerWillDestroy(world, pos, state, player);
+		super.playerWillDestroy(level, pos, state, player);
 	}
 
 	@Override
 	public ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
 		var stack = super.getCloneItemStack(world, pos, state);
-		var blackboard = this.getBlackboardEntity(world, pos);
-		if (blackboard != null) {
-			var nbt = blackboard.writeBlackBoardNbt(new CompoundTag());
+		var canvasEntity = this.getCanvasEntity(world, pos);
+		if (canvasEntity != null && !canvasEntity.isEmpty()) {
+			var nbt = canvasEntity.writeCanvasNbt(new CompoundTag());
 			nbt.remove("custom_name");
-			Utils.writeBlockEntityNbtToStack(stack, AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE, nbt, false);
+			Utils.writeBlockEntityNbtToStack(stack, this.getBlockEntityType(), nbt, false);
 		}
 
 		return stack;
@@ -376,12 +338,16 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return RenderShape.MODEL;
 	}
 
-	@Override
-	public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE.create(pos, state);
+	protected BlockEntityType<? extends CanvasBlockEntity> getBlockEntityType() {
+		return AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE;
 	}
 
-	public @Nullable CanvasBlockEntity getBlackboardEntity(BlockGetter world, BlockPos pos) {
+	@Override
+	public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+		return this.getBlockEntityType().create(pos, state);
+	}
+
+	public @Nullable CanvasBlockEntity getCanvasEntity(BlockGetter world, BlockPos pos) {
 		var entity = world.getBlockEntity(pos);
 		if (entity instanceof CanvasBlockEntity blackboard)
 			return blackboard;
@@ -406,7 +372,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 				world.setBlock(pos, newState, Block.UPDATE_ALL);
 				world.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(world));
 
-				var blackboard = this.getBlackboardEntity(world, pos);
+				var blackboard = this.getCanvasEntity(world, pos);
 				if (blackboard != null && !this.isLocked()) {
 					if (!blackboard.isEmpty()) {
 						blackboard.clear();
@@ -426,21 +392,6 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	}
 
 	static {
-		/*if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-			UseItemCallback.EVENT.register((player, world, hand) -> {
-				if (hand == Hand.OFF_HAND && !player.isSpectator()) {
-					var target = MinecraftClient.getInstance().crosshairTarget;
-					if (target != null && target.getType() == HitResult.Type.BLOCK) {
-						var targetBlock = world.getBlockState(((BlockHitResult) target).getBlockPos());
-						if (targetBlock.getBlock() instanceof BlackboardBlock)
-							return TypedActionResult.fail(ItemStack.EMPTY);
-					}
-				}
-
-				return TypedActionResult.pass(ItemStack.EMPTY);
-			});
-		}*/
-
 		var builder = ImmutableMap.<Direction, VoxelShape>builder();
 
 		builder.put(Direction.NORTH, box(0.0, 0.0, 15.0, 16.0, 16.0, 16.0));

@@ -38,15 +38,11 @@ public abstract class DrawModifier {
 		}
 
 		@Override
-		public short apply(short colorData) {
-			var color = CanvasColor.fromRaw(colorData);
+		public CanvasPixel apply(CanvasPixel pixel) {
+			if (pixel.color() == CanvasColor.EMPTY) return pixel;
 
-			if (color == CanvasColor.EMPTY) return 0;
-
-			int shade = CanvasColor.getShadeFromRaw(colorData);
-			boolean saturated = CanvasColor.getSaturationFromRaw(colorData);
-			int newShade = CanvasColor.increaseDarkness(shade);
-			return color.toRawId(newShade, saturated);
+			int newShade = CanvasColor.increaseDarkness(pixel.shade());
+			return pixel.withShade(newShade);
 		}
 	};
 
@@ -57,15 +53,11 @@ public abstract class DrawModifier {
 		}
 
 		@Override
-		public short apply(short colorData) {
-			var color = CanvasColor.fromRaw(colorData);
+		public CanvasPixel apply(CanvasPixel pixel) {
+			if (pixel.color() == CanvasColor.EMPTY) return pixel;
 
-			if (color == CanvasColor.EMPTY) return 0;
-
-			int shade = CanvasColor.getShadeFromRaw(colorData);
-			boolean saturated = CanvasColor.getSaturationFromRaw(colorData);
-			int newShade = CanvasColor.decreaseDarkness(shade);
-			return color.toRawId(newShade, saturated);
+			int newShade = CanvasColor.decreaseDarkness(pixel.shade());
+			return pixel.withShade(newShade);
 		}
 	};
 
@@ -76,13 +68,8 @@ public abstract class DrawModifier {
 		}
 
 		@Override
-		public short apply(short colorData) {
-			var color = CanvasColor.fromRaw(colorData);
-
-			int shade = CanvasColor.getShadeFromRaw(colorData);
-			boolean saturated = !CanvasColor.getSaturationFromRaw(colorData);
-
-			return color.toRawId(shade, saturated);
+		public CanvasPixel apply(CanvasPixel pixel) {
+			return pixel.withSaturation(!pixel.saturated());
 		}
 	};
 
@@ -108,7 +95,7 @@ public abstract class DrawModifier {
 
 	public abstract boolean matchItem(Item item);
 
-	public abstract short apply(short colorData);
+	public abstract CanvasPixel apply(CanvasPixel pixel);
 
 	public static @Nullable DrawModifier fromItem(Item item) {
 		for (var modifier : MODIFIERS) {

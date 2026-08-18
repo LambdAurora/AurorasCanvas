@@ -9,11 +9,15 @@
 
 package dev.lambdaurora.aurorascanvas.util;
 
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import java.util.function.Function;
 
 public final class Utils {
 	private Utils() {
@@ -56,5 +60,15 @@ public final class Utils {
 		} else {
 			return nbt;
 		}
+	}
+
+	public static <T> Codec<T> codecWithAlternative(final Codec<T> primary, final Codec<? extends T> alternative) {
+		return Codec.either(
+				primary,
+				alternative
+		).xmap(
+				either -> either.map(Function.identity(), Function.identity()),
+				Either::left
+		);
 	}
 }

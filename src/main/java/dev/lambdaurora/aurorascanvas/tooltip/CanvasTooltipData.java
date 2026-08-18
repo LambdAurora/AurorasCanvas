@@ -9,6 +9,9 @@
 
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.List;
 
 /**
  * Represents the canvas tooltip data.
@@ -17,5 +20,9 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public record CanvasTooltipData(String background, Canvas canvas, boolean locked) implements TooltipComponent {
+public record CanvasTooltipData(
+		String background,
+		@Unmodifiable List<Canvas> canvases,
+		boolean locked
+) implements TooltipComponent {
 }

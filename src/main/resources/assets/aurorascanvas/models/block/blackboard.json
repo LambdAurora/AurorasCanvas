@@ -2,6 +2,6 @@
 	"credit": "Made by LambdAurora",
 	"parent": "aurorascanvas:block/template/board",
 	"textures": {
-		"board": "aurorascanvas:block/blackboard/blackboard"
+		"board": "aurorascanvas:block/canvas/blackboard"
 	}
 }

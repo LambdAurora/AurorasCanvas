@@ -10,14 +10,14 @@
 package dev.lambdaurora.aurorascanvas.client.model;
 
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
+import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,8 +50,8 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 
 	protected void emitBlockMesh(BlockAndTintGetter world, BlockPos pos, RenderContext context) {
 		var attachment = ((RenderAttachedBlockView) world).getBlockEntityRenderAttachment(pos);
-		if (attachment instanceof Mesh mesh) {
-			mesh.outputTo(context.getEmitter());
+		if (attachment instanceof ClientCanvasBlockEntityData.RenderAttachmentData data) {
+			data.meshes().forEach(mesh -> mesh.outputTo(context.getEmitter()));
 		}
 	}
 
@@ -62,11 +62,7 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 		var nbt = BlockItem.getBlockEntityData(stack);
 		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
 			var canvas = Canvas.fromNbt(nbt);
-			CanvasMeshBaker.buildMesh(
-							canvas,
-							Direction.NORTH,
-							canvas.isLit() ? LightTexture.FULL_BLOCK : 0
-					)
+			CanvasMeshBaker.buildMesh(new PlacedCanvas(canvas, Direction.NORTH))
 					.outputTo(context.getEmitter());
 		}
 	}

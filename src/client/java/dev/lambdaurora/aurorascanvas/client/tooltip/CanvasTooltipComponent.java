@@ -23,7 +23,10 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.Unmodifiable;
 import org.joml.Matrix4f;
+
+import java.util.List;
 
 /**
  * Represents the blackboard tooltip component. Displays the blackboard's contents.
@@ -38,20 +41,18 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 	private static final Identifier GLOW_TEXTURE = AurorasCanvas.id("textures/gui/glowing_sprite.png");
 
 	private final Minecraft client = Minecraft.getInstance();
-	private final CanvasTexture texture;
 	private final RenderType background;
-	private final Canvas canvas;
+	private final List<Entry> canvases;
 	private final boolean locked;
 
-	public CanvasTooltipComponent(String background, Canvas canvas, boolean locked) {
-		this.background = RenderType.text(AurorasCanvas.id("textures/block/blackboard/" + background + ".png"));
-		this.canvas = canvas;
+	public CanvasTooltipComponent(String background, @Unmodifiable List<Canvas> canvases, boolean locked) {
+		this.background = RenderType.text(AurorasCanvas.id("textures/block/canvas/" + background + ".png"));
+		this.canvases = canvases.stream().map(canvas -> new Entry(CanvasTexture.fromCanvas(canvas), canvas.isGlowing())).toList();
 		this.locked = locked;
-		this.texture = CanvasTexture.fromCanvas(canvas);
 	}
 
 	public CanvasTooltipComponent(CanvasTooltipData data) {
-		this(data.background(), data.canvas(), data.locked());
+		this(data.background(), data.canvases(), data.locked());
 	}
 
 	@Override
@@ -77,9 +78,12 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 		this.quad(this.background, 0.f, 0.f, 1.f, 1.f, model, vertexConsumers, LightTexture.FULL_BRIGHT);
 
 		matrices.translate(0, 0, 1);
-		this.texture.render(model, vertexConsumers, LightTexture.FULL_BRIGHT, false);
 
-		if (this.canvas.isLit()) {
+		var entry = this.selectEntry();
+
+		entry.texture.render(model, vertexConsumers, LightTexture.FULL_BRIGHT, false);
+
+		if (entry.glowing) {
 			matrices.pushPose();
 			matrices.translate(0, 0, 1);
 			model = matrices.last().pose();
@@ -109,6 +113,18 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 		matrices.popPose();
 	}
 
+	private Entry selectEntry() {
+		if (this.canvases.size() == 1) {
+			return this.canvases.get(0);
+		}
+
+		int period = 5;
+		int fullCycle = this.canvases.size() * period;
+
+		int index = Math.toIntExact((System.currentTimeMillis() / 1000) % fullCycle / period);
+		return this.canvases.get(index);
+	}
+
 	private void quad(
 			RenderType renderType, float uMin, float vMin, float uMax, float vMax,
 			Matrix4f model, MultiBufferSource vertexConsumers, int light
@@ -123,4 +139,6 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 		vertices.vertex(model, 0.f, 0.f, 0.f).color(255, 255, 255, 255)
 				.uv(uMin, vMin).uv2(light).endVertex();
 	}
+
+	private record Entry(CanvasTexture texture, boolean glowing) {}
 }

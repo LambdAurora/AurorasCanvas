@@ -9,7 +9,6 @@
 
 package dev.lambdaurora.aurorascanvas.client;
 
-import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -18,8 +17,10 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.SectionPos;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 @Environment(EnvType.CLIENT)
@@ -27,7 +28,7 @@ public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.Side
 	private static final Map<CanvasBlockEntity, ClientCanvasBlockEntityData> ACTIVE_BLACKBOARDS = new Reference2ObjectOpenHashMap<>();
 
 	private final CanvasBlockEntity canvasBlockEntity;
-	private @Nullable Mesh mesh = null;
+	private List<Mesh> mesh = List.of();
 	private boolean meshDirty = true;
 
 	public ClientCanvasBlockEntityData(CanvasBlockEntity canvasBlockEntity) {
@@ -48,7 +49,7 @@ public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.Side
 	public @Nullable Object getRenderAttachmentData() {
 		if (this.meshDirty)
 			this.rebuildMesh();
-		return this.mesh;
+		return this.mesh.isEmpty() ? null : new RenderAttachmentData(this.mesh);
 	}
 
 	public void markMeshDirty() {
@@ -57,10 +58,10 @@ public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.Side
 
 	private void rebuildMesh() {
 		this.meshDirty = false;
-		var canvas = this.canvasBlockEntity.canvas();
 
-		int light = canvas.isLit() ? 0xf000f0 : 0;
-		this.mesh = CanvasMeshBaker.buildMesh(canvas, this.canvasBlockEntity.getBlockState().getValue(CanvasBlock.FACING), light);
+		this.mesh = this.canvasBlockEntity.canvases()
+				.map(CanvasMeshBaker::buildMesh)
+				.toList();
 	}
 
 	private void refreshRendering() {
@@ -92,5 +93,8 @@ public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.Side
 			ACTIVE_BLACKBOARDS.put(blockEntity, data);
 			return data;
 		});
+	}
+
+	public record RenderAttachmentData(@Unmodifiable List<Mesh> meshes) {
 	}
 }

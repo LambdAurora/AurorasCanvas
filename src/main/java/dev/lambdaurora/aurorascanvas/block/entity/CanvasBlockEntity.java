@@ -10,32 +10,29 @@
 package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import dev.yumi.commons.event.Event;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Represents a canvas block entity, stores the pixels of a canvas.
- *
- * @author LambdAurora
- * @version 1.0.0
- * @since 1.0.0
- */
-public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity, CanvasHandler {
+import java.lang.ref.WeakReference;
+import java.util.stream.Stream;
+
+public abstract class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
@@ -47,102 +44,26 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 			}
 	);
 
-	private final Canvas canvas = new AssignedCanvas();
 	private @Nullable Component customName;
-
-	public @Nullable Player lastUser;
-	public int lastX;
-	public int lastY;
 
 	private SidedData sidedData = NoOpSidedData.INSTANCE;
 
-	public CanvasBlockEntity(BlockPos pos, BlockState state) {
-		super(AurorasCanvasRegistry.BLACKBOARD_BLOCK_ENTITY_TYPE, pos, state);
-	}
-
-	public Canvas canvas() {
-		return this.canvas;
-	}
-
-	@Override
-	public short getPixel(int x, int y) {
-		return this.canvas.getPixel(x, y);
-	}
-
-	@Override
-	public boolean setPixel(int x, int y, int color) {
-		if (this.canvas.setPixel(x, y, color)) {
-			if (this.getLevel() instanceof ServerLevel) {
-				this.sync();
-				this.setChanged();
-			}
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean brush(int x, int y, int color) {
-		if (this.canvas.brush(x, y, color)) {
-			if (this.getLevel() instanceof ServerLevel) {
-				this.sync();
-				this.setChanged();
-			}
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean replace(int x, int y, int color) {
-		if (this.canvas.replace(x, y, color)) {
-			if (this.getLevel() instanceof ServerLevel) {
-				this.sync();
-				this.setChanged();
-			}
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean fill(int x, int y, int color) {
-		if (this.canvas.fill(x, y, color)) {
-			if (this.getLevel() instanceof ServerLevel) {
-				this.sync();
-				this.setChanged();
-			}
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean line(int x1, int y1, int x2, int y2, DrawModifier modifier) {
-		if (this.canvas.line(x1, y1, x2, y2, modifier)) {
-			if (this.getLevel() instanceof ServerLevel) {
-				this.sync();
-				this.setChanged();
-			}
-			return true;
-		}
-		return false;
-	}
-
-	public void copy(Canvas source) {
-		this.canvas.copy(source);
-		if (this.getLevel() instanceof ServerLevel) {
-			this.sync();
-			this.setChanged();
-		}
+	protected CanvasBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+		super(type, pos, blockState);
 	}
 
 	/**
-	 * Clears the canvas.
+	 * {@return the canvases associated with this block entity}
+	 */
+	public abstract @Unmodifiable Stream<PlacedCanvas> canvases();
+
+	public abstract SyncedCanvas getSyncedCanvas(Direction facing);
+
+	/**
+	 * Clears the source.
 	 */
 	public void clear() {
-		this.canvas.clear();
-		this.lastUser = null;
+		this.canvases().forEach(CanvasHandler::clear);
 		if (this.getLevel() instanceof ServerLevel) {
 			this.sync();
 			this.setChanged();
@@ -150,12 +71,12 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 	}
 
 	/**
-	 * Returns whether this canvas is empty or not.
+	 * Returns whether this source is empty or not.
 	 *
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
 	public boolean isEmpty() {
-		return this.canvas.isEmpty();
+		return this.canvases().allMatch(CanvasHandler::isEmpty);
 	}
 
 	@Override
@@ -164,7 +85,7 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 	}
 
 	/**
-	 * Sets the canvas custom name.
+	 * Sets the source custom name.
 	 *
 	 * @param customName the custom name
 	 */
@@ -181,10 +102,6 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 	public Component getName() {
 		return this.customName != null ? this.customName
 				: Component.translatable(this.getBlockState().getBlock().getDescriptionId());
-	}
-
-	public boolean isLocked() {
-		return ((CanvasBlock) this.getBlockState().getBlock()).isLocked();
 	}
 
 	@Override
@@ -214,30 +131,23 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 	@Override
 	public void load(CompoundTag nbt) {
 		super.load(nbt);
-		this.readBlackBoardNbt(nbt);
-		this.lastUser = null;
+		this.customName = Component.Serializer.fromJson(nbt.getString("custom_name"));
+		this.loadCanvasNbt(nbt);
 
 		if (this.level != null && this.level.isClientSide()) {
 			this.sidedData.markChanged();
 		}
 	}
 
+	protected abstract void loadCanvasNbt(CompoundTag nbt);
+
 	@Override
 	public void saveAdditional(CompoundTag nbt) {
 		super.saveAdditional(nbt);
-		this.writeBlackBoardNbt(nbt);
+		this.writeCanvasNbt(nbt);
 	}
 
-	public void readBlackBoardNbt(CompoundTag nbt) {
-		this.canvas.readNbt(nbt);
-
-		if (nbt.contains("custom_name", Tag.TAG_STRING)) {
-			this.customName = Component.Serializer.fromJson(nbt.getString("custom_name"));
-		}
-	}
-
-	public CompoundTag writeBlackBoardNbt(CompoundTag nbt) {
-		this.canvas.writeNbt(nbt);
+	public CompoundTag writeCanvasNbt(CompoundTag nbt) {
 		if (this.customName != null) {
 			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
 		}
@@ -272,13 +182,129 @@ public class CanvasBlockEntity extends BasicBlockEntity implements Nameable, Ren
 		SidedData onAdded(CanvasBlockEntity blockEntity);
 	}
 
-	private class AssignedCanvas extends Canvas {
-		@Override
-		public boolean isLit() {
-			return CanvasBlockEntity.this.getBlockState().getValue(CanvasBlock.LIT);
+	public final class SyncedCanvas implements CanvasHandler {
+		private Canvas canvas = new Canvas();
+
+		private @Nullable WeakReference<Player> lastUser = null;
+		private int lastX;
+		private int lastY;
+
+		Canvas getCanvas() {
+			return this.canvas;
+		}
+
+		void setCanvas(Canvas canvas) {
+			this.lastUser = null;
+			this.canvas = canvas;
 		}
 
 		@Override
-		public void setLit(boolean lit) {}
+		public short getRawPixel(int x, int y) {
+			return this.canvas.getRawPixel(x, y);
+		}
+
+		@Override
+		public boolean setPixel(int x, int y, int color) {
+			if (this.canvas.setPixel(x, y, color)) {
+				this.doSync();
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean drawBrush(int x, int y, int color) {
+			if (this.canvas.drawBrush(x, y, color)) {
+				this.doSync();
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean replaceColor(int x, int y, int color) {
+			if (this.canvas.replaceColor(x, y, color)) {
+				this.doSync();
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean drawLine(int x1, int y1, int x2, int y2, DrawModifier modifier) {
+			if (this.canvas.drawLine(x1, y1, x2, y2, modifier)) {
+				this.doSync();
+				return true;
+			}
+			return false;
+		}
+
+		public void tryDrawLine(Player player, int x, int y, DrawModifier modifier) {
+			if (this.lastUser == null || this.lastUser.get() != player) {
+				this.lastUser = new WeakReference<>(player);
+				this.lastX = x;
+				this.lastY = y;
+			} else {
+				this.drawLine(this.lastX, this.lastY, x, y, modifier);
+				this.lastUser = null;
+			}
+		}
+
+		@Override
+		public boolean fillColor(int x, int y, int color) {
+			if (this.canvas.fillColor(x, y, color)) {
+				this.doSync();
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean isGlowing() {
+			return this.canvas.isGlowing();
+		}
+
+		@Override
+		public void setGlowing(boolean glowing) {
+			this.canvas.setGlowing(glowing);
+			this.doSync();
+		}
+
+		@Override
+		public void copy(Canvas source) {
+			this.canvas.copy(source);
+			this.doSync();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return this.canvas.isEmpty();
+		}
+
+		@Override
+		public void clear() {
+			this.lastUser = null;
+			this.canvas.clear();
+			this.doSync();
+		}
+
+		SyncedCanvas access() {
+			if (this.lastUser != null) {
+				var lastUser = this.lastUser.get();
+
+				if (lastUser != null && lastUser.isRemoved()) {
+					this.lastUser = null;
+				}
+			}
+
+			return this;
+		}
+
+		private void doSync() {
+			if (CanvasBlockEntity.this.getLevel() instanceof ServerLevel) {
+				CanvasBlockEntity.this.sync();
+				CanvasBlockEntity.this.setChanged();
+			}
+		}
 	}
 }

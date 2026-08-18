@@ -10,92 +10,111 @@
 package dev.lambdaurora.aurorascanvas.canvas;
 
 /**
- * Represents a canvas handler.
+ * Represents a source handler.
  *
  * @author LambdAurora
  * @version 1.0.0
  * @since 1.0.0
  */
 public interface CanvasHandler {
-	short getPixel(int x, int y);
+	/**
+	 * The amount of pixels in a canvas, which is {@value}.
+	 */
+	int PIXELS_COUNT = 16 * 16;
 
 	/**
-	 * Sets the pixel color at the specified coordinates.
+	 * Gets the pixel data identifier at the specified coordinates.
 	 *
 	 * @param x the X coordinate
 	 * @param y the Y coordinate
-	 * @param color the raw color
+	 * @return the raw pixel
+	 */
+	short getRawPixel(int x, int y);
+
+	/**
+	 * Gets the pixel at the specified coordinates.
+	 *
+	 * @param x the X coordinate
+	 * @param y the Y coordinate
+	 * @return the pixel
+	 */
+	default CanvasPixel getPixel(int x, int y) {
+		return CanvasPixel.fromRaw(this.getRawPixel(x, y));
+	}
+
+	default int getColor(int x, int y) {
+		int id = this.getRawPixel(x, y);
+		return CanvasColor.getRenderColor(id);
+	}
+
+	/**
+	 * Sets the pixel data at the specified coordinates.
+	 *
+	 * @param x the X coordinate
+	 * @param y the Y coordinate
+	 * @param color the raw pixel
 	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
 	 */
 	boolean setPixel(int x, int y, int color);
 
 	/**
-	 * Sets the pixel color at the specified coordinates.
+	 * Sets the pixel data at the specified coordinates.
 	 *
 	 * @param x the X coordinate
 	 * @param y the Y coordinate
-	 * @param color the color
-	 * @param shade the shade of the color
-	 * @param saturated {@code true} if the color is saturated, or {@code false} otherwise
+	 * @param pixel the pixel data
 	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
-	 * @see #setPixel(int, int, int)
 	 */
-	default boolean setPixel(int x, int y, CanvasColor color, int shade, boolean saturated) {
-		return this.setPixel(x, y, color.toRawId(shade, saturated));
+	default boolean setPixel(int x, int y, CanvasPixel pixel) {
+		return this.setPixel(x, y, pixel.toRawId());
+	}
+
+	boolean drawBrush(int x, int y, int color);
+
+	default boolean drawBrush(int x, int y, CanvasPixel pixel) {
+		return this.drawBrush(x, y, pixel.toRawId());
+	}
+
+	boolean replaceColor(int x, int y, int color);
+
+	default boolean replaceColor(int x, int y, CanvasPixel pixel) {
+		return this.replaceColor(x, y, pixel.toRawId());
+	}
+
+	boolean drawLine(int x1, int y1, int x2, int y2, DrawModifier modifier);
+
+	boolean fillColor(int x, int y, int color);
+
+	default boolean fillColor(int x, int y, CanvasPixel pixel) {
+		return this.fillColor(x, y, pixel.toRawId());
 	}
 
 	/**
-	 * Sets the pixel color at the specified coordinates.
-	 *
-	 * @param x the X coordinate
-	 * @param y the Y coordinate
-	 * @param color the color
-	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
+	 * {@return {@code true} if this canvas is glowing, or {@code false} otherwise}
 	 */
-	default boolean setPixel(int x, int y, CanvasColor color) {
-		return this.setPixel(x, y, color, 0, false);
-	}
+	boolean isGlowing();
 
 	/**
-	 * Sets whether the given pixel is saturated or not.
+	 * Sets whether this canvas is glowing or not.
 	 *
-	 * @param x the X coordinate
-	 * @param y the Y coordinate
-	 * @param saturated {@code true} if the color is saturated, or {@code false} otherwise
-	 * @return {@code true} if the pixel has been changed, or {@code false} otherwise
-	 * @see #setPixel(int, int, int)
-	 * @see #setPixel(int, int, CanvasColor, int, boolean)
+	 * @param glowing {@code true} if this canvas is glowing, or {@code false} otherwise
 	 */
-	default boolean setSaturated(int x, int y, boolean saturated) {
-		int color = this.getPixel(x, y);
-		if (CanvasColor.getSaturationFromRaw(color) == saturated) return false;
+	void setGlowing(boolean glowing);
 
-		color &= ~CanvasColor.SATURATION_MASK;
-		if (saturated)
-			color |= CanvasColor.SATURATION_MASK;
+	void copy(Canvas source);
 
-		this.setPixel(x, y, color);
+	boolean isEmpty();
 
-		return true;
-	}
+	void clear();
 
-	boolean brush(int x, int y, int color);
-
-	default boolean brush(int x, int y, CanvasColor color, int shade) {
-		return this.brush(x, y, color.toRawId(shade, CanvasColor.getSaturationFromRaw(this.getPixel(x, y))));
-	}
-
-	boolean replace(int x, int y, int color);
-
-	default boolean replace(int x, int y, CanvasColor color, int shade) {
-		return this.replace(x, y, color.getRenderColor(shade, false));
-	}
-
-	boolean line(int x1, int y1, int x2, int y2, DrawModifier modifier);
-
-	boolean fill(int x, int y, int color);
-
-	default boolean fill(int x, int y, CanvasColor color, int shade) {
-		return this.fill(x, y, color.toRawId(shade, CanvasColor.getSaturationFromRaw(this.getPixel(x, y))));
+	/**
+	 * Checks that the given pixel array is safe to operate on.
+	 *
+	 * @param pixels the pixels
+	 */
+	static void checkPixels(short[] pixels) {
+		if (pixels.length != PIXELS_COUNT) {
+			throw new IllegalArgumentException("Canvas pixels must have a length of " + PIXELS_COUNT + ".");
+		}
 	}
 }

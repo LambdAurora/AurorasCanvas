@@ -11,12 +11,11 @@ package dev.lambdaurora.aurorascanvas.canvas;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -29,11 +28,23 @@ import java.util.List;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class Canvas implements CanvasHandler {
-	private final short[] pixels = new short[256];
-	private boolean lit;
+public final class Canvas implements CanvasHandler {
+	private final short[] pixels;
+	private boolean glowing;
 
-	public Canvas() {}
+	public Canvas() {
+		this(new short[PIXELS_COUNT]);
+	}
+
+	public Canvas(short[] pixels) {
+		this(pixels, false);
+	}
+
+	public Canvas(short[] pixels, boolean glowing) {
+		CanvasHandler.checkPixels(pixels);
+		this.pixels = pixels;
+		this.glowing = glowing;
+	}
 
 	/**
 	 * Gets the pixels of this canvas.
@@ -45,18 +56,13 @@ public class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public short getPixel(int x, int y) {
+	public short getRawPixel(int x, int y) {
 		return this.pixels[y * 16 + x];
-	}
-
-	public int getColor(int x, int y) {
-		int id = this.getPixel(x, y);
-		return CanvasColor.getRenderColor(id);
 	}
 
 	@Override
 	public boolean setPixel(int x, int y, int color) {
-		if ((color & CanvasColor.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
+		if ((color & CanvasPixel.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
 
 		short id = (short) color;
 		if (this.pixels[y * 16 + x] != id) {
@@ -67,7 +73,9 @@ public class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public boolean brush(int x, int y, int color) {
+	public boolean drawBrush(int x, int y, int color) {
+		if ((color & CanvasPixel.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
+
 		short id = (short) color;
 
 		x = x - 1;
@@ -85,8 +93,10 @@ public class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public boolean replace(int x, int y, int color) {
-		short id = this.getPixel(x, y);
+	public boolean replaceColor(int x, int y, int color) {
+		if ((color & CanvasPixel.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
+
+		short id = this.getRawPixel(x, y);
 		short repl = (short) color;
 
 		for (int i = 0; i < this.pixels.length; i++) {
@@ -98,7 +108,7 @@ public class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public boolean line(int x1, int y1, int x2, int y2, DrawModifier modifier) {
+	public boolean drawLine(int x1, int y1, int x2, int y2, DrawModifier modifier) {
 		int d = 0;
 
 		int dx = Math.abs(x2 - x1);
@@ -114,8 +124,8 @@ public class Canvas implements CanvasHandler {
 		int y = y1;
 
 		if (dx >= dy) {
-			for (;;) {
-				this.pixels[y * 16 + x] = modifier.apply(this.getPixel(x, y));
+			for (; ; ) {
+				this.pixels[y * 16 + x] = modifier.apply(this.getPixel(x, y)).toRawId();
 				if (x == x2)
 					break;
 				x += ix;
@@ -126,8 +136,8 @@ public class Canvas implements CanvasHandler {
 				}
 			}
 		} else {
-			for (;;) {
-				this.pixels[y * 16 + x] = modifier.apply(this.getPixel(x, y));
+			for (; ; ) {
+				this.pixels[y * 16 + x] = modifier.apply(this.getPixel(x, y)).toRawId();
 				if (y == y2)
 					break;
 				y += iy;
@@ -142,9 +152,11 @@ public class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public boolean fill(int x, int y, int color) {
+	public boolean fillColor(int x, int y, int color) {
+		if ((color & CanvasPixel.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
+
 		int replacement = (short) color;
-		int target = this.getPixel(x, y);
+		int target = this.getRawPixel(x, y);
 		if (target != replacement) {
 			this.flood(x, y, target, replacement);
 		}
@@ -152,7 +164,7 @@ public class Canvas implements CanvasHandler {
 	}
 
 	private void flood(int x, int y, int target, int replacement) {
-		short pixel = this.getPixel(x, y);
+		short pixel = this.getRawPixel(x, y);
 		if (pixel == target) {
 			this.pixels[y * 16 + x] = (short) replacement;
 			this.flood((x <= 0 ? x : x - 1), y, target, replacement);
@@ -167,14 +179,16 @@ public class Canvas implements CanvasHandler {
 	 *
 	 * @param source the canvas to copy
 	 */
+	@Override
 	public void copy(Canvas source) {
 		System.arraycopy(source.pixels, 0, this.pixels, 0, this.pixels.length);
-		this.setLit(source.isLit());
+		this.setGlowing(source.isGlowing());
 	}
 
 	/**
 	 * Clears the canvas.
 	 */
+	@Override
 	public void clear() {
 		Arrays.fill(this.pixels, (short) 0);
 	}
@@ -184,6 +198,7 @@ public class Canvas implements CanvasHandler {
 	 *
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
+	@Override
 	public boolean isEmpty() {
 		for (short b : this.pixels) {
 			if (b != 0)
@@ -192,118 +207,39 @@ public class Canvas implements CanvasHandler {
 		return true;
 	}
 
-	public boolean isLit() {
-		return this.lit;
+	@Override
+	public boolean isGlowing() {
+		return this.glowing;
 	}
 
-	public void setLit(boolean lit) {
-		this.lit = lit;
+	@Override
+	public void setGlowing(boolean glowing) {
+		this.glowing = glowing;
 	}
 
 	/* Serialization */
 
-	public void readNbt(CompoundTag nbt) {
-		byte[] pixels = nbt.getByteArray("pixels");
+	public CompoundTag toNbt() {
+		var encoded = CanvasSerialization.CANVAS_CODEC.encodeStart(NbtOps.INSTANCE, this)
+				.getOrThrow(false, message -> {});
 
-		if (!nbt.contains("version", Tag.TAG_INT)) {
-			convert01(pixels);
-		} else {
-			switch (nbt.getInt("version")) {
-				case 1 -> pixels = convert02(pixels);
-				default -> {
-				}
-			}
-		}
+		if (!(encoded instanceof CompoundTag encodedNbt))
+			throw new IllegalStateException("Canvas codec did not encode into a NBT compound.");
 
-		int boardIndex = 0;
-		for (int i = 0; i < pixels.length; i++) {
-			if (pixels[i] == 0) {
-				this.pixels[boardIndex] = 0;
-			} else {
-				this.pixels[boardIndex] = (short) (pixels[i] << 8 | pixels[++i] & 0xff);
-			}
-
-			boardIndex++;
-			if (boardIndex >= this.pixels.length) break;
-		}
-
-		this.lit = nbt.getBoolean("lit");
+		return encodedNbt;
 	}
 
 	public CompoundTag writeNbt(CompoundTag nbt) {
-		if (!this.isEmpty()) {
-			int length = 0;
-			for (short pixel : this.pixels) {
-				if (pixel == 0) length++;
-				else length += 2;
-			}
+		var encodedNbt = this.toNbt();
 
-			var pixels = new byte[length];
-
-			int rawIndex = 0;
-			for (short pixel : this.pixels) {
-				if (pixel == 0) {
-					pixels[rawIndex++] = 0;
-				} else {
-					pixels[rawIndex] = (byte) (pixel >> 8);
-					pixels[rawIndex + 1] = (byte) (pixel & 0xff);
-					rawIndex += 2;
-				}
-			}
-
-			nbt.putInt("version", 2);
-			nbt.putByteArray("pixels", pixels);
-			nbt.putBoolean("lit", this.isLit());
-		} else if (this.isLit()) {
-			nbt.putBoolean("lit", true);
-		}
+		nbt.merge(encodedNbt);
 
 		return nbt;
 	}
 
 	public static Canvas fromNbt(CompoundTag nbt) {
-		var blackboard = new Canvas();
-		blackboard.readNbt(nbt);
-		return blackboard;
-	}
-
-	public static boolean shouldConvert(CompoundTag nbt) {
-		return !nbt.contains("version", Tag.TAG_INT);
-	}
-
-	/**
-	 * Converts the raw pixel data from version 0 to version 1.
-	 *
-	 * @param pixels the raw pixel data
-	 */
-	private static void convert01(byte[] pixels) {
-		for (int i = 0; i < pixels.length; i++) {
-			pixels[i] *= 4;
-		}
-	}
-
-	/**
-	 * Converts the raw pixel data from version 1 to version 2.
-	 *
-	 * @param pixels the raw pixel data
-	 * @return the converted raw pixel data
-	 */
-	private static byte[] convert02(byte[] pixels) {
-		var converted = new byte[256 * 2];
-
-		int newIndex = 0;
-		for (byte pixel : pixels) {
-			if (pixel == 0) {
-				converted[newIndex] = 0;
-				newIndex++;
-			} else {
-				converted[newIndex] = (byte) ((pixel & 0b11111100) >> 2);
-				converted[newIndex + 1] = (byte) ((pixel & 0b11) << 4);
-				newIndex += 2;
-			}
-		}
-
-		return converted;
+		return CanvasSerialization.CANVAS_CODEC.parse(NbtOps.INSTANCE, nbt)
+				.result().orElseGet(Canvas::new);
 	}
 
 	public enum DrawAction {
@@ -314,9 +250,9 @@ public class Canvas implements CanvasHandler {
 			}
 
 			@Override
-			public boolean execute(CanvasHandler blackboard, int x, int y, DrawModifier modifier) {
-				short colorData = blackboard.getPixel(x, y);
-				return blackboard.setPixel(x, y, modifier.apply(colorData));
+			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
+				var colorData = canvas.getPixel(x, y);
+				return canvas.setPixel(x, y, modifier.apply(colorData));
 			}
 		},
 		BRUSH(AurorasCanvas.NAMESPACE + ".tool.brush") {
@@ -326,9 +262,9 @@ public class Canvas implements CanvasHandler {
 			}
 
 			@Override
-			public boolean execute(CanvasHandler blackboard, int x, int y, DrawModifier modifier) {
-				short colorData = blackboard.getPixel(x, y);
-				return blackboard.brush(x, y, modifier.apply(colorData));
+			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
+				var colorData = canvas.getPixel(x, y);
+				return canvas.drawBrush(x, y, modifier.apply(colorData));
 			}
 		},
 		FILL(AurorasCanvas.NAMESPACE + ".tool.fill") {
@@ -338,9 +274,9 @@ public class Canvas implements CanvasHandler {
 			}
 
 			@Override
-			public boolean execute(CanvasHandler blackboard, int x, int y, DrawModifier modifier) {
-				short colorData = blackboard.getPixel(x, y);
-				return blackboard.fill(x, y, modifier.apply(colorData));
+			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
+				var colorData = canvas.getPixel(x, y);
+				return canvas.fillColor(x, y, modifier.apply(colorData));
 			}
 		},
 		REPLACE(AurorasCanvas.NAMESPACE + ".tool.replace") {
@@ -350,9 +286,9 @@ public class Canvas implements CanvasHandler {
 			}
 
 			@Override
-			public boolean execute(CanvasHandler blackboard, int x, int y, DrawModifier modifier) {
-				short colorData = blackboard.getPixel(x, y);
-				return blackboard.replace(x, y, modifier.apply(colorData));
+			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
+				var colorData = canvas.getPixel(x, y);
+				return canvas.replaceColor(x, y, modifier.apply(colorData));
 			}
 		};
 
@@ -360,7 +296,7 @@ public class Canvas implements CanvasHandler {
 
 		private final String translationKey;
 
-		DrawAction(@NotNull String translationKey) {
+		DrawAction(String translationKey) {
 			this.translationKey = translationKey;
 		}
 
@@ -370,6 +306,6 @@ public class Canvas implements CanvasHandler {
 
 		public abstract @Nullable Item getOffHandTool(FeatureFlagSet enabledFeatures);
 
-		public abstract boolean execute(CanvasHandler blackboard, int x, int y, DrawModifier modifier);
+		public abstract boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier);
 	}
 }
