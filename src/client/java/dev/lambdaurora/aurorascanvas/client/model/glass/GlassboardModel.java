@@ -1,3 +1,12 @@
+/*
+ * Copyright © 2026 LambdAurora <email@lambdaurora.dev>
+ *
+ * This file is part of Aurora's Canvas.
+ *
+ * Licensed under the Lambda License. For more information,
+ * see the LICENSE file.
+ */
+
 package dev.lambdaurora.aurorascanvas.client.model.glass;
 
 import java.util.List;
