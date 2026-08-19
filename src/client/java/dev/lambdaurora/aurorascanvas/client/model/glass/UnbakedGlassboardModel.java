@@ -74,7 +74,7 @@ public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 							var map = BlockModelDefinition.fromStream(deserializationContext, reader);
 
 							map.getVariants().forEach((variant, model) -> modelConsumer.accept(
-									new ModelResourceLocation(identifier.getNamespace(), identifier.getPath(), this.variant.replaceFirst("facing=\\w+", variant)),
+									new ModelResourceLocation(identifier.getNamespace(), identifier.getPath(), this.variant.replaceFirst("facing=\\w+,pane=\\w+", variant)),
 									model
 							));
 						} catch (IOException e) {

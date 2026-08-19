@@ -1,19 +1,35 @@
 {
   "variants": {
-    "facing=east": {
+    "facing=east,pane=false": {
       "model": "aurorascanvas:block/glassboard/glassboard_lu",
       "y": 90
     },
-    "facing=north": {
+    "facing=east,pane=true": {
+      "model": "aurorascanvas:block/glassboard/pane/glassboard_lu",
+      "y": 90
+    },
+    "facing=north,pane=false": {
       "model": "aurorascanvas:block/glassboard/glassboard_lu",
       "y": 0
     },
-    "facing=south": {
+    "facing=north,pane=true": {
+      "model": "aurorascanvas:block/glassboard/pane/glassboard_lu",
+      "y": 0
+    },
+    "facing=south,pane=false": {
       "model": "aurorascanvas:block/glassboard/glassboard_lu",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,pane=true": {
+      "model": "aurorascanvas:block/glassboard/pane/glassboard_lu",
+      "y": 180
+    },
+    "facing=west,pane=false": {
       "model": "aurorascanvas:block/glassboard/glassboard_lu",
+      "y": 270
+    },
+    "facing=west,pane=true": {
+      "model": "aurorascanvas:block/glassboard/pane/glassboard_lu",
       "y": 270
     }
   }

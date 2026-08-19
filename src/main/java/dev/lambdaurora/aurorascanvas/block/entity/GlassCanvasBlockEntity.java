@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
+import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import net.minecraft.core.BlockPos;
@@ -38,16 +38,19 @@ public class GlassCanvasBlockEntity extends CanvasBlockEntity {
 
 	@Override
 	public @Unmodifiable Stream<PlacedCanvas> canvases() {
-		var facing = this.getBlockState().getValue(CanvasBlock.FACING);
+		var state = this.getBlockState();
+		var facing = state.getValue(GlassCanvasBlock.FACING);
+		boolean pane = state.getValue(GlassCanvasBlock.PANE);
+
 		return Stream.of(
-				new PlacedCanvas(this.front.getCanvas(), facing),
-				new PlacedCanvas(this.back.getCanvas(), facing.getOpposite(), -.005f)
+				new PlacedCanvas(this.front.getCanvas(), facing, pane ? .436f : PlacedCanvas.DEFAULT_DEPTH),
+				new PlacedCanvas(this.back.getCanvas(), facing.getOpposite(), pane ? .436f : -.005f)
 		);
 	}
 
 	@Override
 	public SyncedCanvas getSyncedCanvas(Direction facing) {
-		var blockFacing = this.getBlockState().getValue(CanvasBlock.FACING);
+		var blockFacing = this.getBlockState().getValue(GlassCanvasBlock.FACING);
 
 		return (blockFacing.equals(facing) ? this.front : this.back).access();
 	}

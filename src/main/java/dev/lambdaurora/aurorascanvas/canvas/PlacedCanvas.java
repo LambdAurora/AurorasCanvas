@@ -22,8 +22,10 @@ import net.minecraft.core.Direction;
  * @since 1.0.0
  */
 public record PlacedCanvas(Canvas canvas, Direction facing, float depth) implements CanvasHandler {
+	public static final float DEFAULT_DEPTH = 0.928f;
+
 	public PlacedCanvas(Canvas canvas, Direction facing) {
-		this(canvas, facing, 0.928f);
+		this(canvas, facing, DEFAULT_DEPTH);
 	}
 
 	@Override

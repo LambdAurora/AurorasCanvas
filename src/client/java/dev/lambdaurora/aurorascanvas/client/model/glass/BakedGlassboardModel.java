@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.model.glass;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
+import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.model.BakedCanvasModel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.fabricmc.api.EnvType;
@@ -21,6 +21,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 
@@ -44,7 +45,9 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 	private int isBlockSame(BlockAndTintGetter world, BlockPos pos, BlockState state, int mask) {
 		BlockState neighborState = world.getBlockState(pos);
 		if (neighborState.is(state.getBlock())) {
-			if (neighborState.getValue(CanvasBlock.FACING) == state.getValue(CanvasBlock.FACING)) {
+			if (neighborState.getValue(GlassCanvasBlock.FACING) == state.getValue(GlassCanvasBlock.FACING)
+					&& neighborState.getValue(GlassCanvasBlock.PANE) == state.getValue(GlassCanvasBlock.PANE)
+			) {
 				return mask;
 			}
 		}
@@ -57,7 +60,8 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 			BlockAndTintGetter world, BlockState state, BlockPos pos,
 			Supplier<RandomSource> randomSupplier, RenderContext context
 	) {
-		var facing = state.getValue(CanvasBlock.FACING);
+		var facing = state.getValue(GlassCanvasBlock.FACING);
+		boolean pane = state.getValue(GlassCanvasBlock.PANE);
 		int mask = 0;
 		BlockPos.MutableBlockPos neighborPos = pos.mutable();
 
@@ -84,7 +88,13 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 			var cullFace = quad.cullFace();
 			if (cullFace != null) {
 				var adjacentPos = pos.relative(cullFace);
-				return !world.getBlockState(adjacentPos).is(AurorasCanvasRegistry.GLASSBOARD_BLOCKS); // Force the culling.
+				var adjacentState = world.getBlockState(adjacentPos);
+
+				if (!adjacentState.is(AurorasCanvasRegistry.GLASSBOARD_BLOCKS)) {
+					return !(pane && adjacentState.is(Blocks.GLASS_PANE));
+				}
+
+				return adjacentState.getBlock() instanceof GlassCanvasBlock && pane != adjacentState.getValue(GlassCanvasBlock.PANE); // Force the culling.
 			}
 
 			return true;

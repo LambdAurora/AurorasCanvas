@@ -1,0 +1,6 @@
+{
+  "parent": "aurorascanvas:block/glassboard/pane/glassboard_lu",
+  "textures": {
+    "board": "aurorascanvas:block/canvas/glassboard_horizontal"
+  }
+}

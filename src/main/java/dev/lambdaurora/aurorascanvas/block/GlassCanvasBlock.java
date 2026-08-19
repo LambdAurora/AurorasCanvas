@@ -17,8 +17,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -36,21 +39,37 @@ import java.util.Map;
  */
 @SuppressWarnings("deprecation")
 public class GlassCanvasBlock extends CanvasBlock {
+	public static final BooleanProperty PANE = BooleanProperty.create("pane");
 	private static final Map<Direction, VoxelShape> SHAPES;
 
 	public GlassCanvasBlock(Properties settings, boolean locked) {
 		super(settings, locked);
+
+		this.registerDefaultState(this.defaultBlockState()
+				.setValue(PANE, false)
+		);
+	}
+
+	@Override
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+		super.createBlockStateDefinition(builder);
+		builder.add(PANE);
 	}
 
 	/* Shapes */
 
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-		return SHAPES.get(state.getValue(FACING));
+		if (!state.getValue(PANE)) {
+			return super.getShape(state, world, pos, context);
+		} else {
+			return SHAPES.get(state.getValue(FACING));
+		}
 	}
 
 	/* Placement */
 
+	@Override
 	public boolean isPlacingPreferred(BlockState state, LevelReader world, BlockPos pos) {
 		return world.getBlockState(pos.relative(state.getValue(FACING).getOpposite())).isSolid();
 	}
@@ -67,6 +86,8 @@ public class GlassCanvasBlock extends CanvasBlock {
 		for (var direction : directions) {
 			var adjacentState = world.getBlockState(pos.relative(direction));
 			if (adjacentState.getBlock() instanceof GlassCanvasBlock) {
+				return state.setValue(FACING, adjacentState.getValue(FACING)).setValue(PANE, adjacentState.getValue(PANE));
+			} else if (adjacentState.getBlock() instanceof CanvasBlock) {
 				return state.setValue(FACING, adjacentState.getValue(FACING));
 			}
 
@@ -103,10 +124,12 @@ public class GlassCanvasBlock extends CanvasBlock {
 	static {
 		var builder = ImmutableMap.<Direction, VoxelShape>builder();
 
-		builder.put(Direction.NORTH, box(0.0, 0.0, 15.0, 16.0, 16.0, 16.0));
-		builder.put(Direction.EAST, box(0.0, 0.0, 0.0, 1.0, 16.0, 16.0));
-		builder.put(Direction.SOUTH, box(0.0, 0.0, 0.0, 16.0, 16.0, 1.0));
-		builder.put(Direction.WEST, box(15.0, 0.0, 0.0, 16.0, 16.0, 16.0));
+		var xAxis = box(7.0, 0.0, 0.0, 9.0, 16.0, 16.0);
+		var zAxis = box(0.0, 0.0, 7.0, 16.0, 16.0, 9.0);
+		builder.put(Direction.NORTH, zAxis);
+		builder.put(Direction.EAST, xAxis);
+		builder.put(Direction.SOUTH, zAxis);
+		builder.put(Direction.WEST, xAxis);
 
 		SHAPES = new EnumMap<>(builder.build());
 	}

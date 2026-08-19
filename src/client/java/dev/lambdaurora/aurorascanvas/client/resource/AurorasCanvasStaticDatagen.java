@@ -290,14 +290,41 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		private void generateWaxedGlassboard(BlockModelGenerators generator) {
 			this.generateGlassboard(generator, "waxed/");
 
+			this.generateBaseWaxedGlassboardModels(generator, "");
+			this.generateBaseWaxedGlassboardModels(generator, "pane/");
+
+			var baseTemplate = new ModelTemplate(
+					Optional.of(AurorasCanvas.id("block/glassboard")),
+					Optional.empty()
+			);
+
+			baseTemplate.create(
+					AurorasCanvas.id("block/waxed_glassboard"),
+					new TextureMapping(),
+					generator.modelOutput
+			);
+
+			var paneTemplate = new ModelTemplate(
+					Optional.of(AurorasCanvas.id("block/glassboard/pane/glassboard")),
+					Optional.empty()
+			);
+
+			paneTemplate.create(
+					AurorasCanvas.id("block/glassboard/pane/waxed/glassboard"),
+					new TextureMapping(),
+					generator.modelOutput
+			);
+		}
+
+		private void generateBaseWaxedGlassboardModels(BlockModelGenerators generator, String prefix) {
 			for (var corner : GlassboardModel.Corner.CORNERS) {
 				var template = new ModelTemplate(
-						Optional.of(AurorasCanvas.id("block/" + GlassboardModel.getModelPath("", corner, GlassboardModel.Type.NONE))),
+						Optional.of(AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, GlassboardModel.Type.NONE))),
 						Optional.empty()
 				);
 
 				template.create(
-						AurorasCanvas.id("block/" + GlassboardModel.getModelPath("waxed/", corner, GlassboardModel.Type.NONE)),
+						AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix + "waxed/", corner, GlassboardModel.Type.NONE)),
 						new TextureMapping(),
 						generator.modelOutput
 				);
@@ -307,6 +334,11 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		private void generateGlassboard(BlockModelGenerators generator, String prefix) {
 			this.generateGlassboardBlockStates(prefix);
 
+			this.generateGlassboardModels(generator, prefix);
+			this.generateGlassboardModels(generator, "pane/" + prefix);
+		}
+
+		private void generateGlassboardModels(BlockModelGenerators generator, String prefix) {
 			for (var corner : GlassboardModel.Corner.CORNERS) {
 				var template = new ModelTemplate(
 						Optional.of(AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, GlassboardModel.Type.NONE))),
@@ -340,15 +372,28 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		}
 
 		private void generateGlassboardBlockStates(String prefix) {
+			var baseId = AurorasCanvas.id(prefix.replace('/', '_') + "glassboard");
+			var baseModelId = baseId.withPrefix("block/");
+			var basePaneId = AurorasCanvas.id("block/glassboard/pane/" + prefix + "glassboard");
+
+			this.blockStates.put(baseId, MultiVariantGenerator.multiVariant(GLASSBOARD.block().value())
+					.with(PropertyDispatch.properties(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
+							(direction, pane) -> Variant.variant()
+									.with(VariantProperties.MODEL, pane ? basePaneId : baseModelId)
+									.with(Y_ROT, (int) direction.getOpposite().toYRot())
+					)));
+
 			for (var corner : GlassboardModel.Corner.CORNERS) {
 				for (var type : GlassboardModel.Type.TYPES) {
 					var id = AurorasCanvas.id(GlassboardModel.getModelPath(prefix, corner, type));
 					var modelId = id.withPrefix("block/");
 
+					var paneId = AurorasCanvas.id("block/" + GlassboardModel.getModelPath("pane/" + prefix, corner, type));
+
 					var blockState = MultiVariantGenerator.multiVariant(GLASSBOARD.block().value())
-							.with(PropertyDispatch.property(GlassCanvasBlock.FACING).generate(
-									direction -> Variant.variant()
-											.with(VariantProperties.MODEL, modelId)
+							.with(PropertyDispatch.properties(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
+									(direction, pane) -> Variant.variant()
+											.with(VariantProperties.MODEL, pane ? paneId : modelId)
 											.with(Y_ROT, (int) direction.getOpposite().toYRot())
 							));
 					this.blockStates.put(id, blockState);
