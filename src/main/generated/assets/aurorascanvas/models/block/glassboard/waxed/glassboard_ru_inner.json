@@ -1,0 +1,6 @@
+{
+  "parent": "aurorascanvas:block/glassboard/waxed/glassboard_ru",
+  "textures": {
+    "board": "aurorascanvas:block/canvas/glassboard_inner"
+  }
+}

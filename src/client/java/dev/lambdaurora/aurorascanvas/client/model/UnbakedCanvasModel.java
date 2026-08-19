@@ -7,6 +7,7 @@
  * see the LICENSE file.
  */package dev.lambdaurora.aurorascanvas.client.model;
 
+import dev.lambdaurora.aurorascanvas.client.model.glass.UnbakedGlassboardModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;

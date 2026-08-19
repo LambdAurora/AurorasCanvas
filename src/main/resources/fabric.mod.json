@@ -23,7 +23,7 @@
 			"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient"
 		],
 		"fabric-datagen": [
-			"dev.lambdaurora.aurorascanvas.resource.AurorasCanvasStaticDatagen"
+			"dev.lambdaurora.aurorascanvas.client.resource.AurorasCanvasStaticDatagen"
 		]
 	},
 	"mixins": [

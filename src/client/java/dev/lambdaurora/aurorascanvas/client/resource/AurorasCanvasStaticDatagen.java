@@ -1,0 +1,377 @@
+/*
+ * Copyright © 2026 LambdAurora <email@lambdaurora.dev>
+ *
+ * This file is part of Aurora's Canvas.
+ *
+ * Licensed under the Lambda License. For more information,
+ * see the LICENSE file.
+ */
+
+package dev.lambdaurora.aurorascanvas.client.resource;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
+import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
+import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.*;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.FrameType;
+import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.criterion.KilledTrigger;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.CachedOutput;
+import net.minecraft.data.DataProvider;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.models.BlockModelGenerators;
+import net.minecraft.data.models.ItemModelGenerators;
+import net.minecraft.data.models.blockstates.*;
+import net.minecraft.data.models.model.ModelTemplate;
+import net.minecraft.data.models.model.TextureMapping;
+import net.minecraft.data.models.model.TextureSlot;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.ApplyExplosionDecay;
+import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
+import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
+import net.minecraft.world.level.storage.loot.functions.FunctionUserBuilder;
+import net.minecraft.world.level.storage.loot.predicates.ConditionUserBuilder;
+import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
+
+public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint {
+	@Override
+	public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
+		var pack = fabricDataGenerator.createPack();
+		pack.addProvider(BlockTagProvider::new);
+		pack.addProvider(ItemTagProvider::new);
+		pack.addProvider(LootDataProvider::new);
+		pack.addProvider(AdvancementProvider::new);
+		pack.addProvider(AurorasRecipeProvider::new);
+		pack.addProvider(ModelProvider::new);
+	}
+
+	private static class BlockTagProvider extends FabricTagProvider.BlockTagProvider {
+		public BlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+			super(output, registriesFuture);
+		}
+
+		@Override
+		protected void addTags(HolderLookup.Provider arg) {
+			this.tag(CANVAS_BLOCKS)
+					.add(
+							BLACKBOARD.block().key(), WAXED_BLACKBOARD.block().key(),
+							CHALKBOARD.block().key(), WAXED_CHALKBOARD.block().key()
+					)
+					.addTag(GLASSBOARD_BLOCKS);
+
+			this.tag(GLASSBOARD_BLOCKS)
+					.add(GLASSBOARD.block().key(), WAXED_GLASSBOARD.block().key());
+		}
+	}
+
+	private static class ItemTagProvider extends FabricTagProvider.ItemTagProvider {
+		public ItemTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+			super(output, registriesFuture);
+		}
+
+		@Override
+		protected void addTags(HolderLookup.Provider arg) {
+			this.tag(CANVAS_ITEMS)
+					.add(
+							BLACKBOARD.item().key(), WAXED_BLACKBOARD.item().key(),
+							CHALKBOARD.item().key(), WAXED_CHALKBOARD.item().key(),
+							GLASSBOARD.item().key(), WAXED_GLASSBOARD.item().key()
+					);
+		}
+	}
+
+	private static class LootDataProvider extends FabricBlockLootTableProvider {
+		protected final Set<Item> explosionResistant = Stream.of(
+				BLACKBOARD,
+				WAXED_BLACKBOARD,
+				CHALKBOARD,
+				WAXED_CHALKBOARD,
+				GLASSBOARD,
+				WAXED_GLASSBOARD
+		).map(ItemLike::asItem).collect(Collectors.toUnmodifiableSet());
+
+		public LootDataProvider(FabricDataOutput output) {
+			super(output);
+		}
+
+		@Override
+		public <T extends FunctionUserBuilder<T>> T applyExplosionDecay(ItemLike item, FunctionUserBuilder<T> functionBuilder) {
+			return !this.explosionResistant.contains(item.asItem()) ? functionBuilder.apply(ApplyExplosionDecay.explosionDecay()) : functionBuilder.unwrap();
+		}
+
+		@Override
+		public <T extends ConditionUserBuilder<T>> T applyExplosionCondition(ItemLike item, ConditionUserBuilder<T> conditionBuilder) {
+			return !this.explosionResistant.contains(item.asItem()) ? conditionBuilder.when(ExplosionCondition.survivesExplosion()) : conditionBuilder.unwrap();
+		}
+
+		@Override
+		public void generate() {
+			this.add(BLACKBOARD.block().value(), this::createCanvasDrop);
+			this.add(WAXED_BLACKBOARD.block().value(), this::createCanvasDrop);
+			this.add(CHALKBOARD.block().value(), this::createCanvasDrop);
+			this.add(WAXED_CHALKBOARD.block().value(), this::createCanvasDrop);
+			this.add(GLASSBOARD.block().value(), this::createGlassCanvasDrop);
+			this.add(WAXED_GLASSBOARD.block().value(), this::createGlassCanvasDrop);
+			this.add(CANVAS_PRESS.block().value(), this::createSingleItemTable);
+		}
+
+		private LootTable.Builder createCanvasDrop(Block block) {
+			return LootTable.lootTable()
+					.withPool(
+							this.applyExplosionCondition(
+									block,
+									LootPool.lootPool()
+											.setRolls(ConstantValue.exactly(1.f))
+											.add(
+													LootItem.lootTableItem(block)
+															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
+															.apply(
+																	CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
+																			.copy("pixels", "BlockEntityTag.pixels")
+																			.copy("version", "BlockEntityTag.version")
+																			.copy("lit", "BlockEntityTag.lit")
+															)
+											)
+							)
+					);
+		}
+
+		private LootTable.Builder createGlassCanvasDrop(Block block) {
+			return LootTable.lootTable()
+					.withPool(
+							this.applyExplosionCondition(
+									block,
+									LootPool.lootPool()
+											.setRolls(ConstantValue.exactly(1.f))
+											.add(
+													LootItem.lootTableItem(block)
+															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
+															.apply(
+																	CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
+																			.copy("front", "BlockEntityTag.front")
+																			.copy("back", "BlockEntityTag.back")
+															)
+											)
+							)
+					);
+		}
+	}
+
+	private static class AdvancementProvider extends FabricAdvancementProvider {
+		public AdvancementProvider(FabricDataOutput output) {
+			super(output);
+		}
+
+		@Override
+		public void generateAdvancement(Consumer<Advancement> consumer) {
+			Advancement root = Advancement.Builder.advancement()
+					.display(
+							Items.MAP,
+							Component.translatable("advancements.adventure.root.title"),
+							Component.translatable("advancements.adventure.root.description"),
+							new Identifier("textures/gui/advancements/backgrounds/adventure.png"),
+							FrameType.TASK,
+							false,
+							false,
+							false
+					)
+					.requirements(RequirementsStrategy.OR)
+					.addCriterion("killed_something", KilledTrigger.TriggerInstance.playerKilledEntity())
+					.addCriterion("killed_by_something", KilledTrigger.TriggerInstance.entityKilledPlayer())
+					.build(new Identifier(Identifier.DEFAULT_NAMESPACE, "adventure/root"));
+		}
+	}
+
+	private static class AurorasRecipeProvider extends FabricRecipeProvider {
+		public AurorasRecipeProvider(FabricDataOutput output) {
+			super(output);
+		}
+
+		@Override
+		public void buildRecipes(Consumer<FinishedRecipe> exporter) {
+			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, BLACKBOARD)
+					.group(CANVAS_ITEMS.location().toString())
+					.define('S', Items.STICK)
+					.define('C', Items.BLACK_CONCRETE)
+					.pattern("SSS")
+					.pattern("SCS")
+					.pattern("SSS")
+					.unlockedBy("has_stick", has(Items.STICK))
+					.unlockedBy("has_concrete", has(Items.BLACK_CONCRETE))
+					.unlockedBy("has_self", has(CANVAS_ITEMS))
+					.save(exporter);
+			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, CHALKBOARD)
+					.group(CANVAS_ITEMS.location().toString())
+					.define('S', Items.STICK)
+					.define('C', Items.GREEN_CONCRETE)
+					.pattern("SSS")
+					.pattern("SCS")
+					.pattern("SSS")
+					.unlockedBy("has_stick", has(Items.STICK))
+					.unlockedBy("has_concrete", has(Items.GREEN_CONCRETE))
+					.unlockedBy("has_self", has(CANVAS_ITEMS))
+					.save(exporter);
+			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, GLASSBOARD)
+					.group(CANVAS_ITEMS.location().toString())
+					.define('S', Items.STICK)
+					.define('G', Items.GLASS_PANE)
+					.pattern("SSS")
+					.pattern("SGS")
+					.pattern("SSS")
+					.unlockedBy("has_stick", has(Items.STICK))
+					.unlockedBy("has_glass_pane", has(Items.GLASS_PANE))
+					.unlockedBy("has_self", has(CANVAS_ITEMS))
+					.save(exporter);
+			SpecialRecipeBuilder.special(CANVAS_CLONE_RECIPE_SERIALIZER)
+					.save(exporter, AurorasCanvas.id("canvas_clone").toString());
+		}
+	}
+
+	private static class ModelProvider extends FabricModelProvider {
+		private static final TextureSlot BOARD_TEXTURE_SLOT = TextureSlot.create("board");
+		private final PackOutput.PathProvider blockStatePathProvider;
+		private final Map<Identifier, Supplier<JsonElement>> blockStates = new HashMap<>();
+
+		public ModelProvider(FabricDataOutput output) {
+			super(output);
+			this.blockStatePathProvider = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "blockstates");
+		}
+
+		@Override
+		public void generateBlockStateModels(BlockModelGenerators generator) {
+			this.createCanvasBlockStates(generator, BLACKBOARD.block());
+			this.createCanvasBlockStates(generator, WAXED_BLACKBOARD.block());
+			this.createCanvasBlockStates(generator, CHALKBOARD.block());
+			this.createCanvasBlockStates(generator, WAXED_CHALKBOARD.block());
+
+			this.generateGlassboard(generator, "");
+			this.generateWaxedGlassboard(generator);
+		}
+
+		@Override
+		public void generateItemModels(ItemModelGenerators itemModelGenerator) {
+		}
+
+		private void generateWaxedGlassboard(BlockModelGenerators generator) {
+			this.generateGlassboard(generator, "waxed/");
+
+			for (var corner : GlassboardModel.Corner.CORNERS) {
+				var template = new ModelTemplate(
+						Optional.of(AurorasCanvas.id("block/" + GlassboardModel.getModelPath("", corner, GlassboardModel.Type.NONE))),
+						Optional.empty()
+				);
+
+				template.create(
+						AurorasCanvas.id("block/" + GlassboardModel.getModelPath("waxed/", corner, GlassboardModel.Type.NONE)),
+						new TextureMapping(),
+						generator.modelOutput
+				);
+			}
+		}
+
+		private void generateGlassboard(BlockModelGenerators generator, String prefix) {
+			this.generateGlassboardBlockStates(prefix);
+
+			for (var corner : GlassboardModel.Corner.CORNERS) {
+				var template = new ModelTemplate(
+						Optional.of(AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, GlassboardModel.Type.NONE))),
+						Optional.empty(),
+						BOARD_TEXTURE_SLOT
+				);
+
+				for (var type : GlassboardModel.Type.TYPES) {
+					if (type == GlassboardModel.Type.NONE) continue;
+
+					template.create(
+							AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, type)),
+							TextureMapping.singleSlot(BOARD_TEXTURE_SLOT, AurorasCanvas.id("block/canvas/glassboard" + type.suffix())),
+							generator.modelOutput
+					);
+				}
+			}
+		}
+
+		private static final VariantProperty<Integer> Y_ROT = new VariantProperty<>("y", JsonPrimitive::new);
+
+		private void createCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry) {
+			generator.skipAutoItemBlock(entry.value());
+			var blockStateData = MultiVariantGenerator.multiVariant(entry.value())
+					.with(PropertyDispatch.property(GlassCanvasBlock.FACING).generate(
+							direction -> Variant.variant()
+									.with(VariantProperties.MODEL, entry.key().identifier().withPrefix("block/"))
+									.with(Y_ROT, (int) direction.getOpposite().toYRot())
+					));
+			generator.blockStateOutput.accept(blockStateData);
+		}
+
+		private void generateGlassboardBlockStates(String prefix) {
+			for (var corner : GlassboardModel.Corner.CORNERS) {
+				for (var type : GlassboardModel.Type.TYPES) {
+					var id = AurorasCanvas.id(GlassboardModel.getModelPath(prefix, corner, type));
+					var modelId = id.withPrefix("block/");
+
+					var blockState = MultiVariantGenerator.multiVariant(GLASSBOARD.block().value())
+							.with(PropertyDispatch.property(GlassCanvasBlock.FACING).generate(
+									direction -> Variant.variant()
+											.with(VariantProperties.MODEL, modelId)
+											.with(Y_ROT, (int) direction.getOpposite().toYRot())
+							));
+					this.blockStates.put(id, blockState);
+				}
+			}
+		}
+
+		@Override
+		public CompletableFuture<?> run(CachedOutput output) {
+			return CompletableFuture.allOf(
+					super.run(output),
+					this.saveCollection(output, this.blockStates, this.blockStatePathProvider::json)
+			);
+		}
+
+		private <T> CompletableFuture<?> saveCollection(
+				CachedOutput output, Map<T, ? extends Supplier<JsonElement>> objectToJsonMap, Function<T, Path> resolveObjectPath
+		) {
+			return CompletableFuture.allOf(objectToJsonMap.entrySet().stream().map(entry -> {
+				var path = resolveObjectPath.apply(entry.getKey());
+				var jsonElement = entry.getValue().get();
+				return DataProvider.saveStable(output, jsonElement, path);
+			}).toArray(CompletableFuture[]::new));
+		}
+	}
+}
