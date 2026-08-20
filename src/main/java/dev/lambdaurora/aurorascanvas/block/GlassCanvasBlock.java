@@ -18,6 +18,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -71,7 +72,8 @@ public class GlassCanvasBlock extends CanvasBlock {
 
 	@Override
 	public boolean isPlacingPreferred(BlockState state, LevelReader world, BlockPos pos) {
-		return world.getBlockState(pos.relative(state.getValue(FACING).getOpposite())).isSolid();
+		var neighbor = world.getBlockState(pos.relative(state.getValue(FACING).getOpposite()));
+		return !(neighbor.getBlock() instanceof IronBarsBlock) && neighbor.isSolid();
 	}
 
 	@Override
@@ -103,7 +105,7 @@ public class GlassCanvasBlock extends CanvasBlock {
 			}
 		}
 
-		return state.setValue(FACING, firstDirection);
+		return state.setValue(FACING, firstDirection).setValue(PANE, ctx.getClickedFace().getAxis().isVertical());
 	}
 
 	/* Interaction */
