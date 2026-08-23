@@ -81,6 +81,7 @@ public class ItemTree extends ItemTreeGroupNode {
 	public static void init() {
 		register(CreativeModeTabs.FUNCTIONAL_BLOCKS, ItemTree::modifyFunctionalBlocks);
 		register(CreativeModeTabs.TOOLS_AND_UTILITIES, ItemTree::modifyToolsAndUtilities);
+		register(CreativeModeTabs.REDSTONE_BLOCKS, ItemTree::modifyRedstone);
 	}
 
 	private static void register(ResourceKey<CreativeModeTab> tab, Consumer<ItemTree> modifier) {
@@ -109,9 +110,15 @@ public class ItemTree extends ItemTreeGroupNode {
 				Items.ITEM_FRAME, Items.GLOW_ITEM_FRAME
 		);
 		tree.addAfter(itemFrames, BLACKBOARDS);
+
+		tree.addAfter(Items.ARMOR_STAND, EASEL_ITEM);
 	}
 
 	private static void modifyToolsAndUtilities(ItemTree tree) {
 		tree.addAfter(Items.BRUSH, PAINTER_PALETTE_ITEM);
+	}
+
+	private static void modifyRedstone(ItemTree tree) {
+		tree.addAfter(Items.ARMOR_STAND, EASEL_ITEM);
 	}
 }

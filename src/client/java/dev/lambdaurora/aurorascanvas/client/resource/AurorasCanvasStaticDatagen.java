@@ -30,6 +30,7 @@ import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.blockstates.*;
 import net.minecraft.data.models.model.ModelTemplate;
+import net.minecraft.data.models.model.ModelTemplates;
 import net.minecraft.data.models.model.TextureMapping;
 import net.minecraft.data.models.model.TextureSlot;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -285,6 +286,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 		@Override
 		public void generateItemModels(ItemModelGenerators itemModelGenerator) {
+			itemModelGenerator.generateFlatItem(EASEL_ITEM, ModelTemplates.FLAT_ITEM);
 		}
 
 		private void generateWaxedGlassboard(BlockModelGenerators generator) {

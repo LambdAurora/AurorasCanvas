@@ -16,7 +16,10 @@
 	"block.aurorascanvas.glassboard": "Glassboard",
 	"block.aurorascanvas.waxed_glassboard": "Waxed Glassboard",
 	"block.aurorascanvas.canvas_press": "Canvas Press",
+	"entity.aurorascanvas.easel": "Easel",
+	"item.aurorascanvas.easel": "Easel",
 	"item.aurorascanvas.painter_palette": "Painter's Palette",
+	"subtitles.entity.aurorascanvas.easel.fall": "Something fell",
 	"tag.aurorascanvas.canvases": "Canvases",
 	"modmenu.bluesky": "Bluesky"
 }

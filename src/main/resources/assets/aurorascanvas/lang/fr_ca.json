@@ -16,7 +16,10 @@
 	"block.aurorascanvas.glassboard": "Tableau en verre",
 	"block.aurorascanvas.waxed_glassboard": "Tableau en verre ciré",
 	"block.aurorascanvas.canvas_press": "Presse à tableau",
+	"entity.aurorascanvas.easel": "Chevalet",
+	"item.aurorascanvas.easel": "Chevalet",
 	"item.aurorascanvas.painter_palette": "Palette de peintre",
+	"subtitles.entity.aurorascanvas.easel.fall": "Quelque chose est tombé",
 	"tag.aurorascanvas.canvases": "Supports de dessin",
 	"modmenu.bluesky": "Bluesky"
 }

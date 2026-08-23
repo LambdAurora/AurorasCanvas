@@ -15,7 +15,9 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
+import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
 import dev.lambdaurora.aurorascanvas.item.GlassCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
@@ -23,22 +25,32 @@ import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockSource;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -46,6 +58,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static dev.lambdaurora.aurorascanvas.AurorasCanvas.id;
@@ -116,6 +129,12 @@ public final class AurorasCanvasRegistry {
 			new FabricItemSettings()
 	);
 
+	public static final EaselEntityItem EASEL_ITEM = Registry.register(
+			BuiltInRegistries.ITEM,
+			id("easel"),
+			new EaselEntityItem(new Item.Properties().stacksTo(16))
+	);
+
 	public static final PainterPaletteItem PAINTER_PALETTE_ITEM = Registry.register(
 			BuiltInRegistries.ITEM,
 			id("painter_palette"),
@@ -148,6 +167,15 @@ public final class AurorasCanvasRegistry {
 			).build()
 	);
 
+	public static final EntityType<EaselEntity> EASEL_ENTITY_TYPE = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE,
+			id("easel"),
+			FabricEntityTypeBuilder.create(MobCategory.MISC, EaselEntity::new)
+					.dimensions(EntityDimensions.scalable(1.f, 2.f))
+					.trackRangeChunks(10)
+					.build()
+	);
+
 	public static final MenuType<PainterPaletteMenu> PAINTER_PALETTE_MENU_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
 			id("painter_palette"),
@@ -164,6 +192,9 @@ public final class AurorasCanvasRegistry {
 
 	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
+
+	public static final TagKey<DamageType> IGNITES_EASELS = TagKey.create(Registries.DAMAGE_TYPE, id("ignites_easels"));
+	public static final TagKey<DamageType> BURNS_EASELS = TagKey.create(Registries.DAMAGE_TYPE,id("burns_easels"));
 
 	static <T extends Block> BlockEntry<T> registerBlock(
 			Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties
@@ -206,5 +237,29 @@ public final class AurorasCanvasRegistry {
 		OxidizableBlocksRegistry.registerWaxableBlockPair(BLACKBOARD.block.value, WAXED_BLACKBOARD.block.value);
 		OxidizableBlocksRegistry.registerWaxableBlockPair(CHALKBOARD.block.value, WAXED_CHALKBOARD.block.value);
 		OxidizableBlocksRegistry.registerWaxableBlockPair(GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value);
+
+		FabricDefaultAttributeRegistry.register(EASEL_ENTITY_TYPE, LivingEntity.createLivingAttributes());
+
+		DispenserBlock.registerBehavior(EASEL_ITEM, new DefaultDispenseItemBehavior() {
+			@Override
+			public ItemStack execute(BlockSource source, ItemStack stack) {
+				Direction direction = source.getBlockState().getValue(DispenserBlock.FACING);
+				BlockPos blockPos = source.getPos().relative(direction);
+				ServerLevel serverLevel = source.getLevel();
+				Consumer<EaselEntity> consumer = EntityType.appendDefaultStackConfig(
+						easel -> easel.setYRot(direction.toYRot()), serverLevel, stack, null
+				);
+				var easel = EASEL_ENTITY_TYPE.spawn(
+						serverLevel, stack.getTag(), consumer, blockPos, MobSpawnType.DISPENSER, false, false
+				);
+				if (easel != null) {
+					stack.shrink(1);
+				}
+
+				return stack;
+			}
+		});
+
+		AurorasCanvasSoundEvents.init();
 	}
 }

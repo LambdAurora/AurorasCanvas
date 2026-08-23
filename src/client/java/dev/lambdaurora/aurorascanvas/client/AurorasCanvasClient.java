@@ -11,11 +11,15 @@ package dev.lambdaurora.aurorascanvas.client;
 
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
+import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasModelLayers;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
+import dev.lambdaurora.aurorascanvas.client.model.entity.EaselEntityModel;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasPressBlockEntityRenderer;
+import dev.lambdaurora.aurorascanvas.client.renderer.EaselEntityRenderer;
 import dev.lambdaurora.aurorascanvas.client.renderer.GlassCanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
@@ -27,9 +31,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -99,6 +101,9 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 			ClientCanvasBlockEntityData.markAllMeshesDirty();
 		});
+
+		EntityModelLayerRegistry.registerModelLayer(AurorasCanvasModelLayers.EASEL, EaselEntityModel::createBodyLayer);
+		EntityRendererRegistry.register(EASEL_ENTITY_TYPE, EaselEntityRenderer::new);
 	}
 
 	private void registerCanvasItemRenderer(CanvasBlock canvas, Function<ModelResourceLocation, CanvasItemRenderer> factory) {

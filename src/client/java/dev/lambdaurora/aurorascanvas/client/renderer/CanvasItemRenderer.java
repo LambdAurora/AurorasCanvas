@@ -86,6 +86,9 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 		} else if (mode == ItemDisplayContext.GROUND) {
 			matrices.translate(0.125, 0.5, 0.23333333);
 			matrices.scale(-1, -1, 1);
+		} else if (mode == ItemDisplayContext.FIXED) {
+			matrices.translate(0.5, 0.5, 15 / 16.0 - 0.01);
+			matrices.scale(-1, -1, 1);
 		} else if (mode != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
 				&& mode != ItemDisplayContext.THIRD_PERSON_LEFT_HAND && !mode.firstPerson()) {
 			matrices.scale(-1, -1, 1);
