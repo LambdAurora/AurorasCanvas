@@ -14,6 +14,10 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 
 /**
  * Contains the model layers of Aurora's Canvas.
+ *
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public final class AurorasCanvasModelLayers {
 	public static final ModelLayerLocation EASEL = new ModelLayerLocation(AurorasCanvas.id("easel"), "main");

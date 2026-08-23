@@ -21,6 +21,9 @@ import net.minecraft.client.model.geom.builders.*;
  * Represents the easel entity model.
  *
  * @param <T> the easel entity type
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
  */
 public class EaselEntityModel<T extends EaselEntity> extends EntityModel<T> {
 	public static final PartPose FRONT_PART_POSE = PartPose.offsetAndRotation(0.f, 24.f, -9.f, -0.2618f, 0.f, 0.f);
