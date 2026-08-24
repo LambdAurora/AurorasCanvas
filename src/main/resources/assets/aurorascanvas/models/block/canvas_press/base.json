@@ -4,9 +4,9 @@
 	"textures": {
 		"bottom": "minecraft:block/smithing_table_bottom",
 		"bottom_side": "minecraft:block/smithing_table_side",
-		"chassis_plate": "aurorascanvas:block/blackboard/press/chassis_plate",
-		"press_plate": "aurorascanvas:block/blackboard/press/press_plate",
-		"screw": "aurorascanvas:block/blackboard/press/screw"
+		"chassis_plate": "aurorascanvas:block/canvas/press/chassis_plate",
+		"press_plate": "aurorascanvas:block/canvas/press/press_plate",
+		"screw": "aurorascanvas:block/canvas/press/screw"
 	},
 	"elements": [
 		{

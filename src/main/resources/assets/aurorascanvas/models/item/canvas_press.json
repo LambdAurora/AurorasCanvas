@@ -1,6 +1,6 @@
 {
 	"credit": "Made by april",
-	"parent": "aurorascanvas:block/blackboard_press/base",
+	"parent": "aurorascanvas:block/canvas_press/base",
 	"elements": [
 		{
 			"name": "base",
