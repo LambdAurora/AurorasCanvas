@@ -152,13 +152,13 @@ public final class AurorasCanvasRegistry {
 
 	public static final EaselEntityItem EASEL_ITEM = Registry.register(
 			BuiltInRegistries.ITEM,
-			id("easel"),
+			EASEL_ID,
 			new EaselEntityItem(new Item.Properties().stacksTo(16))
 	);
 
 	public static final PainterPaletteItem PAINTER_PALETTE_ITEM = Registry.register(
 			BuiltInRegistries.ITEM,
-			id("painter_palette"),
+			PAINTER_PALETTE_ID,
 			new PainterPaletteItem(new Item.Properties().stacksTo(1))
 	);
 
@@ -190,7 +190,7 @@ public final class AurorasCanvasRegistry {
 
 	public static final EntityType<EaselEntity> EASEL_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.ENTITY_TYPE,
-			id("easel"),
+			EASEL_ID,
 			FabricEntityTypeBuilder.create(MobCategory.MISC, EaselEntity::new)
 					.dimensions(EntityDimensions.scalable(1.f, 2.f))
 					.trackRangeChunks(10)
@@ -199,7 +199,7 @@ public final class AurorasCanvasRegistry {
 
 	public static final MenuType<PainterPaletteMenu> PAINTER_PALETTE_MENU_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
-			id("painter_palette"),
+			PAINTER_PALETTE_ID,
 			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new)
 	);
 
