@@ -35,7 +35,6 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 import java.util.function.Function;
@@ -111,8 +110,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 	private void registerCanvasItemRenderer(CanvasBlock canvas, Function<ModelResourceLocation, CanvasItemRenderer> factory) {
 		@SuppressWarnings("deprecation") var id = canvas.builtInRegistryHolder().key().identifier();
-		var modelId = new ModelResourceLocation(new Identifier(id.getNamespace(), id.getPath() + "_base"),
-				"inventory");
+		var modelId = new ModelResourceLocation(id.withSuffix("_base"), "inventory");
 		BuiltinItemRendererRegistry.INSTANCE.register(canvas, factory.apply(modelId));
 		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
 	}
