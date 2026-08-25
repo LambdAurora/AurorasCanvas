@@ -127,11 +127,10 @@ public class CanvasScreen extends SpruceScreen {
 				this.canvasEndX() + 20
 		));
 
-		int buttonW = 56;
-		int sep = 4;
-
 		this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> this.onClose())
-				.bounds(this.width / 2 - buttonW / 2 + sep / 2, this.height / 2 + 8 * PIXEL_SIZE + 20, buttonW - sep, 20).build());
+				.bounds(this.width / 2 - 56 / 2 + 2, this.height / 2 + 8 * PIXEL_SIZE + 20, 52, 20)
+				.build()
+		);
 
 		this.controller.canvas.history().invokeListeners();
 	}
