@@ -11,14 +11,14 @@ package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -29,11 +29,17 @@ import java.util.stream.Stream;
  * @since 1.0.0
  */
 public class GlassCanvasBlockEntity extends CanvasBlockEntity {
-	private final SyncedCanvas front = new SyncedCanvas();
-	private final SyncedCanvas back = new SyncedCanvas();
 
 	public GlassCanvasBlockEntity(BlockPos pos, BlockState state) {
 		super(AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE, pos, state);
+	}
+
+	@Override
+	protected @Unmodifiable List<IndexedCanvas.Provider> canvasProviders() {
+		return List.of(
+				IndexedCanvas.FRONT,
+				IndexedCanvas.BACK
+		);
 	}
 
 	@Override
@@ -43,34 +49,16 @@ public class GlassCanvasBlockEntity extends CanvasBlockEntity {
 		boolean pane = state.getValue(GlassCanvasBlock.PANE);
 
 		return Stream.of(
-				new PlacedCanvas(this.front.getCanvas(), facing, pane ? .436f : PlacedCanvas.DEFAULT_DEPTH),
-				new PlacedCanvas(this.back.getCanvas(), facing.getOpposite(), pane ? .436f : -.005f)
+				new PlacedCanvas(this.canvases.get(IndexedCanvas.FRONT.key()).getCanvas(), facing, pane ? .436f : PlacedCanvas.DEFAULT_DEPTH),
+				new PlacedCanvas(this.canvases.get(IndexedCanvas.BACK.key()).getCanvas(), facing.getOpposite(), pane ? .436f : -.005f)
 		);
 	}
 
 	@Override
 	public SyncedCanvas getSyncedCanvas(Direction facing) {
 		var blockFacing = this.getBlockState().getValue(GlassCanvasBlock.FACING);
+		var key = (blockFacing.equals(facing) ? IndexedCanvas.FRONT : IndexedCanvas.BACK).key();
 
-		return (blockFacing.equals(facing) ? this.front : this.back).access();
-	}
-
-	/* Serialization */
-
-	@Override
-	public void loadCanvasNbt(CompoundTag nbt) {
-		if (nbt.contains("pixels")) {
-			this.front.setCanvas(Canvas.fromNbt(nbt));
-			this.back.getCanvas().clear();
-		} else {
-			this.front.setCanvas(Canvas.fromNbt(nbt.getCompound("front")));
-			this.back.setCanvas(Canvas.fromNbt(nbt.getCompound("back")));
-		}
-	}
-
-	public CompoundTag writeCanvasNbt(CompoundTag nbt) {
-		nbt.put("front", this.front.getCanvas().writeNbt(new CompoundTag()));
-		nbt.put("back", this.back.getCanvas().writeNbt(new CompoundTag()));
-		return super.writeCanvasNbt(nbt);
+		return this.canvases.get(key).access();
 	}
 }

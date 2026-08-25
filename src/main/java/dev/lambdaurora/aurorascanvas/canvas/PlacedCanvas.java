@@ -39,8 +39,8 @@ public record PlacedCanvas(Canvas canvas, Direction facing, float depth) impleme
 	}
 
 	@Override
-	public boolean drawBrush(int x, int y, int color) {
-		return this.canvas.drawBrush(x, y, color);
+	public boolean drawBrush(int x, int y, DrawModifier modifier) {
+		return this.canvas.drawBrush(x, y, modifier);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public record PlacedCanvas(Canvas canvas, Direction facing, float depth) impleme
 	}
 
 	@Override
-	public void copy(Canvas source) {
+	public void copy(CanvasHandler source) {
 		this.canvas.copy(source);
 	}
 

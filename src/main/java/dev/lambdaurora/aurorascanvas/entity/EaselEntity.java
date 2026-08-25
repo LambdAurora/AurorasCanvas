@@ -11,6 +11,12 @@ package dev.lambdaurora.aurorascanvas.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasSoundEvents;
+import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
+import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
+import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
+import dev.lambdaurora.aurorascanvas.util.Utils;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +24,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
@@ -27,6 +34,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -39,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.function.Predicate;
+
+import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 
 /**
  * Represents an easel minecart.
@@ -90,7 +100,7 @@ public class EaselEntity extends LivingEntity {
 			stack = stack.copyWithCount(1);
 		}
 
-		//this.onItemChanged(stack);
+		//this.onItemChanged(canvas);
 		this.getEntityData().set(DATA_ITEM, stack);
 		if (!stack.isEmpty()) {
 			//this.playSound(this.getAddItemSound(), 1.0F, 1.0F);
@@ -175,21 +185,45 @@ public class EaselEntity extends LivingEntity {
 		return false;
 	}
 
+	public void submit(Player player, IndexedCanvas canvas) {
+		if (this.fixed || this.isRemoved() || this.getItem().isEmpty()) return;
+
+		var canvasStack = this.getItem();
+		var nbt = Utils.getOrCreateBlockEntityNbt(canvasStack, CANVAS_BLOCK_ENTITY_TYPE);
+		canvas.writeNbt(nbt);
+		Utils.writeBlockEntityNbtToStack(canvasStack, CANVAS_BLOCK_ENTITY_TYPE, nbt, false);
+		this.setItem(canvasStack);
+
+		this.gameEvent(GameEvent.BLOCK_CHANGE, player);
+	}
+
 	@Override
 	public InteractionResult interact(Player player, InteractionHand hand) {
 		ItemStack handStack = player.getItemInHand(hand);
-		boolean isEaselEmpty = !this.getItem().isEmpty();
-		boolean handStackValid = handStack.is(AurorasCanvasRegistry.CANVAS_ITEMS) || handStack.isEmpty();
+		boolean handStackValid = handStack.is(CANVAS_ITEMS) || handStack.is(PAINTER_PALETTE_ITEM) || handStack.isEmpty();
 		if (this.fixed) {
 			return InteractionResult.PASS;
 		} else if (!this.level().isClientSide()) {
-			if (!this.isRemoved() && handStackValid && this.swapItem(player, handStack, hand)) {
-				this.gameEvent(GameEvent.BLOCK_CHANGE, player);
+			if (!this.isRemoved()) {
+				this.doInteract(player, handStack, hand);
 			}
 
 			return InteractionResult.CONSUME;
 		} else {
-			return !isEaselEmpty && !handStackValid ? InteractionResult.PASS : InteractionResult.SUCCESS;
+			return this.getItem().isEmpty() && !handStackValid ? InteractionResult.PASS : InteractionResult.SUCCESS;
+		}
+	}
+
+	private void doInteract(Player player, ItemStack handStack, InteractionHand hand) {
+		if (handStack.is(PAINTER_PALETTE_ITEM) && !this.getItem().isEmpty() && !this.getItem().is(WAXED_CANVAS_ITEMS)) {
+			if (player instanceof ServerPlayer serverPlayer) {
+				var payload = new CanvasOpenGuiPayload(this.getId(), this.getItem(), handStack);
+				var buffer = PacketByteBufs.create();
+				payload.write(buffer);
+				ServerPlayNetworking.send(serverPlayer, AurorasCanvasNetworking.OPEN_CANVAS_GUI, buffer);
+			}
+		} else if ((handStack.is(CANVAS_ITEMS) || handStack.isEmpty()) && this.swapItem(player, handStack, hand)) {
+			this.gameEvent(GameEvent.BLOCK_CHANGE, player);
 		}
 	}
 
@@ -412,7 +446,7 @@ public class EaselEntity extends LivingEntity {
 	@Override
 	public boolean canTakeItem(ItemStack stack) {
 		EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(stack);
-		return this.getItemBySlot(equipmentSlot).isEmpty() && stack.is(AurorasCanvasRegistry.CANVAS_ITEMS);
+		return this.getItemBySlot(equipmentSlot).isEmpty() && stack.is(CANVAS_ITEMS);
 	}
 
 	/* Sounds */

@@ -15,6 +15,7 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
@@ -189,12 +190,13 @@ public final class AurorasCanvasRegistry {
 	);
 
 	public static final TagKey<Item> CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("canvases"));
+	public static final TagKey<Item> WAXED_CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("waxed_canvases"));
 
 	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
 
 	public static final TagKey<DamageType> IGNITES_EASELS = TagKey.create(Registries.DAMAGE_TYPE, id("ignites_easels"));
-	public static final TagKey<DamageType> BURNS_EASELS = TagKey.create(Registries.DAMAGE_TYPE,id("burns_easels"));
+	public static final TagKey<DamageType> BURNS_EASELS = TagKey.create(Registries.DAMAGE_TYPE, id("burns_easels"));
 
 	static <T extends Block> BlockEntry<T> registerBlock(
 			Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties
@@ -259,6 +261,12 @@ public final class AurorasCanvasRegistry {
 				return stack;
 			}
 		});
+		DispenserBlock.registerBehavior(BLACKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(CHALKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(WAXED_BLACKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(WAXED_CHALKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(WAXED_GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 
 		AurorasCanvasSoundEvents.init();
 	}

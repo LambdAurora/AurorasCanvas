@@ -6,6 +6,7 @@ mappings-yalmm = "1"
 
 # Dependencies
 yumi-commons = "1.0.0"
+spruceui = "6.2.1+1.20"
 
 # Gradle
 gradle-licenser = "4.0.+"
@@ -22,6 +23,7 @@ jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 yumi-commons-core = { module = "dev.yumi.commons:yumi-commons-core", version.ref = "yumi-commons" }
 yumi-commons-collections = { module = "dev.yumi.commons:yumi-commons-collections", version.ref = "yumi-commons" }
 yumi-commons-event = { module = "dev.yumi.commons:yumi-commons-event", version.ref = "yumi-commons" }
+spruceui = { module = "dev.lambdaurora:spruceui", version.ref = "spruceui" }
 
 [plugins]
 licenser = { id = "dev.yumi.gradle.licenser", version.ref = "gradle-licenser" }

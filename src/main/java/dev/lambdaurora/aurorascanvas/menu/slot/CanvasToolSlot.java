@@ -9,12 +9,11 @@
 
 package dev.lambdaurora.aurorascanvas.menu.slot;
 
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import net.minecraft.world.Container;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 /**
  * Represents a slot that only accepts items that can be used as {@link dev.lambdaurora.aurorascanvas.canvas.DrawModifier draw modifiers}.
@@ -33,8 +32,7 @@ public class CanvasToolSlot extends Slot {
 
 	@Override
 	public boolean mayPlace(ItemStack stack) {
-		if (stack.is(Items.STICK)) return true;
-		return Canvas.DrawAction.ACTIONS.stream()
+		return DrawAction.ACTIONS.stream()
 				.filter(drawAction -> drawAction.getOffHandTool(this.enabledFeatures) != null)
 				.anyMatch(drawAction -> drawAction.getOffHandTool(this.enabledFeatures) == stack.getItem());
 	}

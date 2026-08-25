@@ -10,10 +10,7 @@
 package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
-import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
-import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
-import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.*;
 import dev.yumi.commons.event.Event;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -30,6 +27,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
@@ -44,13 +44,18 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 			}
 	);
 
+	protected final Map<String, SyncedCanvas> canvases = new HashMap<>();
 	private @Nullable Component customName;
 
 	private SidedData sidedData = NoOpSidedData.INSTANCE;
 
 	protected CanvasBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
 		super(type, pos, blockState);
+
+		this.canvasProviders().forEach(provider -> this.canvases.put(provider.key(), new SyncedCanvas()));
 	}
+
+	protected abstract @Unmodifiable List<IndexedCanvas.Provider> canvasProviders();
 
 	/**
 	 * {@return the canvases associated with this block entity}
@@ -139,7 +144,16 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		}
 	}
 
-	protected abstract void loadCanvasNbt(CompoundTag nbt);
+	protected void loadCanvasNbt(CompoundTag nbt) {
+		for (var provider : this.canvasProviders()) {
+			var canvas = provider.reader().fromNbt(nbt);
+
+			var syncedCanvas = this.canvases.get(canvas.key());
+			if (syncedCanvas != null) {
+				syncedCanvas.setCanvas(canvas.canvas());
+			}
+		}
+	}
 
 	@Override
 	public void saveAdditional(CompoundTag nbt) {
@@ -151,6 +165,10 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		if (this.customName != null) {
 			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
 		}
+
+		this.canvases.entrySet().stream().map(entry -> new IndexedCanvas(entry.getKey(), entry.getValue().getCanvas()))
+				.forEach(canvas -> canvas.writeNbt(nbt));
+
 		return nbt;
 	}
 
@@ -213,8 +231,8 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		}
 
 		@Override
-		public boolean drawBrush(int x, int y, int color) {
-			if (this.canvas.drawBrush(x, y, color)) {
+		public boolean drawBrush(int x, int y, DrawModifier modifier) {
+			if (this.canvas.drawBrush(x, y, modifier)) {
 				this.doSync();
 				return true;
 			}
@@ -271,7 +289,7 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		}
 
 		@Override
-		public void copy(Canvas source) {
+		public void copy(CanvasHandler source) {
 			this.canvas.copy(source);
 			this.doSync();
 		}

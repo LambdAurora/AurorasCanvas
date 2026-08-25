@@ -5,10 +5,13 @@
 	"aurorascanvas.modifier.lighten": "Lighten",
 	"aurorascanvas.modifier.saturation": "Toggle Saturation",
 	"aurorascanvas.tool.brush": "Brush",
+	"aurorascanvas.tool.clear": "Clear",
 	"aurorascanvas.tool.fill": "Fill",
 	"aurorascanvas.tool.line": "Line",
 	"aurorascanvas.tool.pixel": "Pixel",
+	"aurorascanvas.tool.redo": "Redo",
 	"aurorascanvas.tool.replace": "Replace",
+	"aurorascanvas.tool.undo": "Undo",
 	"block.aurorascanvas.blackboard": "Blackboard",
 	"block.aurorascanvas.waxed_blackboard": "Waxed Blackboard",
 	"block.aurorascanvas.chalkboard": "Chalkboard",
@@ -21,5 +24,6 @@
 	"item.aurorascanvas.painter_palette": "Painter's Palette",
 	"subtitles.entity.aurorascanvas.easel.fall": "Something fell",
 	"tag.aurorascanvas.canvases": "Canvases",
+	"tag.aurorascanvas.waxed_canvases": "Waxed Canvases",
 	"modmenu.bluesky": "Bluesky"
 }

@@ -12,7 +12,7 @@ package dev.lambdaurora.aurorascanvas.block;
 import com.google.common.collect.ImmutableMap;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.util.Utils;
@@ -257,8 +257,8 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						x = 15 - x;
 					}
 
-					Canvas.DrawAction action = Canvas.DrawAction.DEFAULT;
-					for (var possibleAction : Canvas.DrawAction.ACTIONS) {
+					DrawAction action = DrawAction.DEFAULT;
+					for (var possibleAction : DrawAction.ACTIONS) {
 						Item offHandTool = possibleAction.getOffHandTool(world.enabledFeatures());
 
 						if (offHandTool != null && offhand.is(offHandTool)) {

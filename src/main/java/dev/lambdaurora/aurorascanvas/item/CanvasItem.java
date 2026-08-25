@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.item;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,9 +32,10 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
- * Represents a canvas item.
+ * Represents a canvases item.
  *
  * @author LambdAurora
  * @version 1.0.0
@@ -45,6 +47,19 @@ public class CanvasItem extends BlockItem {
 	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {
 		super(canvasBlock, settings);
 		this.locked = canvasBlock.isLocked();
+	}
+
+	public List<IndexedCanvas> getCanvases(ItemStack stack) {
+		var nbt = BlockItem.getBlockEntityData(stack);
+		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
+			return List.of(IndexedCanvas.SIMPLE.reader().fromNbt(nbt));
+		}
+
+		return List.of();
+	}
+
+	public String getBackground() {
+		return BuiltInRegistries.ITEM.getKey(this).getPath().replace("waxed_", "");
 	}
 
 	@Override
@@ -77,14 +92,19 @@ public class CanvasItem extends BlockItem {
 	}
 
 	protected boolean clearContents(ItemStack self) {
-		var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
-		var blackboard = Canvas.fromNbt(nbt);
-		if (blackboard.isEmpty())
-			return false;
-		blackboard.clear();
-		blackboard.writeNbt(nbt);
+		var canvases = this.getCanvases(self);
+		if (canvases.isEmpty()) return false;
 
-		return true;
+		var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
+		int cleared = 0;
+		for (var entry : canvases) {
+			if (entry.canvas().isEmpty()) continue;
+			entry.canvas().clear();
+			entry.writeNbt(nbt);
+			cleared++;
+		}
+
+		return cleared > 0;
 	}
 
 	@Override
@@ -108,14 +128,14 @@ public class CanvasItem extends BlockItem {
 
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			var canvas = Canvas.fromNbt(nbt);
-			return Optional.of(new CanvasTooltipData(
-					BuiltInRegistries.ITEM.getKey(this).getPath().replace("waxed_", ""),
-					List.of(canvas), this.locked
-			));
+		var canvases = this.getCanvases(stack).stream().map(IndexedCanvas::canvas)
+				.filter(Predicate.not(Canvas::isEmpty))
+				.toList();
+
+		if (!canvases.isEmpty()) {
+			return Optional.of(new CanvasTooltipData(this.getBackground(), canvases, this.locked));
 		}
+
 		return super.getTooltipImage(stack);
 	}
 }

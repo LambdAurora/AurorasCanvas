@@ -13,6 +13,7 @@ import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
@@ -140,7 +141,7 @@ public final class CanvasColor extends DrawModifier {
 		int red = Mth.clamp((color >> 16 & 255) * factor / 255, 0, 255);
 		int green = Mth.clamp((color >> 8 & 255) * factor / 255, 0, 255);
 		int blue = Mth.clamp((color & 255) * factor / 255, 0, 255);
-		return 0xff000000 | blue << 16 | green << 8 | red;
+		return FastColor.ABGR32.color(0xff, blue, green, red);
 	}
 
 	/**

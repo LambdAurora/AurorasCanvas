@@ -10,8 +10,9 @@
 package dev.lambdaurora.aurorascanvas.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.lambdaurora.aurorascanvas.AurorasCanvasPackets;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
+import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -53,11 +54,11 @@ public class MouseHandlerMixin {
 				);
 
 				if (!inventory.isEmpty()) {
+					var payload = new PainterPaletteScrollPayload(scrollDelta, Screen.hasControlDown());
 					var buffer = PacketByteBufs.create();
-					buffer.writeDouble(scrollDelta);
-					buffer.writeBoolean(Screen.hasControlDown());
+					payload.write(buffer);
 
-					ClientPlayNetworking.send(AurorasCanvasPackets.PAINTER_PALETTE_SCROLL, buffer);
+					ClientPlayNetworking.send(AurorasCanvasNetworking.PAINTER_PALETTE_SCROLL, buffer);
 
 					ci.cancel();
 				}

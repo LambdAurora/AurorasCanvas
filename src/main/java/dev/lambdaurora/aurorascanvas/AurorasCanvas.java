@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas;
 
 import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
+import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.yumi.commons.event.EventManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -33,8 +34,12 @@ public final class AurorasCanvas implements ModInitializer {
 		ItemTree.init();
 
 		ServerPlayNetworking.registerGlobalReceiver(
-				AurorasCanvasPackets.PAINTER_PALETTE_SCROLL,
-				AurorasCanvasPackets::handlePainterPaletteScroll
+				AurorasCanvasNetworking.CANVAS_SUBMIT_EDIT,
+				AurorasCanvasNetworking::handleCanvasSubmitEdit
+		);
+		ServerPlayNetworking.registerGlobalReceiver(
+				AurorasCanvasNetworking.PAINTER_PALETTE_SCROLL,
+				AurorasCanvasNetworking::handlePainterPaletteScroll
 		);
 	}
 

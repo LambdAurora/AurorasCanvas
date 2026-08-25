@@ -12,6 +12,16 @@ package dev.lambdaurora.aurorascanvas.canvas;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Range;
 
+/**
+ * Represents a canvas pixel.
+ *
+ * @param color the color of the pixel
+ * @param saturated {@code true} if the pixel is saturated, or {@code false} otherwise
+ * @param shade the shade of the pixel
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public record CanvasPixel(CanvasColor color, boolean saturated, @Range(from = 0, to = 7) int shade) {
 	/**
 	 * The color identifier mask ({@value}) for the raw color format.

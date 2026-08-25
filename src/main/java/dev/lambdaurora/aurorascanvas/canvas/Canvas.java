@@ -9,17 +9,10 @@
 
 package dev.lambdaurora.aurorascanvas.canvas;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Represents a canvas drawing.
@@ -73,17 +66,14 @@ public final class Canvas implements CanvasHandler {
 	}
 
 	@Override
-	public boolean drawBrush(int x, int y, int color) {
-		if ((color & CanvasPixel.COLOR_MASK) == 0) color = 0; // There's no color, make sure to erase any extra metadata.
-
-		short id = (short) color;
-
+	public boolean drawBrush(int x, int y, DrawModifier modifier) {
 		x = x - 1;
 		y = y - 1;
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				if (x < 16 && x >= 0 && y < 16 && y >= 0)
-					this.pixels[y * 16 + x] = id;
+				if (x < 16 && x >= 0 && y < 16 && y >= 0) {
+					this.pixels[y * 16 + x] = modifier.apply(this.getPixel(x, y)).toRawId();
+				}
 				x++;
 			}
 			x = x - 3;
@@ -174,14 +164,18 @@ public final class Canvas implements CanvasHandler {
 		}
 	}
 
-	/**
-	 * Copies the canvas data to this canvas.
-	 *
-	 * @param source the canvas to copy
-	 */
 	@Override
-	public void copy(Canvas source) {
-		System.arraycopy(source.pixels, 0, this.pixels, 0, this.pixels.length);
+	public void copy(CanvasHandler source) {
+		if (source instanceof Canvas sourceCanvas) {
+			System.arraycopy(sourceCanvas.pixels, 0, this.pixels, 0, this.pixels.length);
+		} else {
+			for (int y = 0; y < 16; y++) {
+				for (int x = 0; x < 16; x++) {
+					this.setPixel(x, y, source.getRawPixel(x, y));
+				}
+			}
+		}
+
 		this.setGlowing(source.isGlowing());
 	}
 
@@ -240,72 +234,5 @@ public final class Canvas implements CanvasHandler {
 	public static Canvas fromNbt(CompoundTag nbt) {
 		return CanvasSerialization.CANVAS_CODEC.parse(NbtOps.INSTANCE, nbt)
 				.result().orElseGet(Canvas::new);
-	}
-
-	public enum DrawAction {
-		DEFAULT(AurorasCanvas.NAMESPACE + ".tool.pixel") {
-			@Override
-			public @Nullable Item getOffHandTool(FeatureFlagSet enabledFeatures) {
-				return null;
-			}
-
-			@Override
-			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
-				var colorData = canvas.getPixel(x, y);
-				return canvas.setPixel(x, y, modifier.apply(colorData));
-			}
-		},
-		BRUSH(AurorasCanvas.NAMESPACE + ".tool.brush") {
-			@Override
-			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
-				return Items.BRUSH;
-			}
-
-			@Override
-			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
-				var colorData = canvas.getPixel(x, y);
-				return canvas.drawBrush(x, y, modifier.apply(colorData));
-			}
-		},
-		FILL(AurorasCanvas.NAMESPACE + ".tool.fill") {
-			@Override
-			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
-				return Items.BUCKET;
-			}
-
-			@Override
-			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
-				var colorData = canvas.getPixel(x, y);
-				return canvas.fillColor(x, y, modifier.apply(colorData));
-			}
-		},
-		REPLACE(AurorasCanvas.NAMESPACE + ".tool.replace") {
-			@Override
-			public Item getOffHandTool(FeatureFlagSet enabledFeatures) {
-				return Items.ENDER_PEARL;
-			}
-
-			@Override
-			public boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier) {
-				var colorData = canvas.getPixel(x, y);
-				return canvas.replaceColor(x, y, modifier.apply(colorData));
-			}
-		};
-
-		public static final List<DrawAction> ACTIONS = List.of(values());
-
-		private final String translationKey;
-
-		DrawAction(String translationKey) {
-			this.translationKey = translationKey;
-		}
-
-		public Component getName() {
-			return Component.translatable(this.translationKey);
-		}
-
-		public abstract @Nullable Item getOffHandTool(FeatureFlagSet enabledFeatures);
-
-		public abstract boolean execute(CanvasHandler canvas, int x, int y, DrawModifier modifier);
 	}
 }

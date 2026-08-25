@@ -11,10 +11,13 @@ package dev.lambdaurora.aurorascanvas.canvas;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.FriendlyByteBuf;
 
 import java.nio.ByteBuffer;
 
 public final class CanvasSerialization {
+	public static int MAX_PIXELS_BYTES = 2 * CanvasHandler.PIXELS_COUNT;
+
 	private static final Codec<byte[]> BYTE_ARRAY_CODEC = Codec.BYTE_BUFFER.xmap(buffer -> {
 		if (buffer.hasArray()) {
 			return buffer.array();
@@ -39,22 +42,26 @@ public final class CanvasSerialization {
 
 				var pixels = new short[CanvasHandler.PIXELS_COUNT];
 
-				int boardIndex = 0;
-				for (int i = 0; i < data.length; i++) {
-					if (data[i] == 0) {
-						pixels[boardIndex] = 0;
-					} else {
-						pixels[boardIndex] = (short) (data[i] << 8 | data[++i] & 0xff);
-					}
-
-					boardIndex++;
-					if (boardIndex >= pixels.length) break;
-				}
+				readPixels(data, pixels);
 
 				return new Canvas(pixels, raw.glowing);
 			},
 			canvas -> new RawCanvas(2, serializePixels(canvas.getPixels()), canvas.isGlowing())
 	);
+
+	public static Canvas fromByteBuf(FriendlyByteBuf buffer) {
+		var canvas = new Canvas();
+		byte[] data = buffer.readByteArray(MAX_PIXELS_BYTES);
+		readPixels(data, canvas.getPixels());
+		canvas.setGlowing(buffer.readBoolean());
+		return canvas;
+	}
+
+	public static void writeCanvasToBuffer(FriendlyByteBuf buffer, Canvas canvas) {
+		var data = serializePixels(canvas.getPixels());
+		buffer.writeByteArray(data);
+		buffer.writeBoolean(canvas.isGlowing());
+	}
 
 	/**
 	 * Serializes the given canvas pixels to raw data.

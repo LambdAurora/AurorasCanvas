@@ -107,12 +107,20 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 		@Override
 		protected void addTags(HolderLookup.Provider arg) {
+			this.tag(WAXED_CANVAS_ITEMS)
+					.add(
+							WAXED_BLACKBOARD.item().key(),
+							WAXED_CHALKBOARD.item().key(),
+							WAXED_GLASSBOARD.item().key()
+					);
+
 			this.tag(CANVAS_ITEMS)
 					.add(
-							BLACKBOARD.item().key(), WAXED_BLACKBOARD.item().key(),
-							CHALKBOARD.item().key(), WAXED_CHALKBOARD.item().key(),
-							GLASSBOARD.item().key(), WAXED_GLASSBOARD.item().key()
-					);
+							BLACKBOARD.item().key(),
+							CHALKBOARD.item().key(),
+							GLASSBOARD.item().key()
+					)
+					.addTag(WAXED_CANVAS_ITEMS);
 		}
 	}
 

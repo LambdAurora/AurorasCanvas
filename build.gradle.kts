@@ -71,6 +71,8 @@ dependencies {
 	include(libs.yumi.commons.core)
 	include(libs.yumi.commons.collections)
 	include(libs.yumi.commons.event)
+	modImplementation(libs.spruceui)
+	include(libs.spruceui)
 }
 
 java {

@@ -11,7 +11,6 @@ package dev.lambdaurora.aurorascanvas.client;
 
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasModelLayers;
@@ -104,6 +103,8 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 		EntityModelLayerRegistry.registerModelLayer(AurorasCanvasModelLayers.EASEL, EaselEntityModel::createBodyLayer);
 		EntityRendererRegistry.register(EASEL_ENTITY_TYPE, EaselEntityRenderer::new);
+
+		AurorasCanvasClientNetworking.init();
 	}
 
 	private void registerCanvasItemRenderer(CanvasBlock canvas, Function<ModelResourceLocation, CanvasItemRenderer> factory) {

@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
@@ -35,11 +35,11 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Represents a painter's palette item which can be used for easier painting on canvases.
@@ -55,31 +55,30 @@ public class PainterPaletteItem extends Item {
 		super(settings);
 	}
 
-	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
+	public PainterPaletteInventory getInventory(ItemStack paletteStack) {
+		return PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
+	}
 
-		return inventory.getSelectedColor();
+	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
+		return this.getInventory(paletteStack).getSelectedColor();
 	}
 
 	public ItemStack getCurrentToolAsItem(ItemStack paletteStack) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
+		var inventory = this.getInventory(paletteStack);
 		if (inventory.selectedTool == -1) return ItemStack.EMPTY;
 
 		return inventory.getSelectedTool();
 	}
 
 	public static MutableComponent getSelectedToolMessage(PainterPaletteInventory inventory, FeatureFlagSet enabledFeatures) {
-		Component toolName = Canvas.DrawAction.ACTIONS.stream()
+		Component toolName = DrawAction.ACTIONS.stream()
 				.filter(drawAction -> {
 					var offHandTool = drawAction.getOffHandTool(enabledFeatures);
 					var selectedTool = inventory.getSelectedTool();
 
 					return (offHandTool == null && selectedTool.isEmpty()) || selectedTool.is(offHandTool);
 				}).findFirst()
-				.map(Canvas.DrawAction::getName).orElseGet(() -> {
-					if (inventory.getSelectedTool().is(Items.STICK)) return Component.translatable(AurorasCanvas.NAMESPACE + ".tool.line");
-					else throw new IllegalStateException("Could not get tool name.");
-				});
+				.map(DrawAction::getName).orElseThrow(() -> new IllegalStateException("Could not get tool name."));
 
 		return Component.translatable(AurorasCanvas.NAMESPACE + ".change_tool", toolName);
 	}
@@ -124,7 +123,7 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public void onScroll(Player player, ItemStack paletteStack, double scrollDelta, boolean toolModifier) {
-		var inventory = PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
+		var inventory = this.getInventory(paletteStack);
 
 		if (inventory.isEmpty()) {
 			return;
@@ -307,6 +306,46 @@ public class PainterPaletteItem extends Item {
 					this.selectedTool = this.scrollTool(true);
 				}
 			});
+		}
+
+		public List<ItemStack> getTools() {
+			var list = new ArrayList<ItemStack>();
+
+			for (int i = COLOR_SIZE; i < SIZE; i++) {
+				var stack = this.getItem(i);
+				if (!stack.isEmpty()) {
+					list.add(stack);
+				}
+			}
+
+			return list;
+		}
+
+		public @Unmodifiable List<DrawAction> getAvailableTools(FeatureFlagSet enabledFeatures) {
+			var tools = new HashSet<>(
+					this.getTools().stream().map(stack -> DrawAction.byItem(enabledFeatures, stack.getItem()))
+							.filter(Objects::nonNull)
+							.toList()
+			);
+
+			tools.add(DrawAction.DEFAULT);
+
+			return tools.stream()
+					.sorted(Comparator.comparingInt(DrawAction::ordinal))
+					.toList();
+		}
+
+		public List<ItemStack> getColors() {
+			var list = new ArrayList<ItemStack>();
+
+			for (int i = 0; i < COLOR_SIZE; i++) {
+				var stack = this.getItem(i);
+				if (!stack.isEmpty()) {
+					list.add(stack);
+				}
+			}
+
+			return list;
 		}
 
 		public byte getSelectedColorSlot() {

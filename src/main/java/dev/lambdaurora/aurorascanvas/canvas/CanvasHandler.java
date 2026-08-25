@@ -69,11 +69,7 @@ public interface CanvasHandler {
 		return this.setPixel(x, y, pixel.toRawId());
 	}
 
-	boolean drawBrush(int x, int y, int color);
-
-	default boolean drawBrush(int x, int y, CanvasPixel pixel) {
-		return this.drawBrush(x, y, pixel.toRawId());
-	}
+	boolean drawBrush(int x, int y, DrawModifier modifier);
 
 	boolean replaceColor(int x, int y, int color);
 
@@ -101,7 +97,19 @@ public interface CanvasHandler {
 	 */
 	void setGlowing(boolean glowing);
 
-	void copy(Canvas source);
+	/**
+	 * Copies the canvas data to this canvas.
+	 *
+	 * @param source the canvas to copy
+	 */
+	default void copy(CanvasHandler source) {
+		for (int y = 0; y < 16; y++) {
+			for (int x = 0; x < 16; x++) {
+				this.setPixel(x, y, source.getRawPixel(x, y));
+			}
+		}
+		this.setGlowing(source.isGlowing());
+	}
 
 	boolean isEmpty();
 

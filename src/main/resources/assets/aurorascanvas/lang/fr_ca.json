@@ -5,10 +5,13 @@
 	"aurorascanvas.modifier.lighten": "éclaircir",
 	"aurorascanvas.modifier.saturation": "échanger la saturation",
 	"aurorascanvas.tool.brush": "pinceau",
+	"aurorascanvas.tool.clear": "Effacer",
 	"aurorascanvas.tool.fill": "remplir",
 	"aurorascanvas.tool.line": "ligne",
 	"aurorascanvas.tool.pixel": "pixel",
+	"aurorascanvas.tool.redo": "Retour avant",
 	"aurorascanvas.tool.replace": "remplacer",
+	"aurorascanvas.tool.undo": "Retour arrière",
 	"block.aurorascanvas.blackboard": "Tableau noir",
 	"block.aurorascanvas.waxed_blackboard": "Tableau noir ciré",
 	"block.aurorascanvas.chalkboard": "Tableau à craie",
@@ -21,5 +24,6 @@
 	"item.aurorascanvas.painter_palette": "Palette de peintre",
 	"subtitles.entity.aurorascanvas.easel.fall": "Quelque chose est tombé",
 	"tag.aurorascanvas.canvases": "Supports de dessin",
+	"tag.aurorascanvas.waxed_canvases": "Supports de dessin cirés",
 	"modmenu.bluesky": "Bluesky"
 }
