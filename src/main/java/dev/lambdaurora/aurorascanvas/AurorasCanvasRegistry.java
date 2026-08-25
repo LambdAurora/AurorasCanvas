@@ -115,11 +115,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WHITEBOARD = registerBlockWithItem(
 			WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
-			FabricBlockSettings.create()
-					.strength(.2f)
-					.nonOpaque()
-					.pistonBehavior(PushReaction.DESTROY)
-					.sounds(SoundType.WOOD),
+			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
 			CanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
