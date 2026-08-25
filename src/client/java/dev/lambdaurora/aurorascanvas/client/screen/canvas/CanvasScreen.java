@@ -121,9 +121,7 @@ public class CanvasScreen extends SpruceScreen {
 
 		var selectorWidget = this.addRenderableWidget(new ColorSelectorWidget(
 				this,
-				PIXEL_SIZE * 16 + 7 * 2,
 				this.canvasStartY,
-				this.canvasStartY + PIXEL_SIZE * 16,
 				this.canvasEndX() + 20
 		));
 

@@ -9,7 +9,6 @@
 
 package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -24,7 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class ToolButton extends Button {
+public class ToolButton extends BaseToolButton {
 	protected final CanvasController controller;
 	protected final DrawAction drawAction;
 
@@ -52,11 +51,7 @@ public class ToolButton extends Button {
 	@Override
 	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		var client = Minecraft.getInstance();
-		graphics.setColor(1.f, 1.f, 1.f, this.alpha);
-		RenderSystem.enableBlend();
-		RenderSystem.enableDepthTest();
-		graphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, this.getTextureY());
-		graphics.setColor(1.f, 1.f, 1.f, 1.f);
+		super.renderWidget(graphics, mouseX, mouseY, partialTick);
 		int color = (this.active ? 0x00ffffff : 0x00a0a0a0) | Mth.ceil(this.alpha * 255.0F) << 24;
 
 		var item = drawAction.getOffHandTool(client.level.enabledFeatures());
@@ -88,16 +83,5 @@ public class ToolButton extends Button {
 					this.getX() - 1, this.getY() - 1, 176 + 24, 0, 22, 22, 256, 256
 			);
 		}
-	}
-
-	private int getTextureY() {
-		int i = 1;
-		if (!this.active) {
-			i = 0;
-		} else if (this.isHoveredOrFocused()) {
-			i = 2;
-		}
-
-		return 46 + i * 20;
 	}
 }

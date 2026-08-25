@@ -33,7 +33,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 	private static final int MARGIN = 7;
 	private final CanvasController controller;
 
-	public ColorSelectorWidget(CanvasScreen screen, int height, int y0, int y1, int x0) {
+	public ColorSelectorWidget(CanvasScreen screen, int y0, int x0) {
 		super(Position.of(screen, x0, y0 - MARGIN), 40, 126 + 14, 0, Entry.class);
 		this.controller = screen.controller;
 
