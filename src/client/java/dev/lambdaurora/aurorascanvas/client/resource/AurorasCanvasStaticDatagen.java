@@ -26,6 +26,7 @@ import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.KilledTrigger;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
@@ -39,6 +40,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -124,6 +126,9 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 							GLASSBOARD.item().key()
 					)
 					.addTag(WAXED_CANVAS_ITEMS);
+
+			this.tag(TagKey.create(Registries.ITEM, new Identifier("trinkets", "head/face")))
+					.addTag(CANVAS_ITEMS);
 		}
 	}
 

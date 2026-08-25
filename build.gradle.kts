@@ -37,6 +37,30 @@ repositories {
 			includeGroupAndSubgroups("dev.lambdaurora")
 		}
 	}
+
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Ladysnake Libs"
+				url = uri("https://maven.ladysnake.org/releases")
+			}
+		}
+		filter {
+			includeGroup("dev.onyxstudios.cardinal-components-api")
+		}
+	}
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "TerraformersMC"
+				url = uri("https://maven.terraformersmc.com/")
+			}
+		}
+		filter {
+			includeGroup("dev.emi")
+			includeGroupAndSubgroups("com.terraformersmc")
+		}
+	}
 }
 
 loom {
@@ -73,6 +97,11 @@ dependencies {
 	include(libs.yumi.commons.event)
 	modImplementation(libs.spruceui)
 	include(libs.spruceui)
+
+	"modClientImplementation"(libs.trinkets) {
+		exclude(group = libs.fabric.loader.get().group)
+		exclude(group = libs.fabric.api.get().group)
+	}
 }
 
 java {

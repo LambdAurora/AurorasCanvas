@@ -20,7 +20,8 @@
 			"dev.lambdaurora.aurorascanvas.AurorasCanvas"
 		],
 		"client": [
-			"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient"
+			"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient",
+			"dev.lambdaurora.aurorascanvas.client.trinkets.TrinketsHooks"
 		],
 		"fabric-datagen": [
 			"dev.lambdaurora.aurorascanvas.client.resource.AurorasCanvasStaticDatagen"
