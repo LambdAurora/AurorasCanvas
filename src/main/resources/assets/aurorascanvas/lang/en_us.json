@@ -1,4 +1,8 @@
 {
+	"advancements.aurorascanvas.adventure.draw_on_canvas.title": "Start of an Art Career",
+	"advancements.aurorascanvas.adventure.draw_on_canvas.description": "Draw on a canvas.",
+	"advancements.aurorascanvas.adventure.put_canvas_on_easel.title": "And Now Up for Display!",
+	"advancements.aurorascanvas.adventure.put_canvas_on_easel.description": "Put your creation for display on an easel!",
 	"aurorascanvas.change_modifier": "Modifier selected: %s",
 	"aurorascanvas.change_tool": "Tool selected: %s",
 	"aurorascanvas.modifier.darken": "Darken",

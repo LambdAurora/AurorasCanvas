@@ -203,7 +203,7 @@ public class EaselEntity extends LivingEntity {
 		return false;
 	}
 
-	public void submit(Player player, IndexedCanvas canvas) {
+	public void submit(ServerPlayer player, IndexedCanvas canvas) {
 		if (this.fixed || this.isRemoved() || this.getItem().isEmpty()) return;
 
 		var canvasStack = this.getItem();
@@ -213,6 +213,15 @@ public class EaselEntity extends LivingEntity {
 		this.setItem(canvasStack);
 
 		this.gameEvent(GameEvent.BLOCK_CHANGE, player);
+
+		for (var hand : InteractionHand.values()) {
+			var handStack = player.getItemInHand(hand);
+
+			if (handStack.is(PAINTER_PALETTE_ITEM)) {
+				DRAW_ON_CANVAS_TRIGGER.trigger(player, handStack);
+				break;
+			}
+		}
 	}
 
 	@Override
@@ -221,9 +230,9 @@ public class EaselEntity extends LivingEntity {
 		boolean handStackValid = handStack.is(CANVAS_ITEMS) || handStack.is(PAINTER_PALETTE_ITEM) || handStack.isEmpty();
 		if (this.fixed) {
 			return InteractionResult.PASS;
-		} else if (!this.level().isClientSide()) {
+		} else if (player instanceof ServerPlayer serverPlayer) {
 			if (!this.isRemoved()) {
-				this.doInteract(player, handStack, hand);
+				this.doInteract(serverPlayer, handStack, hand);
 			}
 
 			return InteractionResult.CONSUME;
@@ -232,32 +241,39 @@ public class EaselEntity extends LivingEntity {
 		}
 	}
 
-	private void doInteract(Player player, ItemStack handStack, InteractionHand hand) {
+	private void doInteract(ServerPlayer player, ItemStack handStack, InteractionHand hand) {
 		if (handStack.is(PAINTER_PALETTE_ITEM) && !this.getItem().isEmpty() && !this.getItem().is(WAXED_CANVAS_ITEMS)) {
-			if (player instanceof ServerPlayer serverPlayer) {
-				var payload = new CanvasOpenGuiPayload(this.getId(), this.getItem(), handStack);
-				var buffer = PacketByteBufs.create();
-				payload.write(buffer);
-				ServerPlayNetworking.send(serverPlayer, AurorasCanvasNetworking.OPEN_CANVAS_GUI, buffer);
-			}
+			var payload = new CanvasOpenGuiPayload(this.getId(), this.getItem(), handStack);
+			var buffer = PacketByteBufs.create();
+			payload.write(buffer);
+			ServerPlayNetworking.send(player, AurorasCanvasNetworking.OPEN_CANVAS_GUI, buffer);
 		} else if ((handStack.is(CANVAS_ITEMS) || handStack.isEmpty()) && this.swapItem(player, handStack, hand)) {
 			this.gameEvent(GameEvent.BLOCK_CHANGE, player);
 		}
 	}
 
-	private boolean swapItem(Player player, ItemStack stack, InteractionHand hand) {
+	private boolean swapItem(ServerPlayer player, ItemStack stack, InteractionHand hand) {
 		ItemStack currentStack = this.getItem();
 		if (player.getAbilities().instabuild && currentStack.isEmpty() && !stack.isEmpty()) {
 			this.setItem(stack.copyWithCount(1));
+			PUT_CANVAS_ON_EASEL_TRIGGER.trigger(player, this, this.getItem());
 			return true;
 		} else if (stack.isEmpty() || stack.getCount() <= 1) {
 			this.setItem(stack);
 			player.setItemInHand(hand, currentStack);
+
+			if (!this.getItem().isEmpty()) {
+				PUT_CANVAS_ON_EASEL_TRIGGER.trigger(player, this, this.getItem());
+			}
+
 			return true;
 		} else if (!currentStack.isEmpty()) {
 			return false;
 		} else {
 			this.setItem(stack.split(1));
+			if (!this.getItem().isEmpty()) {
+				PUT_CANVAS_ON_EASEL_TRIGGER.trigger(player, this, this.getItem());
+			}
 			return true;
 		}
 	}

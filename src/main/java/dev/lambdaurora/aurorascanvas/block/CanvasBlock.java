@@ -19,6 +19,7 @@ import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -237,11 +238,15 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						x = 15 - x;
 					}
 
-					player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
+					if (syncedCanvas.tryDrawLine(player, x, y, modifier)) {
+						if (player instanceof ServerPlayer serverPlayer) {
+							AurorasCanvasRegistry.DRAW_ON_CANVAS_TRIGGER.trigger(serverPlayer, stack);
+						}
 
-					syncedCanvas.tryDrawLine(player, x, y, modifier);
+						player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
+						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
+					}
 
-					world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 					return InteractionResult.sidedSuccess(world.isClientSide());
 				} else if ((modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
@@ -268,6 +273,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 					}
 
 					if (action.execute(syncedCanvas, x, y, modifier)) {
+						if (player instanceof ServerPlayer serverPlayer) {
+							AurorasCanvasRegistry.DRAW_ON_CANVAS_TRIGGER.trigger(serverPlayer, stack);
+						}
+
 						player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 						return InteractionResult.sidedSuccess(world.isClientSide());

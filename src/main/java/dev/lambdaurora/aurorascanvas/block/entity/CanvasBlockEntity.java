@@ -257,14 +257,16 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 			return false;
 		}
 
-		public void tryDrawLine(Player player, int x, int y, DrawModifier modifier) {
+		public boolean tryDrawLine(Player player, int x, int y, DrawModifier modifier) {
 			if (this.lastUser == null || this.lastUser.get() != player) {
 				this.lastUser = new WeakReference<>(player);
 				this.lastX = x;
 				this.lastY = y;
+				return false;
 			} else {
-				this.drawLine(this.lastX, this.lastY, x, y, modifier);
+				boolean result = this.drawLine(this.lastX, this.lastY, x, y, modifier);
 				this.lastUser = null;
+				return result;
 			}
 		}
 

@@ -12,6 +12,8 @@ package dev.lambdaurora.aurorascanvas.client.resource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
+import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -21,6 +23,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.*;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.FrameType;
 import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.advancements.criterion.KilledTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
@@ -227,6 +230,46 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					.addCriterion("killed_something", KilledTrigger.TriggerInstance.playerKilledEntity())
 					.addCriterion("killed_by_something", KilledTrigger.TriggerInstance.entityKilledPlayer())
 					.build(new Identifier(Identifier.DEFAULT_NAMESPACE, "adventure/root"));
+
+			var drawOnCanvas = Advancement.Builder.advancement()
+					.parent(root)
+					.display(
+							PAINTER_PALETTE_ITEM,
+							Component.translatable(
+									"advancements.%s.adventure.draw_on_canvas.title".formatted(AurorasCanvas.NAMESPACE)
+							),
+							Component.translatable(
+									"advancements.%s.adventure.draw_on_canvas.description".formatted(AurorasCanvas.NAMESPACE)
+							),
+							null,
+							FrameType.TASK,
+							true,
+							true,
+							false
+					)
+					.addCriterion("draw", DrawOnCanvasTrigger.TriggerInstance.drawAny())
+					.build(AurorasCanvas.id("adventure/draw_on_canvas"));
+			consumer.accept(drawOnCanvas);
+
+			var putCanvasOnEasel = Advancement.Builder.advancement()
+					.parent(drawOnCanvas)
+					.display(
+							EASEL_ITEM,
+							Component.translatable(
+									"advancements.%s.adventure.put_canvas_on_easel.title".formatted(AurorasCanvas.NAMESPACE)
+							),
+							Component.translatable(
+									"advancements.%s.adventure.put_canvas_on_easel.description".formatted(AurorasCanvas.NAMESPACE)
+							),
+							null,
+							FrameType.TASK,
+							true,
+							true,
+							false
+					)
+					.addCriterion("put", PutCanvasOnEaselTrigger.TriggerInstance.put(ItemPredicate.Builder.item().of(CANVAS_ITEMS).build()))
+					.build(AurorasCanvas.id("adventure/put_canvas_on_easel"));
+			consumer.accept(putCanvasOnEasel);
 		}
 	}
 

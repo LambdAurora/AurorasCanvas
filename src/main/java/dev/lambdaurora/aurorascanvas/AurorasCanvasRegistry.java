@@ -9,6 +9,8 @@
 
 package dev.lambdaurora.aurorascanvas;
 
+import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
+import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
@@ -30,6 +32,7 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRe
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
@@ -71,6 +74,8 @@ public final class AurorasCanvasRegistry {
 	}
 
 	//region Advancement Triggers
+	public static final DrawOnCanvasTrigger DRAW_ON_CANVAS_TRIGGER = CriteriaTriggers.register(new DrawOnCanvasTrigger());
+	public static final PutCanvasOnEaselTrigger PUT_CANVAS_ON_EASEL_TRIGGER = CriteriaTriggers.register(new PutCanvasOnEaselTrigger());
 	//endregion
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> BLACKBOARD = registerBlockWithItem(
