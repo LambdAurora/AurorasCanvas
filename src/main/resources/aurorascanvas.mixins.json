@@ -6,8 +6,7 @@
 		"BlockEntityMixin",
 		"HoneycombItemMixin",
 		"IdentifierMixin",
-		"IronBarsBlockMixin",
-		"ReloadableResourceManagerMixin"
+		"IronBarsBlockMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
