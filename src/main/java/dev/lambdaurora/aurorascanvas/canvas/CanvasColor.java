@@ -58,7 +58,10 @@ public final class CanvasColor extends DrawModifier {
 	public static final CanvasColor SWEET_BERRIES = new CanvasColor(17, 0xffbb0000, Items.SWEET_BERRIES);
 	public static final CanvasColor GLOW_BERRIES = new CanvasColor(18, 0xffff9737, Items.GLOW_BERRIES);
 	public static final CanvasColor BLUEBERRIES = new CanvasColor(19, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
-	public static final CanvasColor LAVENDER = new CanvasColor(20, 0xffb886db, new CompatMatcher(AurorasDecoDataUpper.id("lavender")));
+	public static final CanvasColor LAVENDER = new CanvasColor(20, 0xffb886db, new CompatMatcher(
+			new Identifier("aurorasnature", "lavender"),
+			AurorasDecoDataUpper.id("lavender")
+	));
 
 	private final byte id;
 	private final Predicate<Item> itemMatcher;
@@ -215,11 +218,17 @@ public final class CanvasColor extends DrawModifier {
 		return pixel.withColor(this);
 	}
 
-	private record CompatMatcher(Identifier id) implements Predicate<Item> {
+	private record CompatMatcher(Identifier... ids) implements Predicate<Item> {
 		@SuppressWarnings("deprecation")
 		@Override
 		public boolean test(Item item) {
-			return item.builtInRegistryHolder().is(id);
+			for (var id : this.ids) {
+				if (item.builtInRegistryHolder().is(id)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }

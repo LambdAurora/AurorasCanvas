@@ -11,9 +11,7 @@ package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 
@@ -30,19 +28,7 @@ public class GlassCanvasItem extends CanvasItem {
 	}
 
 	@Override
-	public List<IndexedCanvas> getCanvases(ItemStack stack) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && (
-				nbt.contains("front", Tag.TAG_COMPOUND)
-						|| nbt.contains("back", Tag.TAG_COMPOUND)
-						|| nbt.contains("pixels", Tag.TAG_COMPOUND)
-		)) {
-			var frontCanvas = IndexedCanvas.FRONT.reader().fromNbt(nbt);
-			var backCanvas = IndexedCanvas.BACK.reader().fromNbt(nbt);
-
-			return List.of(frontCanvas, backCanvas);
-		}
-
-		return List.of();
+	public @Unmodifiable List<IndexedCanvas.Provider> canvasProviders() {
+		return List.of(IndexedCanvas.FRONT, IndexedCanvas.BACK);
 	}
 }

@@ -113,6 +113,13 @@ public interface CanvasHandler {
 
 	boolean isEmpty();
 
+	/**
+	 * {@return {@code true} if this canvas is unedited, or {@code false} otherwise}
+	 */
+	default boolean isUnedited() {
+		return this.isEmpty() && !this.isGlowing();
+	}
+
 	void clear();
 
 	/**

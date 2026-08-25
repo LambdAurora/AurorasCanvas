@@ -107,6 +107,25 @@ public final class AurorasCanvasRegistry {
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> WHITEBOARD = registerBlockWithItem(
+			WHITEBOARD_ID,
+			properties -> new CanvasBlock(properties, false),
+			FabricBlockSettings.create()
+					.strength(.2f)
+					.nonOpaque()
+					.pistonBehavior(PushReaction.DESTROY)
+					.sounds(SoundType.WOOD),
+			CanvasItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
+	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_WHITEBOARD = registerBlockWithItem(
+			WAXED_WHITEBOARD_ID,
+			properties -> new CanvasBlock(properties, true),
+			FabricBlockSettings.copyOf(WHITEBOARD.block.value),
+			CanvasItem::new,
+			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+	);
+
 	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
 			GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, false),
@@ -147,8 +166,8 @@ public final class AurorasCanvasRegistry {
 			CANVAS_ID,
 			FabricBlockEntityTypeBuilder.create(
 					SimpleCanvasBlockEntity::new,
-					BLACKBOARD.block.value, CHALKBOARD.block.value,
-					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value
+					BLACKBOARD.block.value, CHALKBOARD.block.value, WHITEBOARD.block.value,
+					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_WHITEBOARD.block.value
 			).build()
 	);
 	public static final BlockEntityType<GlassCanvasBlockEntity> GLASS_CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
@@ -238,6 +257,7 @@ public final class AurorasCanvasRegistry {
 	static void init() {
 		OxidizableBlocksRegistry.registerWaxableBlockPair(BLACKBOARD.block.value, WAXED_BLACKBOARD.block.value);
 		OxidizableBlocksRegistry.registerWaxableBlockPair(CHALKBOARD.block.value, WAXED_CHALKBOARD.block.value);
+		OxidizableBlocksRegistry.registerWaxableBlockPair(WHITEBOARD.block.value, WAXED_WHITEBOARD.block.value);
 		OxidizableBlocksRegistry.registerWaxableBlockPair(GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value);
 
 		FabricDefaultAttributeRegistry.register(EASEL_ENTITY_TYPE, LivingEntity.createLivingAttributes());
@@ -263,9 +283,11 @@ public final class AurorasCanvasRegistry {
 		});
 		DispenserBlock.registerBehavior(BLACKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 		DispenserBlock.registerBehavior(CHALKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(WHITEBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 		DispenserBlock.registerBehavior(GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 		DispenserBlock.registerBehavior(WAXED_BLACKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 		DispenserBlock.registerBehavior(WAXED_CHALKBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
+		DispenserBlock.registerBehavior(WAXED_WHITEBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 		DispenserBlock.registerBehavior(WAXED_GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 
 		AurorasCanvasSoundEvents.init();

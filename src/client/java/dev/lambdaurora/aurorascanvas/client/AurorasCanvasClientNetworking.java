@@ -41,7 +41,7 @@ public final class AurorasCanvasClientNetworking {
 					client.level,
 					item,
 					painterPalette,
-					item.getCanvases(payload.canvas()).get(0)
+					item.getCanvases(payload.canvas(), true).get(0)
 			)));
 		});
 	}

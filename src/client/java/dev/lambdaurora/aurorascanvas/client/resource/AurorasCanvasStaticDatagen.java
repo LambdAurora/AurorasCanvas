@@ -29,10 +29,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.blockstates.*;
-import net.minecraft.data.models.model.ModelTemplate;
-import net.minecraft.data.models.model.ModelTemplates;
-import net.minecraft.data.models.model.TextureMapping;
-import net.minecraft.data.models.model.TextureSlot;
+import net.minecraft.data.models.model.*;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -91,7 +88,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 			this.tag(CANVAS_BLOCKS)
 					.add(
 							BLACKBOARD.block().key(), WAXED_BLACKBOARD.block().key(),
-							CHALKBOARD.block().key(), WAXED_CHALKBOARD.block().key()
+							CHALKBOARD.block().key(), WAXED_CHALKBOARD.block().key(),
+							WHITEBOARD.block().key(), WAXED_WHITEBOARD.block().key()
 					)
 					.addTag(GLASSBOARD_BLOCKS);
 
@@ -111,6 +109,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					.add(
 							WAXED_BLACKBOARD.item().key(),
 							WAXED_CHALKBOARD.item().key(),
+							WAXED_WHITEBOARD.item().key(),
 							WAXED_GLASSBOARD.item().key()
 					);
 
@@ -118,6 +117,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					.add(
 							BLACKBOARD.item().key(),
 							CHALKBOARD.item().key(),
+							WHITEBOARD.item().key(),
 							GLASSBOARD.item().key()
 					)
 					.addTag(WAXED_CANVAS_ITEMS);
@@ -130,6 +130,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 				WAXED_BLACKBOARD,
 				CHALKBOARD,
 				WAXED_CHALKBOARD,
+				WHITEBOARD,
+				WAXED_WHITEBOARD,
 				GLASSBOARD,
 				WAXED_GLASSBOARD
 		).map(ItemLike::asItem).collect(Collectors.toUnmodifiableSet());
@@ -154,6 +156,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 			this.add(WAXED_BLACKBOARD.block().value(), this::createCanvasDrop);
 			this.add(CHALKBOARD.block().value(), this::createCanvasDrop);
 			this.add(WAXED_CHALKBOARD.block().value(), this::createCanvasDrop);
+			this.add(WHITEBOARD.block().value(), this::createCanvasDrop);
+			this.add(WAXED_WHITEBOARD.block().value(), this::createCanvasDrop);
 			this.add(GLASSBOARD.block().value(), this::createGlassCanvasDrop);
 			this.add(WAXED_GLASSBOARD.block().value(), this::createGlassCanvasDrop);
 			this.add(CANVAS_PRESS.block().value(), this::createSingleItemTable);
@@ -255,6 +259,17 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					.unlockedBy("has_concrete", has(Items.GREEN_CONCRETE))
 					.unlockedBy("has_self", has(CANVAS_ITEMS))
 					.save(exporter);
+			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, WHITEBOARD)
+					.group(CANVAS_ITEMS.location().toString())
+					.define('S', Items.STICK)
+					.define('C', Items.WHITE_CONCRETE)
+					.pattern("SSS")
+					.pattern("SCS")
+					.pattern("SSS")
+					.unlockedBy("has_stick", has(Items.STICK))
+					.unlockedBy("has_concrete", has(Items.WHITE_CONCRETE))
+					.unlockedBy("has_self", has(CANVAS_ITEMS))
+					.save(exporter);
 			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, GLASSBOARD)
 					.group(CANVAS_ITEMS.location().toString())
 					.define('S', Items.STICK)
@@ -284,9 +299,11 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		@Override
 		public void generateBlockStateModels(BlockModelGenerators generator) {
 			this.createCanvasBlockStates(generator, BLACKBOARD.block());
-			this.createCanvasBlockStates(generator, WAXED_BLACKBOARD.block());
+			this.createWaxedCanvasBlockStates(generator, BLACKBOARD.block(), WAXED_BLACKBOARD.block());
 			this.createCanvasBlockStates(generator, CHALKBOARD.block());
-			this.createCanvasBlockStates(generator, WAXED_CHALKBOARD.block());
+			this.createWaxedCanvasBlockStates(generator, CHALKBOARD.block(), WAXED_CHALKBOARD.block());
+			this.createCanvasBlockStates(generator, WHITEBOARD.block());
+			this.createWaxedCanvasBlockStates(generator, WHITEBOARD.block(), WAXED_WHITEBOARD.block());
 
 			this.generateGlassboard(generator, "");
 			this.generateWaxedGlassboard(generator);
@@ -371,14 +388,28 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		private static final VariantProperty<Integer> Y_ROT = new VariantProperty<>("y", JsonPrimitive::new);
 
 		private void createCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry) {
+			this.createCanvasBlockStates(generator, entry, entry.key().identifier().withPrefix("block/"));
+		}
+
+		private void createCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry, Identifier model) {
+			// We do the item block ourselves.
 			generator.skipAutoItemBlock(entry.value());
 			var blockStateData = MultiVariantGenerator.multiVariant(entry.value())
 					.with(PropertyDispatch.property(GlassCanvasBlock.FACING).generate(
 							direction -> Variant.variant()
-									.with(VariantProperties.MODEL, entry.key().identifier().withPrefix("block/"))
+									.with(VariantProperties.MODEL, model)
 									.with(Y_ROT, (int) direction.getOpposite().toYRot())
 					));
 			generator.blockStateOutput.accept(blockStateData);
+
+			generator.modelOutput.accept(
+					entry.key().identifier().withPrefix("item/").withSuffix("_base"),
+					new DelegatedModel(model)
+			);
+		}
+
+		private void createWaxedCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry, BlockEntry<?> waxedEntry) {
+			this.createCanvasBlockStates(generator, waxedEntry, entry.key().identifier().withPrefix("block/"));
 		}
 
 		private void generateGlassboardBlockStates(String prefix) {

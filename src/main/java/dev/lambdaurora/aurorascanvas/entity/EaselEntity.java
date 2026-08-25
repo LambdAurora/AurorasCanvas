@@ -34,7 +34,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -151,6 +150,25 @@ public class EaselEntity extends LivingEntity {
 		if (this.hasPhysics()) {
 			super.travel(travelVector);
 		}
+	}
+
+	@Override
+	public void setYBodyRot(float yBodyRot) {
+		this.yBodyRotO = this.yRotO = yBodyRot;
+		this.yHeadRotO = this.yHeadRot = yBodyRot;
+	}
+
+	@Override
+	public void setYHeadRot(float yHeadRot) {
+		this.yBodyRotO = this.yRotO = yHeadRot;
+		this.yHeadRotO = this.yHeadRot = yHeadRot;
+	}
+
+	@Override
+	protected float tickHeadTurn(float yRot, float animStep) {
+		this.yBodyRotO = this.yRotO;
+		this.yBodyRot = this.getYRot();
+		return 0.f;
 	}
 
 	/* Interaction */

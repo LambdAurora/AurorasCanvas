@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "aurorascanvas:canvases",
+  "key": {
+    "C": {
+      "item": "minecraft:white_concrete"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SSS"
+  ],
+  "result": {
+    "item": "aurorascanvas:whiteboard"
+  },
+  "show_notification": true
+}

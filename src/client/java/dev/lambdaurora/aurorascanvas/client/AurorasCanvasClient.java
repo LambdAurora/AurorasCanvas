@@ -59,9 +59,11 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 		this.registerCanvasItemRenderer(BLACKBOARD.block().value(), CanvasItemRenderer::new);
 		this.registerCanvasItemRenderer(CHALKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WHITEBOARD.block().value(), CanvasItemRenderer::new);
 		this.registerCanvasItemRenderer(GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
 		this.registerCanvasItemRenderer(WAXED_BLACKBOARD.block().value(), CanvasItemRenderer::new);
 		this.registerCanvasItemRenderer(WAXED_CHALKBOARD.block().value(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_WHITEBOARD.block().value(), CanvasItemRenderer::new);
 		this.registerCanvasItemRenderer(WAXED_GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
 
 		ClientCanvasBlockEntityData.init();

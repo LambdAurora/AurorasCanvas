@@ -29,6 +29,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,10 +50,21 @@ public class CanvasItem extends BlockItem {
 		this.locked = canvasBlock.isLocked();
 	}
 
-	public List<IndexedCanvas> getCanvases(ItemStack stack) {
+	public @Unmodifiable List<IndexedCanvas.Provider> canvasProviders() {
+		return List.of(IndexedCanvas.SIMPLE);
+	}
+
+	public List<IndexedCanvas> getCanvases(ItemStack stack, boolean allowUnedited) {
 		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			return List.of(IndexedCanvas.SIMPLE.reader().fromNbt(nbt));
+		if (nbt != null) {
+			return this.canvasProviders().stream()
+					.map(provider -> provider.reader().fromNbt(nbt))
+					.filter(canvas -> allowUnedited || !canvas.canvas().isUnedited())
+					.toList();
+		} else if (allowUnedited) {
+			return this.canvasProviders().stream()
+					.map(provider -> new IndexedCanvas(provider.key(), new Canvas()))
+					.toList();
 		}
 
 		return List.of();
@@ -92,7 +104,7 @@ public class CanvasItem extends BlockItem {
 	}
 
 	protected boolean clearContents(ItemStack self) {
-		var canvases = this.getCanvases(self);
+		var canvases = this.getCanvases(self, false);
 		if (canvases.isEmpty()) return false;
 
 		var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
@@ -128,7 +140,7 @@ public class CanvasItem extends BlockItem {
 
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
-		var canvases = this.getCanvases(stack).stream().map(IndexedCanvas::canvas)
+		var canvases = this.getCanvases(stack, false).stream().map(IndexedCanvas::canvas)
 				.filter(Predicate.not(Canvas::isEmpty))
 				.toList();
 

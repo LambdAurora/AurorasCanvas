@@ -15,6 +15,8 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvas.id;
 
 public final class AurorasCanvasIds {
 	public static Identifier CANVAS_ID = id("canvas");
+	public static Identifier WHITEBOARD_ID = id("whiteboard");
+	public static Identifier WAXED_WHITEBOARD_ID = id("waxed_whiteboard");
 	public static Identifier BLACKBOARD_ID = id("blackboard");
 	public static Identifier WAXED_BLACKBOARD_ID = id("waxed_blackboard");
 	public static Identifier CHALKBOARD_ID = id("chalkboard");

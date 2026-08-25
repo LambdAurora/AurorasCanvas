@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.item.tree;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasIds;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.resources.Identifier;
@@ -27,12 +28,14 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 
 public class ItemTree extends ItemTreeGroupNode {
 	private static final ItemTreeGroupNode BLACKBOARDS = ItemTreeGroupNode.create(
-			AurorasCanvas.id("blackboard"),
+			AurorasCanvasIds.CANVAS_ID,
 			groupNode -> {
 				groupNode.add(BLACKBOARD.item().value());
 				groupNode.add(WAXED_BLACKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
 				groupNode.add(CHALKBOARD.item().value());
 				groupNode.add(WAXED_CHALKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(WHITEBOARD.item().value());
+				groupNode.add(WAXED_WHITEBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
 				groupNode.add(GLASSBOARD.item().value());
 				groupNode.add(WAXED_GLASSBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
 				//groupNode.add(BLACKBOARD_PRESS_BLOCK);

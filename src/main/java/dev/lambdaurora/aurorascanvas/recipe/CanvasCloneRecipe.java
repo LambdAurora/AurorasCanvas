@@ -38,6 +38,7 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	private static final Ingredient OUTPUT = Ingredient.of(
 			AurorasCanvasRegistry.BLACKBOARD,
 			AurorasCanvasRegistry.CHALKBOARD,
+			AurorasCanvasRegistry.WHITEBOARD,
 			AurorasCanvasRegistry.GLASSBOARD
 	);
 
