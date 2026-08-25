@@ -57,9 +57,11 @@ public final class CanvasColor extends DrawModifier {
 	public static final CanvasColor BLACK = fromDye(16, Items.BLACK_DYE);
 	public static final CanvasColor SWEET_BERRIES = new CanvasColor(17, 0xffbb0000, Items.SWEET_BERRIES);
 	public static final CanvasColor GLOW_BERRIES = new CanvasColor(18, 0xffff9737, Items.GLOW_BERRIES);
-	public static final CanvasColor BLUEBERRIES = new CanvasColor(19, 0xff006ac6, new CompatMatcher(new Identifier("ecotones", "blueberries")));
+	public static final CanvasColor BLUEBERRIES = new CanvasColor(19, 0xff006ac6, new CompatMatcher(
+			Identifier.fromNamespaceAndPath("ecotones", "blueberries")
+	));
 	public static final CanvasColor LAVENDER = new CanvasColor(20, 0xffb886db, new CompatMatcher(
-			new Identifier("aurorasnature", "lavender"),
+			Identifier.fromNamespaceAndPath("aurorasnature", "lavender"),
 			AurorasDecoDataUpper.id("lavender")
 	));
 
@@ -202,10 +204,7 @@ public final class CanvasColor extends DrawModifier {
 			return COLORS.get((byte) id);
 		}
 
-		int red = (int) (color.getTextureDiffuseColors()[0] * 255.f);
-		int green = (int) (color.getTextureDiffuseColors()[1] * 255.f);
-		int blue = (int) (color.getTextureDiffuseColors()[2] * 255.f);
-		return new CanvasColor((byte) id, 0xff000000 | (red << 16) | (green << 8) | blue, dyeItem);
+		return new CanvasColor((byte) id, color.getTextureDiffuseColor(), dyeItem);
 	}
 
 	@Override

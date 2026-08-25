@@ -13,21 +13,14 @@ import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasController;
 import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasScreen;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
-import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.network.FriendlyByteBuf;
 
 @Environment(EnvType.CLIENT)
 public final class AurorasCanvasClientNetworking {
-	static void handleCanvasOpenGui(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender) {
-		var payload = new CanvasOpenGuiPayload(buf);
-
+	static void handleCanvasOpenGui(CanvasOpenGuiPayload payload, ClientPlayNetworking.Context context) {
 		if (!(payload.canvas().getItem() instanceof CanvasItem item)
 				|| !(payload.painterPalette().getItem() instanceof PainterPaletteItem painterPaletteItem)) {
 			return;
@@ -35,19 +28,22 @@ public final class AurorasCanvasClientNetworking {
 
 		var painterPalette = painterPaletteItem.getInventory(payload.painterPalette());
 
+		var client = context.client();
+		var player = context.player();
+
 		client.execute(() -> {
 			client.setScreen(new CanvasScreen(payload.title(), new CanvasController(
 					payload.easelEntityId(),
-					client.level,
+					player.level(),
 					item,
 					painterPalette,
-					item.getCanvases(payload.canvas(), true).get(0)
+					item.getCanvases(payload.canvas(), true).getFirst()
 			)));
 		});
 	}
 
 	static void init() {
-		ClientPlayNetworking.registerGlobalReceiver(AurorasCanvasNetworking.OPEN_CANVAS_GUI, AurorasCanvasClientNetworking::handleCanvasOpenGui);
+		ClientPlayNetworking.registerGlobalReceiver(CanvasOpenGuiPayload.TYPE, AurorasCanvasClientNetworking::handleCanvasOpenGui);
 	}
 
 	private AurorasCanvasClientNetworking() {

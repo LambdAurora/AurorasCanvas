@@ -12,25 +12,20 @@ package dev.lambdaurora.aurorascanvas.recipe;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.util.Utils;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 /**
  * Represents the canvas clone recipe.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class CanvasCloneRecipe extends CustomRecipe {
@@ -42,17 +37,17 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			AurorasCanvasRegistry.GLASSBOARD
 	);
 
-	public CanvasCloneRecipe(Identifier id, CraftingBookCategory craftingCategory) {
-		super(id, craftingCategory);
+	public CanvasCloneRecipe(CraftingBookCategory craftingCategory) {
+		super(craftingCategory);
 	}
 
 	@Override
-	public boolean matches(CraftingContainer inv, Level level) {
+	public boolean matches(CraftingInput input, Level level) {
 		boolean hasInput = false, hasOutput = false;
 		int count = 0;
 
-		for (int slot = 0; slot < inv.getContainerSize(); ++slot) {
-			var stack = inv.getItem(slot);
+		for (int slot = 0; slot < input.size(); ++slot) {
+			var stack = input.getItem(slot);
 
 			if (INPUT.test(stack)) {
 				if (OUTPUT.test(stack) && !this.isInput(stack))
@@ -66,13 +61,13 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
 		Canvas blackboard = null;
 		ItemStack output = null;
 		Component customName = null;
 
-		for (int slot = 0; slot < inv.getContainerSize(); ++slot) {
-			var craftStack = inv.getItem(slot);
+		for (int slot = 0; slot < input.size(); ++slot) {
+			var craftStack = input.getItem(slot);
 			if (!craftStack.isEmpty()) {
 				if (OUTPUT.test(craftStack) && !this.isInput(craftStack)) {
 					output = craftStack;
@@ -113,11 +108,11 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingContainer craftingInventory) {
-		NonNullList<ItemStack> defaultedList = NonNullList.withSize(craftingInventory.getContainerSize(), ItemStack.EMPTY);
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+		NonNullList<ItemStack> defaultedList = NonNullList.withSize(input.size(), ItemStack.EMPTY);
 
 		for (int i = 0; i < defaultedList.size(); ++i) {
-			ItemStack invStack = craftingInventory.getItem(i);
+			ItemStack invStack = input.getItem(i);
 			if (!invStack.isEmpty()) {
 				if (invStack.getItem().hasCraftingRemainingItem()) {
 					defaultedList.set(i, new ItemStack(invStack.getItem().getCraftingRemainingItem()));

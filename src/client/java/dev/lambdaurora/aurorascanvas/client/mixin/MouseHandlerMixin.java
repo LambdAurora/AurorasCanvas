@@ -55,10 +55,7 @@ public class MouseHandlerMixin {
 
 				if (!inventory.isEmpty()) {
 					var payload = new PainterPaletteScrollPayload(scrollDelta, Screen.hasControlDown());
-					var buffer = PacketByteBufs.create();
-					payload.write(buffer);
-
-					ClientPlayNetworking.send(AurorasCanvasNetworking.PAINTER_PALETTE_SCROLL, buffer);
+					ClientPlayNetworking.send(payload);
 
 					ci.cancel();
 				}

@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.dispenser;
 
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -21,7 +21,7 @@ import net.minecraft.world.phys.AABB;
  * Represents the dispense item behavior of canvas items.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class CanvasDispenseItemBehavior extends OptionalDispenseItemBehavior {
@@ -29,9 +29,9 @@ public class CanvasDispenseItemBehavior extends OptionalDispenseItemBehavior {
 
 	@Override
 	public ItemStack execute(BlockSource source, ItemStack stack) {
-		BlockPos pos = source.getPos().relative(source.getBlockState().getValue(DispenserBlock.FACING));
+		BlockPos pos = source.pos().relative(source.state().getValue(DispenserBlock.FACING));
 
-		for (EaselEntity easel : source.getLevel().getEntitiesOfClass(EaselEntity.class, new AABB(pos), easel -> easel.isAlive() && easel.getItem().isEmpty())) {
+		for (EaselEntity easel : source.level().getEntitiesOfClass(EaselEntity.class, new AABB(pos), easel -> easel.isAlive() && easel.getItem().isEmpty())) {
 			easel.setItem(stack.split(1));
 			this.setSuccess(true);
 			return stack;

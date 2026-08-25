@@ -25,18 +25,13 @@ import dev.lambdaurora.aurorascanvas.item.GlassCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -74,80 +69,84 @@ public final class AurorasCanvasRegistry {
 	}
 
 	//region Advancement Triggers
-	public static final DrawOnCanvasTrigger DRAW_ON_CANVAS_TRIGGER = CriteriaTriggers.register(new DrawOnCanvasTrigger());
-	public static final PutCanvasOnEaselTrigger PUT_CANVAS_ON_EASEL_TRIGGER = CriteriaTriggers.register(new PutCanvasOnEaselTrigger());
+	public static final DrawOnCanvasTrigger DRAW_ON_CANVAS_TRIGGER = Registry.register(
+			BuiltInRegistries.TRIGGER_TYPES, DrawOnCanvasTrigger.ID, new DrawOnCanvasTrigger()
+	);
+	public static final PutCanvasOnEaselTrigger PUT_CANVAS_ON_EASEL_TRIGGER = Registry.register(
+			BuiltInRegistries.TRIGGER_TYPES, PutCanvasOnEaselTrigger.ID, new PutCanvasOnEaselTrigger()
+	);
 	//endregion
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> BLACKBOARD = registerBlockWithItem(
 			BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
-			FabricBlockSettings.create()
+			BlockBehaviour.Properties.of()
 					.strength(.2f)
-					.nonOpaque()
-					.pistonBehavior(PushReaction.DESTROY)
-					.sounds(SoundType.WOOD),
+					.noOcclusion()
+					.pushReaction(PushReaction.DESTROY)
+					.sound(SoundType.WOOD),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
 			WAXED_BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
-			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> CHALKBOARD = registerBlockWithItem(
 			CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
-			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
 			WAXED_CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
-			FabricBlockSettings.copyOf(CHALKBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(CHALKBOARD.block.value),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WHITEBOARD = registerBlockWithItem(
 			WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
-			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_WHITEBOARD = registerBlockWithItem(
 			WAXED_WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
-			FabricBlockSettings.copyOf(WHITEBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(WHITEBOARD.block.value),
 			CanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 
 	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
 			GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, false),
-			FabricBlockSettings.copyOf(BLACKBOARD.block.value).nonOpaque().sounds(SoundType.GLASS),
+			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value).noCollission().sound(SoundType.GLASS),
 			GlassCanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
 			WAXED_GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, true),
-			FabricBlockSettings.copyOf(GLASSBOARD.block.value),
+			BlockBehaviour.Properties.ofFullCopy(GLASSBOARD.block.value),
 			GlassCanvasItem::new,
-			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
+			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);
 
 	public static final BlockItemEntry<CanvasPressBlock, BlockItem> CANVAS_PRESS = registerBlockWithItem(
 			CANVAS_PRESS_ID,
 			CanvasPressBlock::new,
-			FabricBlockSettings.create().mapColor(MapColor.METAL),
+			BlockBehaviour.Properties.of().mapColor(MapColor.METAL),
 			BlockItem::new,
-			new FabricItemSettings()
+			new Item.Properties()
 	);
 
 	public static final EaselEntityItem EASEL_ITEM = Registry.register(
@@ -165,7 +164,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<SimpleCanvasBlockEntity> CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			CANVAS_ID,
-			FabricBlockEntityTypeBuilder.create(
+			BlockEntityType.Builder.of(
 					SimpleCanvasBlockEntity::new,
 					BLACKBOARD.block.value, CHALKBOARD.block.value, WHITEBOARD.block.value,
 					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_WHITEBOARD.block.value
@@ -174,7 +173,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<GlassCanvasBlockEntity> GLASS_CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			GLASSBOARD_ID,
-			FabricBlockEntityTypeBuilder.create(
+			BlockEntityType.Builder.of(
 					GlassCanvasBlockEntity::new,
 					GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value
 			).build()
@@ -182,7 +181,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<CanvasPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			CANVAS_PRESS_ID,
-			FabricBlockEntityTypeBuilder.create(
+			BlockEntityType.Builder.of(
 					CanvasPressBlockEntity::new,
 					CANVAS_PRESS.block.value
 			).build()
@@ -191,9 +190,9 @@ public final class AurorasCanvasRegistry {
 	public static final EntityType<EaselEntity> EASEL_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.ENTITY_TYPE,
 			EASEL_ID,
-			FabricEntityTypeBuilder.create(MobCategory.MISC, EaselEntity::new)
-					.dimensions(EntityDimensions.scalable(1.f, 2.f))
-					.trackRangeChunks(10)
+			EntityType.Builder.of(EaselEntity::new, MobCategory.MISC)
+					.sized(1.f, 2.f)
+					.clientTrackingRange(10)
 					.build()
 	);
 
@@ -266,14 +265,14 @@ public final class AurorasCanvasRegistry {
 		DispenserBlock.registerBehavior(EASEL_ITEM, new DefaultDispenseItemBehavior() {
 			@Override
 			public ItemStack execute(BlockSource source, ItemStack stack) {
-				Direction direction = source.getBlockState().getValue(DispenserBlock.FACING);
-				BlockPos blockPos = source.getPos().relative(direction);
-				ServerLevel serverLevel = source.getLevel();
+				Direction direction = source.state().getValue(DispenserBlock.FACING);
+				BlockPos blockPos = source.pos().relative(direction);
+				ServerLevel serverLevel = source.level();
 				Consumer<EaselEntity> consumer = EntityType.appendDefaultStackConfig(
 						easel -> easel.setYRot(direction.toYRot()), serverLevel, stack, null
 				);
 				var easel = EASEL_ENTITY_TYPE.spawn(
-						serverLevel, stack.getTag(), consumer, blockPos, MobSpawnType.DISPENSER, false, false
+						serverLevel, consumer, blockPos, MobSpawnType.DISPENSER, false, false
 				);
 				if (easel != null) {
 					stack.shrink(1);

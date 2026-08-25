@@ -27,13 +27,13 @@ import net.minecraft.world.inventory.Slot;
  * Represents the painter's palette container screen.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
 public class PainterPaletteScreen extends AbstractContainerScreen<PainterPaletteMenu> {
 	private static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/container/painter_palette.png");
-	private static final Identifier LOCK_TEXTURE = new Identifier("textures/gui/container/cartography_table.png");
+	private static final Identifier LOCK_TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/cartography_table.png");
 
 	public PainterPaletteScreen(PainterPaletteMenu handler, Inventory inventory, Component title) {
 		super(handler, inventory, title);
@@ -59,7 +59,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderBackground(graphics);
+		this.renderBackground(graphics, mouseX, mouseY, delta);
 
 		for (var slot : this.menu.slots) {
 			if (slot instanceof CanvasToolSlot) {

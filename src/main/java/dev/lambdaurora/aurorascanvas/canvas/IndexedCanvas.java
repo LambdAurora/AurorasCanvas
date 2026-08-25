@@ -12,6 +12,8 @@ package dev.lambdaurora.aurorascanvas.canvas;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 /**
  * Represents an indexed canvas.
@@ -19,7 +21,7 @@ import net.minecraft.network.FriendlyByteBuf;
  * @param key the key of the canvas
  * @param canvas the canvas
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public record IndexedCanvas(String key, Canvas canvas) {
@@ -33,17 +35,18 @@ public record IndexedCanvas(String key, Canvas canvas) {
 	});
 	public static final Provider BACK = new Provider("back");
 
+	public static final StreamCodec<FriendlyByteBuf, IndexedCanvas> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, IndexedCanvas::key,
+			CanvasSerialization.CANVAS_STREAM_CODEC, IndexedCanvas::canvas,
+			IndexedCanvas::new
+	);
+
 	public static IndexedCanvas fromNbt(String key, CompoundTag nbt) {
 		if (key.isEmpty()) {
 			return new IndexedCanvas(key, Canvas.fromNbt(nbt));
 		} else {
 			return new IndexedCanvas(key, Canvas.fromNbt(nbt.getCompound(key)));
 		}
-	}
-
-	public static IndexedCanvas fromBuffer(FriendlyByteBuf buffer) {
-		var key = buffer.readUtf();
-		return new IndexedCanvas(key, CanvasSerialization.fromByteBuf(buffer));
 	}
 
 	public void writeNbt(CompoundTag nbt) {
@@ -62,11 +65,6 @@ public record IndexedCanvas(String key, Canvas canvas) {
 				nbt.put(this.key, this.canvas.toNbt());
 			}
 		}
-	}
-
-	public void writeBuffer(FriendlyByteBuf buffer) {
-		buffer.writeUtf(this.key);
-		CanvasSerialization.writeCanvasToBuffer(buffer, this.canvas);
 	}
 
 	public record Provider(String key, Reader reader) {

@@ -14,7 +14,7 @@ plugins {
 base.archivesName.set(project.property("mod_namespace") as String)
 
 val mcVersion = libs.versions.minecraft.get()
-val compatibleMcVersions: Set<String> = setOf("1.20")
+val compatibleMcVersions: Set<String> = setOf("1.21")
 val VERSION = project.property("mod_version") as String
 version = "$VERSION+$mcVersion"
 
@@ -46,7 +46,7 @@ repositories {
 			}
 		}
 		filter {
-			includeGroup("dev.onyxstudios.cardinal-components-api")
+			includeGroup("org.ladysnake.cardinal-components-api")
 		}
 	}
 	exclusiveContent {
@@ -84,17 +84,15 @@ dependencies {
 	@Suppress("UnstableApiUsage")
 	mappings(loom.layered {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03@zip")
+		parchment("org.parchmentmc.data:parchment-1.21.1:2024.11.17@zip")
 		mappings("dev.lambdaurora:yalmm-mojbackward:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
 	})
 	modImplementation(libs.fabric.loader)
 	modImplementation(libs.fabric.api)
 
 	compileOnly(libs.jspecify)
-	implementation(libs.yumi.commons.event)
-	include(libs.yumi.commons.core)
-	include(libs.yumi.commons.collections)
-	include(libs.yumi.commons.event)
+	modImplementation(libs.yumi.mc.foundation)
+	include(libs.yumi.mc.foundation)
 	modImplementation(libs.spruceui)
 	include(libs.spruceui)
 
@@ -205,7 +203,7 @@ license {
 }
 
 val README = ModUtils.parseReadme(
-	project, "https://raw.githubusercontent.com/LambdAurora/AurorasCanvas/1.20/\$2"
+	project, "https://raw.githubusercontent.com/LambdAurora/AurorasCanvas/1.21/\$2"
 )
 val CHANGELOG_CONTENT = ModUtils.fetchChangelog(project, VERSION)
 

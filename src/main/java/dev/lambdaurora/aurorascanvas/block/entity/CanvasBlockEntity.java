@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.block.entity;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.*;
 import dev.yumi.commons.event.Event;
+import dev.yumi.mc.core.api.YumiEvents;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public abstract class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
-	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
+	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = YumiEvents.EVENTS.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
 				for (var sidedLogic : sidedLogics) {

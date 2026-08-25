@@ -11,9 +11,9 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.border.Border;
@@ -104,16 +104,19 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 		int endY = this.getEndInnerBorderedY();
 
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		buffer.vertex(scrollbarX, scrollbarY + scrollbarHeight, 0.0f).color(128, 128, 128, 255).endVertex();
-		buffer.vertex(scrollbarEndX, scrollbarY + scrollbarHeight, 0.0f).color(128, 128, 128, 255).endVertex();
-		buffer.vertex(scrollbarEndX, scrollbarY, 0.0f).color(128, 128, 128, 255).endVertex();
-		buffer.vertex(scrollbarX, scrollbarY, 0.0f).color(128, 128, 128, 255).endVertex();
-		buffer.vertex(scrollbarX, scrollbarY + scrollbarHeight - 1, 0.0f).color(192, 192, 192, 255).endVertex();
-		buffer.vertex(scrollbarEndX - 1, scrollbarY + scrollbarHeight - 1, 0.0f).color(192, 192, 192, 255).endVertex();
-		buffer.vertex(scrollbarEndX - 1, scrollbarY, 0.0f).color(192, 192, 192, 255).endVertex();
-		buffer.vertex(scrollbarX, scrollbarY, 0.0f).color(192, 192, 192, 255).endVertex();
-		tessellator.end();
+		buffer.addVertex(scrollbarX, scrollbarY + scrollbarHeight, 0.0f).setColor(128, 128, 128, 255);
+		buffer.addVertex(scrollbarEndX, scrollbarY + scrollbarHeight, 0.0f).setColor(128, 128, 128, 255);
+		buffer.addVertex(scrollbarEndX, scrollbarY, 0.0f).setColor(128, 128, 128, 255);
+		buffer.addVertex(scrollbarX, scrollbarY, 0.0f).setColor(128, 128, 128, 255);
+		buffer.addVertex(scrollbarX, scrollbarY + scrollbarHeight - 1, 0.0f).setColor(192, 192, 192, 255);
+		buffer.addVertex(scrollbarEndX - 1, scrollbarY + scrollbarHeight - 1, 0.0f).setColor(192, 192, 192, 255);
+		buffer.addVertex(scrollbarEndX - 1, scrollbarY, 0.0f).setColor(192, 192, 192, 255);
+		buffer.addVertex(scrollbarX, scrollbarY, 0.0f).setColor(192, 192, 192, 255);
+		MeshData builtBuffer = buffer.build();
+		if (builtBuffer != null) {
+			BufferUploader.drawWithShader(builtBuffer);
+		}
+		tessellator.clear();
 	}
 
 	public static class Entry extends SpruceEntryListWidget.Entry {

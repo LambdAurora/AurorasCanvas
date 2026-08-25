@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 /**
  * Represents an easel entity item.
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class EaselEntityItem extends Item {
@@ -60,7 +60,7 @@ public class EaselEntityItem extends Item {
 			if (level.noCollision(null, boundingBox) && level.getEntities(null, boundingBox).isEmpty()) {
 				if (level instanceof ServerLevel serverLevel) {
 					Consumer<EaselEntity> consumer = EntityType.createDefaultStackConfig(serverLevel, handStack, context.getPlayer());
-					var easel = AurorasCanvasRegistry.EASEL_ENTITY_TYPE.create(serverLevel, handStack.getTag(), consumer, blockPos, MobSpawnType.SPAWN_EGG, true, true);
+					var easel = AurorasCanvasRegistry.EASEL_ENTITY_TYPE.create(serverLevel, consumer, blockPos, MobSpawnType.SPAWN_EGG, true, true);
 					if (easel == null) {
 						return InteractionResult.FAIL;
 					}

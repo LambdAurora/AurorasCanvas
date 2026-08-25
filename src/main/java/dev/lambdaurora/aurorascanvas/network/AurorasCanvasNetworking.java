@@ -9,35 +9,24 @@
 
 package dev.lambdaurora.aurorascanvas.network;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 /**
  * Contains the different packet definitions used in Aurora's Canvas.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public final class AurorasCanvasNetworking {
-	public static final Identifier OPEN_CANVAS_GUI = AurorasCanvas.id("canvas/open_gui");
-	public static final Identifier CANVAS_SUBMIT_EDIT = AurorasCanvas.id("canvas/submit_edit");
-	public static final Identifier PAINTER_PALETTE_SCROLL = AurorasCanvas.id("painter_palette/scroll");
-
 	public static void handleCanvasSubmitEdit(
-			MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler,
-			FriendlyByteBuf buf, PacketSender responseSender
+			CanvasEditSubmitPayload payload, ServerPlayNetworking.Context context
 	) {
-		var payload = new CanvasEditSubmitPayload(buf);
+		var player = context.player();
 
-		server.execute(() -> {
+		context.server().execute(() -> {
 			var entity = player.level().getEntity(payload.easelEntityId());
 
 			if (entity instanceof EaselEntity easel) {
@@ -47,12 +36,11 @@ public final class AurorasCanvasNetworking {
 	}
 
 	public static void handlePainterPaletteScroll(
-			MinecraftServer server, ServerPlayer player, ServerGamePacketListenerImpl handler,
-			FriendlyByteBuf buf, PacketSender responseSender
+			PainterPaletteScrollPayload payload, ServerPlayNetworking.Context context
 	) {
-		var payload = new PainterPaletteScrollPayload(buf);
+		var player = context.player();
 
-		server.execute(() -> {
+		context.server().execute(() -> {
 			var mainHandStack = player.getMainHandItem();
 
 			if (mainHandStack.getItem() instanceof PainterPaletteItem paletteItem) {

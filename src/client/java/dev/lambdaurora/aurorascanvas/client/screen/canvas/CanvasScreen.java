@@ -12,7 +12,6 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
-import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasEditSubmitPayload;
 import dev.lambdaurora.spruceui.screen.SpruceScreen;
 import net.fabricmc.api.EnvType;
@@ -65,8 +64,7 @@ public class CanvasScreen extends SpruceScreen {
 			var buffer = PacketByteBufs.create();
 			var canvas = new IndexedCanvas(this.controller.root().key(), this.controller.canvas.history().effectiveCanvas());
 			var payload = new CanvasEditSubmitPayload(this.controller.id(), canvas);
-			payload.write(buffer);
-			ClientPlayNetworking.getSender().sendPacket(AurorasCanvasNetworking.CANVAS_SUBMIT_EDIT, buffer);
+			ClientPlayNetworking.getSender().sendPacket(payload);
 		}
 
 		super.onClose();

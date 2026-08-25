@@ -45,8 +45,6 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 public final class AurorasCanvasClient implements ClientModInitializer {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
-	public static final ModelResourceLocation BLACKBOARD_MASK = new ModelResourceLocation(AurorasCanvas.id("blackboard_mask"), "inventory");
-
 	@Override
 	public void onInitializeClient() {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
@@ -72,8 +70,8 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		TooltipComponentCallback.EVENT.register(data -> {
 			if (data instanceof CanvasTooltipData canvasTooltipData) {
 				return new CanvasTooltipComponent(canvasTooltipData);
-			} else if (data instanceof PainterPaletteTooltipData painterPaletteTooltipData) {
-				return new PainterPaletteTooltipComponent(painterPaletteTooltipData.inventory());
+			} else if (data instanceof PainterPaletteTooltipData(var inventory)) {
+				return new PainterPaletteTooltipComponent(inventory);
 			} else {
 				return null;
 			}
@@ -85,8 +83,8 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			CanvasPressBlockEntityRenderer.initModels(context);
 
 			context.modifyModelOnLoad().register((model, ctx) -> {
-				if (ctx.id() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
-					if (modelId.getPath().endsWith("board")) {
+				if (ctx.topLevelId() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
+					if (modelId.id().getPath().endsWith("board")) {
 						return UnbakedCanvasModel.of(modelId, model,
 								(partId, m) -> {
 									var modelLoader = (ModelBakeryAccessor) ctx.loader();
@@ -112,6 +110,6 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		@SuppressWarnings("deprecation") var id = canvas.builtInRegistryHolder().key().identifier();
 		var modelId = new ModelResourceLocation(id.withSuffix("_base"), "inventory");
 		BuiltinItemRendererRegistry.INSTANCE.register(canvas, factory.apply(modelId));
-		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
+		ModelLoadingPlugin.register(context -> context.addModels(id.withSuffix("_base"), AurorasCanvas.id("blackboard_mask")));
 	}
 }

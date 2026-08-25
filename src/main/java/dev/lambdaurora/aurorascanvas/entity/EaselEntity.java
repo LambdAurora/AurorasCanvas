@@ -12,10 +12,8 @@ package dev.lambdaurora.aurorascanvas.entity;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasSoundEvents;
 import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
-import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
 import dev.lambdaurora.aurorascanvas.util.Utils;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -244,9 +242,7 @@ public class EaselEntity extends LivingEntity {
 	private void doInteract(ServerPlayer player, ItemStack handStack, InteractionHand hand) {
 		if (handStack.is(PAINTER_PALETTE_ITEM) && !this.getItem().isEmpty() && !this.getItem().is(WAXED_CANVAS_ITEMS)) {
 			var payload = new CanvasOpenGuiPayload(this.getId(), this.getItem(), handStack);
-			var buffer = PacketByteBufs.create();
-			payload.write(buffer);
-			ServerPlayNetworking.send(player, AurorasCanvasNetworking.OPEN_CANVAS_GUI, buffer);
+			ServerPlayNetworking.send(player, payload);
 		} else if ((handStack.is(CANVAS_ITEMS) || handStack.isEmpty()) && this.swapItem(player, handStack, hand)) {
 			this.gameEvent(GameEvent.BLOCK_CHANGE, player);
 		}
