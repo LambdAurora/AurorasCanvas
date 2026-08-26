@@ -13,6 +13,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -35,7 +36,7 @@ public class BlockEntityMixin {
 	private static Optional aurorascanvas$backwardsCompat(
 			Registry<BlockEntity> instance, Identifier id, Operation<Optional> original, BlockPos pos, BlockState state
 	) {
-		if (id.getNamespace().equals(AurorasCanvas.NAMESPACE) && id.getPath().equals("blackboard")) {
+		if (id.getNamespace().equals(AurorasDecoDataUpper.OLD_NAMESPACE) && id.getPath().equals("blackboard")) {
 			if (state.is(AurorasCanvasRegistry.GLASSBOARD.block().value()) || state.is(AurorasCanvasRegistry.GLASSBOARD.block().value())) {
 				return Optional.of(AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE);
 			}

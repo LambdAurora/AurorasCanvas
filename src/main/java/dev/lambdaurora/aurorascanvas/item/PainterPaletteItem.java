@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.item;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
@@ -17,7 +18,6 @@ import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
@@ -38,7 +38,7 @@ import java.util.Optional;
  * Represents a painter's palette item which can be used for easier painting on canvases.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class PainterPaletteItem extends Item {
@@ -49,7 +49,9 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public PainterPaletteInventory getInventory(ItemStack paletteStack) {
-		return PainterPaletteInventory.fromNbt(paletteStack.getTagElement("inventory"));
+		var inventory = paletteStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+
+		return inventory != null ? inventory : new PainterPaletteInventory();
 	}
 
 	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
@@ -137,9 +139,12 @@ public class PainterPaletteItem extends Item {
 				}
 			}
 
-			var nbt = inventory.toNbt();
-			if (nbt != null) paletteStack.addTagElement("inventory", nbt);
-			else paletteStack.removeTagKey("inventory");
+			if (inventory.isEmpty()) {
+				paletteStack.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+			} else {
+				paletteStack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, inventory);
+			}
+
 			player.inventoryMenu.broadcastChanges();
 
 			var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
@@ -152,9 +157,13 @@ public class PainterPaletteItem extends Item {
 
 			if (inventory.getSelectedToolSlot() != nextTool) {
 				inventory.setSelectedToolSlot(nextTool);
-				var nbt = inventory.toNbt();
-				if (nbt != null) paletteStack.addTagElement("inventory", nbt);
-				else paletteStack.removeTagKey("inventory");
+
+				if (inventory.isEmpty()) {
+					paletteStack.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+				} else {
+					paletteStack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, inventory);
+				}
+
 				player.inventoryMenu.broadcastChanges();
 
 				var message = getSelectedToolMessage(inventory, player.level().enabledFeatures());
@@ -168,15 +177,13 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public int getColor(ItemStack paletteStack, int tintIndex) {
-		CompoundTag nbt = paletteStack.getTagElement("inventory");
+		var inventory = paletteStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 
 		DrawModifier primaryColor = null;
 		DrawModifier previousColor = null;
 		DrawModifier nextColor = null;
 
-		if (nbt != null) {
-			var inventory = PainterPaletteInventory.fromNbt(nbt);
-
+		if (inventory != null) {
 			primaryColor = DrawModifier.fromItem(inventory.getSelectedColor());
 			previousColor = inventory.getPreviousColor();
 			nextColor = inventory.getNextColor();
@@ -193,9 +200,9 @@ public class PainterPaletteItem extends Item {
 
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
-		var nbt = stack.getTagElement("inventory");
-		if (nbt != null) {
-			return Optional.of(new PainterPaletteTooltipData(PainterPaletteInventory.fromNbt(nbt)));
+		var inventory = stack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+		if (inventory != null) {
+			return Optional.of(new PainterPaletteTooltipData(inventory));
 		}
 		return super.getTooltipImage(stack);
 	}

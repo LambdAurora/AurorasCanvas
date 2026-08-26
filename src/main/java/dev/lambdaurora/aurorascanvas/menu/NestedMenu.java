@@ -10,6 +10,9 @@
 package dev.lambdaurora.aurorascanvas.menu;
 
 import dev.lambdaurora.aurorascanvas.menu.slot.LockedSlot;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -17,6 +20,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public abstract class NestedMenu extends AbstractContainerMenu {
 	protected final OriginType originType;
@@ -70,6 +75,9 @@ public abstract class NestedMenu extends AbstractContainerMenu {
 
 	public enum OriginType {
 		PLAYER,
-		ENDER_CHEST
+		ENDER_CHEST;
+
+		private static final List<OriginType> VALUES = List.of(values());
+		public static final StreamCodec<ByteBuf, OriginType> STREAM_CODEC = ByteBufCodecs.VAR_INT.map(VALUES::get, Enum::ordinal);
 	}
 }

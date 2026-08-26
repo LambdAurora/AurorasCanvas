@@ -16,6 +16,8 @@ import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -26,14 +28,14 @@ import net.minecraft.world.item.ItemStack;
  * Represents the painter's palette screen handler.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class PainterPaletteMenu extends NestedMenu {
 	private final PainterPaletteInventory inventory;
 
-	public PainterPaletteMenu(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
-		this(syncId, playerInventory, buf.readEnum(OriginType.class), buf.readVarInt(), new PainterPaletteInventory());
+	public PainterPaletteMenu(int syncId, Inventory playerInventory, OpenData data) {
+		this(syncId, playerInventory, data.type, data.lockedSlot, new PainterPaletteInventory());
 	}
 
 	public PainterPaletteMenu(
@@ -135,24 +137,23 @@ public class PainterPaletteMenu extends NestedMenu {
 
 	@Override
 	protected boolean saveToOriginItem(ItemStack stack) {
-		var nbt = inventory.toNbt();
-		if (nbt != null) stack.addTagElement("inventory", nbt);
-		else {
-			if (stack.getTagElement("inventory") == null) {
-				return false;
-			}
-
-			stack.removeTagKey("inventory");
-		}
+		stack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, this.inventory);
 
 		return true;
 	}
 
-	public record Factory(ItemStack self, OriginType type, int lockedSlot) implements ExtendedScreenHandlerFactory {
+	public record OpenData(OriginType type, int lockedSlot) {
+		public static final StreamCodec<FriendlyByteBuf, OpenData> STREAM_CODEC = StreamCodec.composite(
+				OriginType.STREAM_CODEC, OpenData::type,
+				ByteBufCodecs.VAR_INT, OpenData::lockedSlot,
+				OpenData::new
+		);
+	}
+
+	public record Factory(ItemStack self, OriginType type, int lockedSlot) implements ExtendedScreenHandlerFactory<OpenData> {
 		@Override
-		public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-			buf.writeEnum(this.type);
-			buf.writeVarInt(this.lockedSlot);
+		public OpenData getScreenOpeningData(ServerPlayer player) {
+			return new OpenData(this.type, this.lockedSlot);
 		}
 
 		@Override
@@ -162,7 +163,11 @@ public class PainterPaletteMenu extends NestedMenu {
 
 		@Override
 		public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-			var inventory = PainterPaletteInventory.fromNbt(this.self.getTagElement("inventory"));
+			var inventory = this.self.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+
+			if (inventory == null) {
+				inventory = new PainterPaletteInventory();
+			}
 
 			return new PainterPaletteMenu(syncId, playerInventory, this.type, this.lockedSlot, inventory);
 		}

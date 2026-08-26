@@ -15,6 +15,9 @@ import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
@@ -29,7 +32,7 @@ import java.util.*;
  * Represents a painter's palette inventory.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class PainterPaletteInventory extends SimpleContainer {
@@ -75,6 +78,20 @@ public class PainterPaletteInventory extends SimpleContainer {
 						inventory.selectedColor,
 						inventory.selectedTool
 				);
+			}
+	);
+	public static final StreamCodec<RegistryFriendlyByteBuf, PainterPaletteInventory> STREAM_CODEC = StreamCodec.composite(
+			ItemStack.LIST_STREAM_CODEC, inventory -> inventory.items,
+			ByteBufCodecs.BYTE, inventory -> inventory.selectedColor,
+			ByteBufCodecs.BYTE, inventory -> inventory.selectedTool,
+			(items, selectedColor, selectedTool) -> {
+				var inventory = new PainterPaletteInventory();
+				for (int i = 0; i < items.size(); i++) {
+					inventory.setItem(i, items.get(i));
+				}
+				inventory.selectedColor = selectedColor;
+				inventory.selectedTool = selectedTool;
+				return inventory;
 			}
 	);
 

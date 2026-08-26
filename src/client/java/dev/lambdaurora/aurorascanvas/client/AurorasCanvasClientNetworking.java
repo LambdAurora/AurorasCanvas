@@ -9,10 +9,10 @@
 
 package dev.lambdaurora.aurorascanvas.client;
 
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasController;
 import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasScreen;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -21,12 +21,12 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 @Environment(EnvType.CLIENT)
 public final class AurorasCanvasClientNetworking {
 	static void handleCanvasOpenGui(CanvasOpenGuiPayload payload, ClientPlayNetworking.Context context) {
-		if (!(payload.canvas().getItem() instanceof CanvasItem item)
-				|| !(payload.painterPalette().getItem() instanceof PainterPaletteItem painterPaletteItem)) {
+		if (!(payload.canvas().getItem() instanceof CanvasItem item)) {
 			return;
 		}
 
-		var painterPalette = painterPaletteItem.getInventory(payload.painterPalette());
+		var painterPalette = payload.painterPalette().get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+		if (painterPalette == null) return;
 
 		var client = context.client();
 		var player = context.player();

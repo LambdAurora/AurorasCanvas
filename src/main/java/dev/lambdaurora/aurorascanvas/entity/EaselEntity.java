@@ -15,6 +15,7 @@ import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -29,10 +30,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -53,7 +57,7 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
  * It can hold a canvas for display and interaction.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class EaselEntity extends LivingEntity {
@@ -75,13 +79,16 @@ public class EaselEntity extends LivingEntity {
 
 	public EaselEntity(EntityType<? extends LivingEntity> type, Level level) {
 		super(type, level);
-		this.setMaxUpStep(0.f);
+	}
+
+	public static AttributeSupplier.Builder createAttributes() {
+		return createLivingAttributes().add(Attributes.STEP_HEIGHT, 0.0);
 	}
 
 	@Override
-	protected void defineSynchedData() {
-		super.defineSynchedData();
-		this.getEntityData().define(DATA_ITEM, ItemStack.EMPTY);
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(DATA_ITEM, ItemStack.EMPTY);
 	}
 
 	public ItemStack getItem() {
@@ -117,8 +124,8 @@ public class EaselEntity extends LivingEntity {
 	@Override
 	public void readAdditionalSaveData(CompoundTag nbt) {
 		CompoundTag itemNbt = nbt.getCompound(ITEM_KEY);
-		if (itemNbt != null && !itemNbt.isEmpty()) {
-			ItemStack stack = ItemStack.of(itemNbt);
+		if (!itemNbt.isEmpty()) {
+			ItemStack stack = ItemStack.parseOptional(this.registryAccess(), itemNbt);
 			if (stack.isEmpty()) {
 				LOGGER.warn("Unable to load item from: {}", itemNbt);
 			}
@@ -135,7 +142,7 @@ public class EaselEntity extends LivingEntity {
 	@Override
 	public void addAdditionalSaveData(CompoundTag nbt) {
 		if (!this.getItem().isEmpty()) {
-			nbt.put(ITEM_KEY, this.getItem().save(new CompoundTag()));
+			nbt.put(ITEM_KEY, this.getItem().saveOptional(this.registryAccess()));
 		}
 		nbt.putBoolean(INVISIBLE_KEY, this.isInvisible());
 		nbt.putBoolean(FIXED_KEY, this.fixed);
@@ -295,56 +302,60 @@ public class EaselEntity extends LivingEntity {
 
 	@Override
 	public boolean hurt(DamageSource source, float amount) {
-		if (this.level().isClientSide || this.isRemoved()) {
+		if (this.isRemoved()) {
 			return false;
-		} else if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-			this.kill();
-			return false;
-		} else if (this.isInvulnerableTo(source) || this.fixed) {
-			return false;
-		} else if (source.is(DamageTypeTags.IS_EXPLOSION)) {
-			this.brokenByAnything(source);
-			this.kill();
-			return false;
-		} else if (source.is(AurorasCanvasRegistry.IGNITES_EASELS)) {
-			if (this.isOnFire()) {
-				this.causeDamage(source, 0.15f);
-			} else {
-				this.setSecondsOnFire(5);
-			}
-
-			return false;
-		} else if (source.is(AurorasCanvasRegistry.BURNS_EASELS) && this.getHealth() > 0.5f) {
-			this.causeDamage(source, 4.f);
-			return false;
-		} else {
-			boolean bl = source.getDirectEntity() instanceof AbstractArrow;
-			boolean bl2 = bl && ((AbstractArrow) source.getDirectEntity()).getPierceLevel() > 0;
-			boolean bl3 = "player".equals(source.getMsgId());
-			if (!bl3 && !bl) {
-				return false;
-			} else if (source.getEntity() instanceof Player player && !player.getAbilities().mayBuild) {
-				return false;
-			} else if (source.isCreativePlayer()) {
-				this.playBrokenSound();
-				this.showBreakingParticles();
+		} else if (this.level() instanceof ServerLevel level) {
+			if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
 				this.kill();
-				return bl2;
-			} else {
-				long currentTime = this.level().getGameTime();
-				if (currentTime - this.lastHit > 5L && !bl) {
-					this.level().broadcastEntityEvent(this, (byte) 32);
-					this.gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
-					this.lastHit = currentTime;
+				return false;
+			} else if (this.isInvulnerableTo(source) || this.fixed) {
+				return false;
+			} else if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+				this.brokenByAnything(level, source);
+				this.kill();
+				return false;
+			} else if (source.is(AurorasCanvasRegistry.IGNITES_EASELS)) {
+				if (this.isOnFire()) {
+					this.causeDamage(level, source, 0.15f);
 				} else {
-					this.brokenByPlayer(source);
-					this.showBreakingParticles();
-					this.kill();
+					this.igniteForSeconds(5);
 				}
 
-				return true;
+				return false;
+			} else if (source.is(AurorasCanvasRegistry.BURNS_EASELS) && this.getHealth() > 0.5f) {
+				this.causeDamage(level, source, 4.f);
+				return false;
+			} else {
+				boolean bl = source.getDirectEntity() instanceof AbstractArrow;
+				boolean bl2 = bl && ((AbstractArrow) source.getDirectEntity()).getPierceLevel() > 0;
+				boolean bl3 = "player".equals(source.getMsgId());
+				if (!bl3 && !bl) {
+					return false;
+				} else if (source.getEntity() instanceof Player player && !player.getAbilities().mayBuild) {
+					return false;
+				} else if (source.isCreativePlayer()) {
+					this.playBrokenSound();
+					this.showBreakingParticles();
+					this.kill();
+					return bl2;
+				} else {
+					long currentTime = this.level().getGameTime();
+					if (currentTime - this.lastHit > 5L && !bl) {
+						this.level().broadcastEntityEvent(this, (byte) 32);
+						this.gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
+						this.lastHit = currentTime;
+					} else {
+						this.brokenByPlayer(level, source);
+						this.showBreakingParticles();
+						this.kill();
+					}
+
+					return true;
+				}
 			}
 		}
+
+		return false;
 	}
 
 	@Override
@@ -358,7 +369,7 @@ public class EaselEntity extends LivingEntity {
 	}
 
 	@Override
-	public boolean ignoreExplosion() {
+	public boolean ignoreExplosion(Explosion explosion) {
 		return this.fixed;
 	}
 
@@ -378,11 +389,11 @@ public class EaselEntity extends LivingEntity {
 		}
 	}
 
-	private void causeDamage(DamageSource damageSource, float amount) {
+	private void causeDamage(ServerLevel level, DamageSource damageSource, float amount) {
 		float health = this.getHealth();
 		health -= amount;
 		if (health <= 0.5f) {
-			this.brokenByAnything(damageSource);
+			this.brokenByAnything(level, damageSource);
 			this.kill();
 		} else {
 			this.setHealth(health);
@@ -390,19 +401,19 @@ public class EaselEntity extends LivingEntity {
 		}
 	}
 
-	private void brokenByPlayer(DamageSource damageSource) {
+	private void brokenByPlayer(ServerLevel level, DamageSource damageSource) {
 		ItemStack stack = new ItemStack(AurorasCanvasRegistry.EASEL_ITEM);
 		if (this.hasCustomName()) {
-			stack.setHoverName(this.getCustomName());
+			stack.set(DataComponents.CUSTOM_NAME, this.getCustomName());
 		}
 
 		Block.popResource(this.level(), this.blockPosition(), stack);
-		this.brokenByAnything(damageSource);
+		this.brokenByAnything(level, damageSource);
 	}
 
-	private void brokenByAnything(DamageSource damageSource) {
+	private void brokenByAnything(ServerLevel level, DamageSource damageSource) {
 		this.playBrokenSound();
-		this.dropAllDeathLoot(damageSource);
+		this.dropAllDeathLoot(level, damageSource);
 
 		ItemStack stack = this.getItem();
 		if (!stack.isEmpty()) {
@@ -475,7 +486,7 @@ public class EaselEntity extends LivingEntity {
 
 	@Override
 	public boolean canTakeItem(ItemStack stack) {
-		EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(stack);
+		EquipmentSlot equipmentSlot = this.getEquipmentSlotForItem(stack);
 		return this.getItemBySlot(equipmentSlot).isEmpty() && stack.is(CANVAS_ITEMS);
 	}
 

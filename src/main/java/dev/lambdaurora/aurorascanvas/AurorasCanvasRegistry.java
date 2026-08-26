@@ -17,12 +17,14 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
 import dev.lambdaurora.aurorascanvas.item.GlassCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -31,6 +33,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -74,6 +77,14 @@ public final class AurorasCanvasRegistry {
 	);
 	public static final PutCanvasOnEaselTrigger PUT_CANVAS_ON_EASEL_TRIGGER = Registry.register(
 			BuiltInRegistries.TRIGGER_TYPES, PutCanvasOnEaselTrigger.ID, new PutCanvasOnEaselTrigger()
+	);
+	//endregion
+
+	//region Item Components
+	public static final DataComponentType<PainterPaletteInventory> PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE = Registry.register(
+			BuiltInRegistries.DATA_COMPONENT_TYPE,
+			id("palette_inventory"),
+			DataComponentType.<PainterPaletteInventory>builder().persistent(PainterPaletteInventory.CODEC).networkSynchronized(PainterPaletteInventory.STREAM_CODEC).build()
 	);
 	//endregion
 
@@ -199,7 +210,7 @@ public final class AurorasCanvasRegistry {
 	public static final MenuType<PainterPaletteMenu> PAINTER_PALETTE_MENU_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
 			PAINTER_PALETTE_ID,
-			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new)
+			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new, PainterPaletteMenu.OpenData.STREAM_CODEC)
 	);
 
 	public static final RecipeSerializer<CanvasCloneRecipe> CANVAS_CLONE_RECIPE_SERIALIZER = Registry.register(
@@ -260,7 +271,7 @@ public final class AurorasCanvasRegistry {
 		OxidizableBlocksRegistry.registerWaxableBlockPair(WHITEBOARD.block.value, WAXED_WHITEBOARD.block.value);
 		OxidizableBlocksRegistry.registerWaxableBlockPair(GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value);
 
-		FabricDefaultAttributeRegistry.register(EASEL_ENTITY_TYPE, LivingEntity.createLivingAttributes());
+		FabricDefaultAttributeRegistry.register(EASEL_ENTITY_TYPE, EaselEntity.createAttributes());
 
 		DispenserBlock.registerBehavior(EASEL_ITEM, new DefaultDispenseItemBehavior() {
 			@Override
@@ -291,5 +302,7 @@ public final class AurorasCanvasRegistry {
 		DispenserBlock.registerBehavior(WAXED_GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 
 		AurorasCanvasSoundEvents.init();
+
+		AurorasDecoDataUpper.init();
 	}
 }
