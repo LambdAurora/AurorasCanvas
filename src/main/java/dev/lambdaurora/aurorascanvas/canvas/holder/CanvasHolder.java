@@ -1,3 +1,12 @@
+/*
+ * Copyright © 2026 LambdAurora <email@lambdaurora.dev>
+ *
+ * This file is part of Aurora's Canvas.
+ *
+ * Licensed under the Lambda License. For more information,
+ * see the LICENSE file.
+ */
+
 package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import com.mojang.serialization.Codec;
@@ -9,7 +18,17 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.Map;
 
+/**
+ * Represents a holder of canvases.
+ *
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolder<Canvas> {
+	/**
+	 * {@return the type of this canvas holder}
+	 */
 	Type<H> type();
 
 	void writeBuffer(FriendlyByteBuf buffer);
@@ -30,6 +49,13 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 		return type.fromBuffer(buffer);
 	}
 
+	/**
+	 * Represents the type of canvas holder.
+	 *
+	 * @param <H> the type of the canvas holder
+	 * @version 1.0.0
+	 * @since 1.0.0
+	 */
 	interface Type<H extends CanvasHolder<H>> {
 		String name();
 
