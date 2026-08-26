@@ -14,7 +14,7 @@ import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem.PainterPaletteInventory;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.Identifier;

@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
 import net.fabricmc.api.EnvType;
@@ -49,9 +50,7 @@ public class MouseHandlerMixin {
 			var mainHandStack = player.getMainHandItem();
 
 			if (mainHandStack.getItem() instanceof PainterPaletteItem) {
-				var inventory = PainterPaletteItem.PainterPaletteInventory.fromNbt(mainHandStack
-						.getTagElement("inventory")
-				);
+				var inventory = PainterPaletteInventory.fromNbt(mainHandStack.getTagElement("inventory"));
 
 				if (!inventory.isEmpty()) {
 					var payload = new PainterPaletteScrollPayload(scrollDelta, Screen.hasControlDown());
