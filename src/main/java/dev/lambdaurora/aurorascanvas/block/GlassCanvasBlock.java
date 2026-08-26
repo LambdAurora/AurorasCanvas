@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.block;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.MapCodec;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -35,11 +36,13 @@ import java.util.Map;
  * Represents a glass canvas.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @SuppressWarnings("deprecation")
 public class GlassCanvasBlock extends CanvasBlock {
+	public static final MapCodec<GlassCanvasBlock> CODEC = makeCodec(GlassCanvasBlock::new);
+
 	public static final BooleanProperty PANE = BooleanProperty.create("pane");
 	private static final Map<Direction, VoxelShape> SHAPES;
 
@@ -49,6 +52,11 @@ public class GlassCanvasBlock extends CanvasBlock {
 		this.registerDefaultState(this.defaultBlockState()
 				.setValue(PANE, false)
 		);
+	}
+
+	@Override
+	protected MapCodec<? extends CanvasBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

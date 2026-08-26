@@ -9,6 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.block;
 
+import com.mojang.serialization.MapCodec;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -33,10 +34,12 @@ import org.jspecify.annotations.Nullable;
  * Represents a blackboard press block.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 public class CanvasPressBlock extends BaseEntityBlock {
+	public static MapCodec<CanvasPressBlock> CODEC = simpleCodec(CanvasPressBlock::new);
+
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
@@ -66,6 +69,11 @@ public class CanvasPressBlock extends BaseEntityBlock {
 						.setValue(FACING, Direction.NORTH)
 						.setValue(WATERLOGGED, false)
 		);
+	}
+
+	@Override
+	protected MapCodec<? extends CanvasPressBlock> codec() {
+		return CODEC;
 	}
 
 	@Override
@@ -138,10 +146,10 @@ public class CanvasPressBlock extends BaseEntityBlock {
 	/* Entity Stuff */
 
 	@Override
-	public boolean isPathfindable(BlockState state, BlockGetter world, BlockPos pos, PathComputationType type) {
+	public boolean isPathfindable(BlockState state, PathComputationType type) {
 		return switch (type) {
 			case LAND, AIR -> false;
-			case WATER -> world.getFluidState(pos).is(FluidTags.WATER);
+			case WATER -> state.getFluidState().is(FluidTags.WATER);
 		};
 	}
 }

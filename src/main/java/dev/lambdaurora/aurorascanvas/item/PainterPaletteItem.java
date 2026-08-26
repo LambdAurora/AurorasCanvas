@@ -48,18 +48,18 @@ public class PainterPaletteItem extends Item {
 		super(settings);
 	}
 
-	public PainterPaletteInventory getInventory(ItemStack paletteStack) {
+	public static PainterPaletteInventory getInventory(ItemStack paletteStack) {
 		var inventory = paletteStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 
 		return inventory != null ? inventory : new PainterPaletteInventory();
 	}
 
 	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
-		return this.getInventory(paletteStack).getSelectedColor();
+		return getInventory(paletteStack).getSelectedColor();
 	}
 
 	public ItemStack getCurrentToolAsItem(ItemStack paletteStack) {
-		var inventory = this.getInventory(paletteStack);
+		var inventory = getInventory(paletteStack);
 		if (inventory.getSelectedToolSlot() == -1) return ItemStack.EMPTY;
 
 		return inventory.getSelectedTool();

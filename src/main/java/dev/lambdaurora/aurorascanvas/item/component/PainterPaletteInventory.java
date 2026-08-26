@@ -204,6 +204,7 @@ public class PainterPaletteInventory extends SimpleContainer {
 	}
 
 	public ItemStack getSelectedTool() {
+		if (this.selectedTool == -1) return ItemStack.EMPTY;
 		return this.getItem(this.getSelectedToolSlot());
 	}
 

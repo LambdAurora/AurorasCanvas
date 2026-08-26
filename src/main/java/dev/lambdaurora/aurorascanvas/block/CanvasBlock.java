@@ -10,27 +10,29 @@
 package dev.lambdaurora.aurorascanvas.block;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -55,18 +57,31 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * Represents a canvas that can be edited by players if not locked.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @SuppressWarnings("deprecation")
 public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+	public static final MapCodec<? extends CanvasBlock> CODEC = makeCodec(CanvasBlock::new);
+
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+
+	static <W extends CanvasBlock> MapCodec<W> makeCodec(BiFunction<Properties, Boolean, W> instantiator) {
+		return RecordCodecBuilder.mapCodec(
+				instance -> instance.group(
+								propertiesCodec(),
+								Codec.BOOL.fieldOf("locked").forGetter(CanvasBlock::isLocked)
+						)
+						.apply(instance, instantiator)
+		);
+	}
 
 	private static final Map<Direction, VoxelShape> SHAPES;
 
@@ -80,6 +95,11 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 				.setValue(FACING, Direction.NORTH)
 				.setValue(WATERLOGGED, false)
 		);
+	}
+
+	@Override
+	protected MapCodec<? extends CanvasBlock> codec() {
+		return CODEC;
 	}
 
 	/**
@@ -153,7 +173,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		var blackboard = this.getCanvasEntity(world, pos);
 		if (blackboard != null) {
-			if (stack.hasCustomHoverName()) {
+			if (stack.has(DataComponents.CUSTOM_NAME)) {
 				blackboard.setCustomName(stack.getHoverName());
 			}
 		}
@@ -189,8 +209,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		var stack = player.getItemInHand(hand);
+	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		var offhand = player.getItemInHand(InteractionHand.OFF_HAND);
 		var facing = hit.getDirection();
 
@@ -199,31 +218,34 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 			if (canvasEntity != null) {
 				var syncedCanvas = canvasEntity.getSyncedCanvas(facing);
 
-				if (stack.getItem() instanceof PainterPaletteItem paletteItem) {
+				var currentStack = stack;
+				var paletteInventory = stack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+
+				if (paletteInventory != null) {
 					if (offhand.isEmpty()) {
-						offhand = paletteItem.getCurrentToolAsItem(stack);
+						offhand = paletteInventory.getSelectedTool();
 					}
 
-					stack = paletteItem.getCurrentColorAsItem(stack);
+					currentStack = paletteInventory.getSelectedColor();
 				}
 
-				var modifier = DrawModifier.fromItem(stack);
-				if (stack.is(Items.WATER_BUCKET) && this.tryClear(world, canvasEntity, player)) {
+				var modifier = DrawModifier.fromItem(currentStack);
+				if (currentStack.is(Items.WATER_BUCKET) && this.tryClear(world, canvasEntity, player)) {
 					world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 2.f, 1.f);
-					return InteractionResult.sidedSuccess(world.isClientSide());
-				} else if (stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER && this.tryClear(world, canvasEntity, player)) {
-					player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
+					return ItemInteractionResult.sidedSuccess(world.isClientSide());
+				} else if (this.isPotionWater(currentStack) && this.tryClear(world, canvasEntity, player)) {
+					player.awardStat(Stats.ITEM_USED.get(currentStack.getItem()));
 					if (!player.getAbilities().instabuild) {
-						stack.shrink(1);
+						currentStack.shrink(1);
 
-						if (stack.isEmpty()) {
+						if (currentStack.isEmpty()) {
 							player.setItemInHand(hand, new ItemStack(Items.GLASS_BOTTLE));
 						} else {
 							player.getInventory().add(new ItemStack(Items.GLASS_BOTTLE));
 						}
 					}
 					world.playSound(null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 2.f, 1.f);
-					return InteractionResult.sidedSuccess(world.isClientSide());
+					return ItemInteractionResult.sidedSuccess(world.isClientSide());
 				} else if (offhand.is(Items.STICK) && (modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
 					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
@@ -247,7 +269,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 					}
 
-					return InteractionResult.sidedSuccess(world.isClientSide());
+					return ItemInteractionResult.sidedSuccess(world.isClientSide());
 				} else if ((modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
 					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
@@ -279,10 +301,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 						player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
-						return InteractionResult.sidedSuccess(world.isClientSide());
+						return ItemInteractionResult.sidedSuccess(world.isClientSide());
 					}
-				} else if (stack.is(Items.GLOW_INK_SAC) || stack.is(Items.INK_SAC)) {
-					boolean lit = stack.is(Items.GLOW_INK_SAC);
+				} else if (currentStack.is(Items.GLOW_INK_SAC) || currentStack.is(Items.INK_SAC)) {
+					boolean lit = currentStack.is(Items.GLOW_INK_SAC);
 					if (lit != syncedCanvas.isGlowing()) {
 						if (lit) {
 							world.playSound(null, pos, SoundEvents.GLOW_INK_SAC_USE, SoundSource.BLOCKS, 1.f, 1.f);
@@ -293,16 +315,26 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						}
 
 						if (!player.isCreative()) {
-							stack.shrink(1);
+							currentStack.shrink(1);
 						}
 
-						return InteractionResult.sidedSuccess(world.isClientSide());
+						return ItemInteractionResult.sidedSuccess(world.isClientSide());
 					}
 				}
 			}
 		}
 
-		return super.use(state, world, pos, player, hand, hit);
+		return super.useItemOn(stack, state, world, pos, player, hand, hit);
+	}
+
+	private boolean isPotionWater(ItemStack stack) {
+		var contents = stack.get(DataComponents.POTION_CONTENTS);
+
+		if (contents != null) {
+			return contents.is(Potions.WATER);
+		}
+
+		return false;
 	}
 
 	private boolean tryClear(Level world, CanvasBlockEntity blackboard, @Nullable Player player) {
@@ -316,7 +348,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	}
 
 	@Override
-	public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+	public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
 		var canvasEntity = this.getCanvasEntity(level, pos);
 		if (canvasEntity != null) {
 			if (!level.isClientSide() && player.isCreative()) {
@@ -324,13 +356,13 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 			}
 		}
 
-		super.playerWillDestroy(level, pos, state, player);
+		return super.playerWillDestroy(level, pos, state, player);
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
-		var stack = super.getCloneItemStack(world, pos, state);
-		var canvasEntity = this.getCanvasEntity(world, pos);
+	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+		var stack = super.getCloneItemStack(level, pos, state);
+		var canvasEntity = this.getCanvasEntity(level, pos);
 		if (canvasEntity != null && !canvasEntity.isEmpty()) {
 			var nbt = canvasEntity.writeCanvasNbt(new CompoundTag());
 			nbt.remove("custom_name");

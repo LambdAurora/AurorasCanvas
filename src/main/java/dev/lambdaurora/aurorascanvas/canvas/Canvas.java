@@ -215,7 +215,7 @@ public final class Canvas implements CanvasHandler {
 
 	public CompoundTag toNbt() {
 		var encoded = CanvasSerialization.CANVAS_CODEC.encodeStart(NbtOps.INSTANCE, this)
-				.getOrThrow(false, message -> {});
+				.getOrThrow();
 
 		if (!(encoded instanceof CompoundTag encodedNbt))
 			throw new IllegalStateException("Canvas codec did not encode into a NBT compound.");
