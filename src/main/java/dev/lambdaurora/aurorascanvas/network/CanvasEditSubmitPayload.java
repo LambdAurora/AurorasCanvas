@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.network;
 
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import net.minecraft.network.FriendlyByteBuf;
 
 /**
@@ -21,9 +21,9 @@ import net.minecraft.network.FriendlyByteBuf;
  * @version 1.0.0
  * @since 1.0.0
  */
-public record CanvasEditSubmitPayload(int easelEntityId, IndexedCanvas canvas) {
+public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?> canvas) {
 	public CanvasEditSubmitPayload(FriendlyByteBuf buffer) {
-		this(buffer.readVarInt(), IndexedCanvas.fromBuffer(buffer));
+		this(buffer.readVarInt(), CanvasHolder.fromBuffer(buffer));
 	}
 
 	public void write(FriendlyByteBuf buffer) {

@@ -32,11 +32,11 @@ public class ActionButton extends BaseToolButton {
 			Predicate<TrackedCanvasHandler> predicate
 	) {
 		super(x, y, 20, 20, name, button -> {
-			action.accept(controller.canvas);
+			action.accept(controller.canvas.getDefault());
 		}, Button.DEFAULT_NARRATION);
 		this.controller = controller;
 		this.uOffset = uOffset;
-		this.controller.canvas.history().addListener(history -> this.active = predicate.test(this.controller.canvas));
+		this.controller.canvas.getDefault().history().addListener(history -> this.active = predicate.test(this.controller.canvas.getDefault()));
 
 		this.setTooltip(Tooltip.create(name));
 	}

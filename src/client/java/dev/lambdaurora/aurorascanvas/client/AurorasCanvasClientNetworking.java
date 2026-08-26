@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.client;
 
 import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasController;
 import dev.lambdaurora.aurorascanvas.client.screen.canvas.CanvasScreen;
-import dev.lambdaurora.aurorascanvas.item.CanvasItem;
+import dev.lambdaurora.aurorascanvas.item.SimpleCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
@@ -28,7 +28,7 @@ public final class AurorasCanvasClientNetworking {
 	static void handleCanvasOpenGui(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender) {
 		var payload = new CanvasOpenGuiPayload(buf);
 
-		if (!(payload.canvas().getItem() instanceof CanvasItem item)
+		if (!(payload.canvas().getItem() instanceof SimpleCanvasItem item)
 				|| !(payload.painterPalette().getItem() instanceof PainterPaletteItem painterPaletteItem)) {
 			return;
 		}
@@ -41,7 +41,7 @@ public final class AurorasCanvasClientNetworking {
 					client.level,
 					item,
 					painterPalette,
-					item.getCanvases(payload.canvas(), true).get(0)
+					item.getCanvases(payload.canvas())
 			)));
 		});
 	}

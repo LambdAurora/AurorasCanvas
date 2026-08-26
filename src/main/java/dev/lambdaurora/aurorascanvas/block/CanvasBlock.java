@@ -151,10 +151,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		var blackboard = this.getCanvasEntity(world, pos);
-		if (blackboard != null) {
+		var canvas = this.getCanvasEntity(world, pos);
+		if (canvas != null) {
 			if (stack.hasCustomHoverName()) {
-				blackboard.setCustomName(stack.getHoverName());
+				canvas.setCustomName(stack.getHoverName());
 			}
 		}
 	}
@@ -305,7 +305,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return super.use(state, world, pos, player, hand, hit);
 	}
 
-	private boolean tryClear(Level world, CanvasBlockEntity blackboard, @Nullable Player player) {
+	private boolean tryClear(Level world, CanvasBlockEntity<?, ?> blackboard, @Nullable Player player) {
 		if (!blackboard.isEmpty()) {
 			blackboard.clear();
 
@@ -347,7 +347,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return RenderShape.MODEL;
 	}
 
-	protected BlockEntityType<? extends CanvasBlockEntity> getBlockEntityType() {
+	protected BlockEntityType<? extends CanvasBlockEntity<?, ?>> getBlockEntityType() {
 		return AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE;
 	}
 
@@ -356,10 +356,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return this.getBlockEntityType().create(pos, state);
 	}
 
-	public @Nullable CanvasBlockEntity getCanvasEntity(BlockGetter world, BlockPos pos) {
+	public @Nullable CanvasBlockEntity<?, ?> getCanvasEntity(BlockGetter world, BlockPos pos) {
 		var entity = world.getBlockEntity(pos);
-		if (entity instanceof CanvasBlockEntity blackboard)
-			return blackboard;
+		if (entity instanceof CanvasBlockEntity<?, ?> canvas)
+			return canvas;
 		return null;
 	}
 
@@ -381,10 +381,10 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 				world.setBlock(pos, newState, Block.UPDATE_ALL);
 				world.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(world));
 
-				var blackboard = this.getCanvasEntity(world, pos);
-				if (blackboard != null && !this.isLocked()) {
-					if (!blackboard.isEmpty()) {
-						blackboard.clear();
+				var canvas = this.getCanvasEntity(world, pos);
+				if (canvas != null && !this.isLocked()) {
+					if (!canvas.isEmpty()) {
+						canvas.clear();
 						shouldEmitEvent = true;
 					}
 				}

@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.block;
 import com.google.common.collect.ImmutableMap;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -119,7 +120,7 @@ public class GlassCanvasBlock extends CanvasBlock {
 	/* Block Entity Stuff */
 
 	@Override
-	protected BlockEntityType<? extends CanvasBlockEntity> getBlockEntityType() {
+	protected BlockEntityType<? extends GlassCanvasBlockEntity> getBlockEntityType() {
 		return AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE;
 	}
 

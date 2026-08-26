@@ -9,24 +9,24 @@
 
 package dev.lambdaurora.aurorascanvas.item;
 
-import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
+import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
-import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 
 /**
- * Represents a glass canvas item.
+ * Represents a canvases item.
  *
  * @author LambdAurora
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GlassCanvasItem extends CanvasItem<GlassCanvasHolder> {
-	public GlassCanvasItem(GlassCanvasBlock canvasBlock, Properties settings) {
+public class SimpleCanvasItem extends CanvasItem<SimpleCanvasHolder> {
+	public SimpleCanvasItem(CanvasBlock canvasBlock, Properties settings) {
 		super(canvasBlock, settings);
 	}
 
 	@Override
-	public CanvasHolder.Type<GlassCanvasHolder> canvasType() {
-		return GlassCanvasHolder.TYPE;
+	public CanvasHolder.Type<SimpleCanvasHolder> canvasType() {
+		return SimpleCanvasHolder.TYPE;
 	}
 }

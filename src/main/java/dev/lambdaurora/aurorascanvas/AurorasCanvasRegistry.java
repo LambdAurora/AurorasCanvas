@@ -19,10 +19,10 @@ import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
-import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
 import dev.lambdaurora.aurorascanvas.item.GlassCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.SimpleCanvasItem;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -78,7 +78,7 @@ public final class AurorasCanvasRegistry {
 	public static final PutCanvasOnEaselTrigger PUT_CANVAS_ON_EASEL_TRIGGER = CriteriaTriggers.register(new PutCanvasOnEaselTrigger());
 	//endregion
 
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> BLACKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> BLACKBOARD = registerBlockWithItem(
 			BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.create()
@@ -86,55 +86,55 @@ public final class AurorasCanvasRegistry {
 					.nonOpaque()
 					.pistonBehavior(PushReaction.DESTROY)
 					.sounds(SoundType.WOOD),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
 			WAXED_BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> CHALKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> CHALKBOARD = registerBlockWithItem(
 			CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
 			WAXED_CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(CHALKBOARD.block.value),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> WHITEBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WHITEBOARD = registerBlockWithItem(
 			WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<CanvasBlock, CanvasItem> WAXED_WHITEBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_WHITEBOARD = registerBlockWithItem(
 			WAXED_WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(WHITEBOARD.block.value),
-			CanvasItem::new,
+			SimpleCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
 
-	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> GLASSBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<GlassCanvasBlock, GlassCanvasItem> GLASSBOARD = registerBlockWithItem(
 			GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, false),
 			FabricBlockSettings.copyOf(BLACKBOARD.block.value).nonOpaque().sounds(SoundType.GLASS),
 			GlassCanvasItem::new,
 			new FabricItemSettings().equipmentSlot(stack -> EquipmentSlot.HEAD)
 	);
-	public static final BlockItemEntry<GlassCanvasBlock, CanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
+	public static final BlockItemEntry<GlassCanvasBlock, GlassCanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
 			WAXED_GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, true),
 			FabricBlockSettings.copyOf(GLASSBOARD.block.value),
