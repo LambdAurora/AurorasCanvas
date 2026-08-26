@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.canvas;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -51,7 +52,7 @@ public final class CanvasSerialization {
 			canvas -> new RawCanvas(2, serializePixels(canvas.getPixels()), canvas.isGlowing())
 	);
 
-	public static final StreamCodec<FriendlyByteBuf, Canvas> CANVAS_STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<ByteBuf, Canvas> CANVAS_STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.byteArray(MAX_PIXELS_BYTES), canvas -> serializePixels(canvas.getPixels()),
 			ByteBufCodecs.BOOL, Canvas::isGlowing,
 			(data, glowing) -> {

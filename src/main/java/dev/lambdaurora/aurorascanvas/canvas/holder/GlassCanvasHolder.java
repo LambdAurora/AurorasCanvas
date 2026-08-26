@@ -13,7 +13,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
 
@@ -29,6 +31,11 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 			).apply(instance, GlassCanvasHolder::new)),
 			canvas -> new GlassCanvasHolder(canvas, new Canvas())
 	);
+	public static final StreamCodec<ByteBuf, GlassCanvasHolder> STREAM_CODEC = StreamCodec.composite(
+			CanvasSerialization.CANVAS_STREAM_CODEC, GlassCanvasHolder::front,
+			CanvasSerialization.CANVAS_STREAM_CODEC, GlassCanvasHolder::back,
+			GlassCanvasHolder::new
+	);
 
 	public static final Type<GlassCanvasHolder> TYPE = new Type<>() {
 		@Override
@@ -42,15 +49,13 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 		}
 
 		@Override
-		public GlassCanvasHolder createDefault() {
-			return new GlassCanvasHolder(new Canvas(), new Canvas());
+		public StreamCodec<ByteBuf, GlassCanvasHolder> streamCodec() {
+			return STREAM_CODEC;
 		}
 
 		@Override
-		public GlassCanvasHolder fromBuffer(FriendlyByteBuf buffer) {
-			var front = CanvasSerialization.fromByteBuf(buffer);
-			var back = CanvasSerialization.fromByteBuf(buffer);
-			return new GlassCanvasHolder(front, back);
+		public GlassCanvasHolder createDefault() {
+			return new GlassCanvasHolder(new Canvas(), new Canvas());
 		}
 	};
 
@@ -61,12 +66,5 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 	@Override
 	public Type<GlassCanvasHolder> type() {
 		return TYPE;
-	}
-
-	@Override
-	public void writeBuffer(FriendlyByteBuf buffer) {
-		buffer.writeUtf(this.type().name());
-		CanvasSerialization.writeCanvasToBuffer(buffer, this.front());
-		CanvasSerialization.writeCanvasToBuffer(buffer, this.back());
 	}
 }

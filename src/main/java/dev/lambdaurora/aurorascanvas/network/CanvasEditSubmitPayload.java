@@ -30,7 +30,7 @@ public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?> canvas)
 	public static Type<CanvasEditSubmitPayload> TYPE = new Type<>(AurorasCanvas.id("canvas/open_gui"));
 	public static final StreamCodec<FriendlyByteBuf, CanvasEditSubmitPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.VAR_INT, CanvasEditSubmitPayload::easelEntityId,
-			CanvasHolder.STREAM_CODEC, CanvasEditSubmitPayload::canvas,
+			CanvasHolder.Registry.STREAM_CODEC, CanvasEditSubmitPayload::canvas,
 			CanvasEditSubmitPayload::new
 	);
 
