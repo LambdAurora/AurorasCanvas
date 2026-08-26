@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.menu;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.slot.CanvasToolSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -30,15 +30,15 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 public class PainterPaletteMenu extends NestedMenu {
-	private final PainterPaletteItem.PainterPaletteInventory inventory;
+	private final PainterPaletteInventory inventory;
 
 	public PainterPaletteMenu(int syncId, Inventory playerInventory, FriendlyByteBuf buf) {
-		this(syncId, playerInventory, buf.readEnum(OriginType.class), buf.readVarInt(), new PainterPaletteItem.PainterPaletteInventory());
+		this(syncId, playerInventory, buf.readEnum(OriginType.class), buf.readVarInt(), new PainterPaletteInventory());
 	}
 
 	public PainterPaletteMenu(
 			int syncId, Inventory playerInventory, OriginType originType, int lockedSlot,
-			PainterPaletteItem.PainterPaletteInventory inventory
+			PainterPaletteInventory inventory
 	) {
 		super(AurorasCanvasRegistry.PAINTER_PALETTE_MENU_TYPE, syncId, originType, lockedSlot);
 		this.inventory = inventory;
@@ -62,7 +62,7 @@ public class PainterPaletteMenu extends NestedMenu {
 		this.addDataSlots(inventory.getProperties());
 	}
 
-	public PainterPaletteItem.PainterPaletteInventory getInventory() {
+	public PainterPaletteInventory getInventory() {
 		return this.inventory;
 	}
 
@@ -162,7 +162,7 @@ public class PainterPaletteMenu extends NestedMenu {
 
 		@Override
 		public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-			var inventory = PainterPaletteItem.PainterPaletteInventory.fromNbt(this.self.getTagElement("inventory"));
+			var inventory = PainterPaletteInventory.fromNbt(this.self.getTagElement("inventory"));
 
 			return new PainterPaletteMenu(syncId, playerInventory, this.type, this.lockedSlot, inventory);
 		}

@@ -9,7 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.tooltip;
 
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 /**
@@ -19,4 +19,4 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public record PainterPaletteTooltipData(PainterPaletteItem.PainterPaletteInventory inventory) implements TooltipComponent {}
+public record PainterPaletteTooltipData(PainterPaletteInventory inventory) implements TooltipComponent {}

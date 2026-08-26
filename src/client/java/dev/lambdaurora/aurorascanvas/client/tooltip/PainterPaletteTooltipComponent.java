@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.client.tooltip;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -36,10 +37,10 @@ import org.joml.Matrix4f;
  */
 @Environment(EnvType.CLIENT)
 public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
-	private final PainterPaletteItem.PainterPaletteInventory inventory;
+	private final PainterPaletteInventory inventory;
 	private final Component selectedToolText;
 
-	public PainterPaletteTooltipComponent(PainterPaletteItem.PainterPaletteInventory inventory) {
+	public PainterPaletteTooltipComponent(PainterPaletteInventory inventory) {
 		this.inventory = inventory;
 		var enabledFeatures = Minecraft.getInstance().level.enabledFeatures();
 		this.selectedToolText = PainterPaletteItem.getSelectedToolMessage(inventory, enabledFeatures).withStyle(ChatFormatting.GRAY);
