@@ -11,9 +11,8 @@ package dev.lambdaurora.aurorascanvas.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasSoundEvents;
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.network.CanvasOpenGuiPayload;
-import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -35,6 +34,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
@@ -208,13 +208,12 @@ public class EaselEntity extends LivingEntity {
 		return false;
 	}
 
-	public void submit(ServerPlayer player, IndexedCanvas canvas) {
+	public void submit(ServerPlayer player, CanvasHolder<?> canvas) {
 		if (this.fixed || this.isRemoved() || this.getItem().isEmpty()) return;
 
 		var canvasStack = this.getItem();
-		var nbt = Utils.getOrCreateBlockEntityNbt(canvasStack, CANVAS_BLOCK_ENTITY_TYPE);
-		canvas.writeNbt(nbt);
-		Utils.writeBlockEntityNbtToStack(canvasStack, CANVAS_BLOCK_ENTITY_TYPE, nbt, false);
+		var encodedNbt = canvas.toNbt();
+		canvasStack.addTagElement(BlockItem.BLOCK_ENTITY_TAG, encodedNbt);
 		this.setItem(canvasStack);
 
 		this.gameEvent(GameEvent.BLOCK_CHANGE, player);

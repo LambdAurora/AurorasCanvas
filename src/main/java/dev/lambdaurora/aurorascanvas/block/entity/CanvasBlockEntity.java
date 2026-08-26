@@ -9,8 +9,12 @@
 
 package dev.lambdaurora.aurorascanvas.block.entity;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.canvas.*;
+import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
+import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.yumi.commons.event.Event;
 import dev.yumi.mc.core.api.YumiEvents;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
@@ -28,12 +32,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
-public abstract class CanvasBlockEntity extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
+public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends CanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>>
+		extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = YumiEvents.EVENTS.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
@@ -45,18 +47,21 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 			}
 	);
 
-	protected final Map<String, SyncedCanvas> canvases = new HashMap<>();
+	protected final S canvases;
 	private @Nullable Component customName;
 
 	private SidedData sidedData = NoOpSidedData.INSTANCE;
 
+	@SuppressWarnings("unchecked")
 	protected CanvasBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
 		super(type, pos, blockState);
-
-		this.canvasProviders().forEach(provider -> this.canvases.put(provider.key(), new SyncedCanvas()));
+		this.canvases = (S) this.canvasType().createDefault().map(canvas -> new SyncedCanvas(this, canvas));
 	}
 
-	protected abstract @Unmodifiable List<IndexedCanvas.Provider> canvasProviders();
+	/**
+	 * {@return the canvases type to use for this canvas block entity}
+	 */
+	protected abstract CanvasHolder.Type<T> canvasType();
 
 	/**
 	 * {@return the canvases associated with this block entity}
@@ -146,14 +151,7 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 	}
 
 	protected void loadCanvasNbt(CompoundTag nbt) {
-		for (var provider : this.canvasProviders()) {
-			var canvas = provider.reader().fromNbt(nbt);
-
-			var syncedCanvas = this.canvases.get(canvas.key());
-			if (syncedCanvas != null) {
-				syncedCanvas.setCanvas(canvas.canvas());
-			}
-		}
+		this.canvasType().fromNbt(nbt).into(this.canvases, SyncedCanvas::setCanvas);
 	}
 
 	@Override
@@ -162,13 +160,14 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		this.writeCanvasNbt(nbt);
 	}
 
+	@SuppressWarnings("unchecked")
 	public CompoundTag writeCanvasNbt(CompoundTag nbt) {
 		if (this.customName != null) {
 			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
 		}
 
-		this.canvases.entrySet().stream().map(entry -> new IndexedCanvas(entry.getKey(), entry.getValue().getCanvas()))
-				.forEach(canvas -> canvas.writeNbt(nbt));
+		var encodedNbt = this.canvasType().toNbt((T) this.canvases.mapToCanvas(SyncedCanvas::getCanvas));
+		nbt.merge(encodedNbt);
 
 		return nbt;
 	}
@@ -198,15 +197,21 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 
 	@FunctionalInterface
 	public interface SidedLogic {
-		SidedData onAdded(CanvasBlockEntity blockEntity);
+		SidedData onAdded(CanvasBlockEntity<?, ?> blockEntity);
 	}
 
-	public final class SyncedCanvas implements CanvasHandler {
-		private Canvas canvas = new Canvas();
+	public static final class SyncedCanvas implements CanvasHandler {
+		private final CanvasBlockEntity<?, ?> parent;
+		private Canvas canvas;
 
 		private @Nullable WeakReference<Player> lastUser = null;
 		private int lastX;
 		private int lastY;
+
+		public SyncedCanvas(CanvasBlockEntity<?, ?> parent, Canvas canvas) {
+			this.parent = parent;
+			this.canvas = canvas;
+		}
 
 		Canvas getCanvas() {
 			return this.canvas;
@@ -322,9 +327,9 @@ public abstract class CanvasBlockEntity extends BasicBlockEntity implements Name
 		}
 
 		private void doSync() {
-			if (CanvasBlockEntity.this.getLevel() instanceof ServerLevel) {
-				CanvasBlockEntity.this.sync();
-				CanvasBlockEntity.this.setChanged();
+			if (this.parent.getLevel() instanceof ServerLevel) {
+				this.parent.sync();
+				this.parent.setChanged();
 			}
 		}
 	}

@@ -11,14 +11,15 @@ package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasLikeHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -28,23 +29,23 @@ import java.util.stream.Stream;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SimpleCanvasBlockEntity extends CanvasBlockEntity {
+public class SimpleCanvasBlockEntity extends CanvasBlockEntity<SimpleCanvasHolder, SimpleCanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>> {
 	public SimpleCanvasBlockEntity(BlockPos pos, BlockState state) {
 		super(AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE, pos, state);
 	}
 
 	@Override
-	protected @Unmodifiable List<IndexedCanvas.Provider> canvasProviders() {
-		return List.of(IndexedCanvas.SIMPLE);
+	protected CanvasHolder.Type<SimpleCanvasHolder> canvasType() {
+		return SimpleCanvasHolder.TYPE;
 	}
 
 	@Override
 	public @Unmodifiable Stream<PlacedCanvas> canvases() {
-		return Stream.of(new PlacedCanvas(this.canvases.get("").getCanvas(), this.getBlockState().getValue(CanvasBlock.FACING)));
+		return Stream.of(new PlacedCanvas(this.canvases.canvas().getCanvas(), this.getBlockState().getValue(CanvasBlock.FACING)));
 	}
 
 	@Override
 	public SyncedCanvas getSyncedCanvas(Direction facing) {
-		return this.canvases.get("").access();
+		return this.canvases.getDefault();
 	}
 }

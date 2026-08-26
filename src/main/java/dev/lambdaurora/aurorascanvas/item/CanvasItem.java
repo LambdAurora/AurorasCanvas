@@ -12,11 +12,11 @@ package dev.lambdaurora.aurorascanvas.item;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import dev.lambdaurora.aurorascanvas.util.Utils;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.Tag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
@@ -26,23 +26,20 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * Represents a canvases item.
+ * Represents a canvas item.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
-public class CanvasItem extends BlockItem {
+public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
 	protected final boolean locked;
 
 	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {
@@ -50,24 +47,15 @@ public class CanvasItem extends BlockItem {
 		this.locked = canvasBlock.isLocked();
 	}
 
-	public @Unmodifiable List<IndexedCanvas.Provider> canvasProviders() {
-		return List.of(IndexedCanvas.SIMPLE);
-	}
+	public abstract CanvasHolder.Type<T> canvasType();
 
-	public List<IndexedCanvas> getCanvases(ItemStack stack, boolean allowUnedited) {
+	public T getCanvases(ItemStack stack) {
 		var nbt = BlockItem.getBlockEntityData(stack);
 		if (nbt != null) {
-			return this.canvasProviders().stream()
-					.map(provider -> provider.reader().fromNbt(nbt))
-					.filter(canvas -> allowUnedited || !canvas.canvas().isUnedited())
-					.toList();
-		} else if (allowUnedited) {
-			return this.canvasProviders().stream()
-					.map(provider -> new IndexedCanvas(provider.key(), new Canvas()))
-					.toList();
+			return this.canvasType().fromNbt(nbt);
 		}
 
-		return List.of();
+		return this.canvasType().createDefault();
 	}
 
 	public String getBackground() {
@@ -77,8 +65,9 @@ public class CanvasItem extends BlockItem {
 	@Override
 	public boolean overrideOtherStackedOnMe(ItemStack self, ItemStack otherStack, Slot slot, ClickAction clickType, Player player, SlotAccess cursor) {
 		if (clickType == ClickAction.SECONDARY) {
-			if (otherStack.is(Items.WATER_BUCKET)
-					|| (otherStack.is(Items.POTION) && PotionUtils.getPotion(otherStack) == Potions.WATER)) {
+			var potionContents = otherStack.get(DataComponents.POTION_CONTENTS);
+
+			if (otherStack.is(Items.WATER_BUCKET) || (potionContents != null && potionContents.is(Potions.WATER))) {
 				if (!this.clearContents(self))
 					return false;
 
@@ -104,16 +93,19 @@ public class CanvasItem extends BlockItem {
 	}
 
 	protected boolean clearContents(ItemStack self) {
-		var canvases = this.getCanvases(self, false);
-		if (canvases.isEmpty()) return false;
+		var canvases = this.getCanvases(self);
 
-		var nbt = Utils.getOrCreateBlockEntityNbt(self, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
-		int cleared = 0;
-		for (var entry : canvases) {
-			if (entry.canvas().isEmpty()) continue;
-			entry.canvas().clear();
-			entry.writeNbt(nbt);
-			cleared++;
+		long cleared = canvases.stream().filter(canvas -> {
+			if (!canvas.isEmpty()) {
+				canvas.clear();
+				return true;
+			}
+
+			return false;
+		}).count();
+
+		if (cleared > 0) {
+			self.addTagElement(BlockItem.BLOCK_ENTITY_TAG, this.canvasType().toNbt(canvases));
 		}
 
 		return cleared > 0;
@@ -140,7 +132,7 @@ public class CanvasItem extends BlockItem {
 
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
-		var canvases = this.getCanvases(stack, false).stream().map(IndexedCanvas::canvas)
+		var canvases = this.getCanvases(stack).stream()
 				.filter(Predicate.not(Canvas::isEmpty))
 				.toList();
 

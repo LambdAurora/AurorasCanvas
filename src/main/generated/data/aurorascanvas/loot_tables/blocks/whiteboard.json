@@ -16,18 +16,8 @@
               "ops": [
                 {
                   "op": "replace",
-                  "source": "pixels",
-                  "target": "BlockEntityTag.pixels"
-                },
-                {
-                  "op": "replace",
-                  "source": "version",
-                  "target": "BlockEntityTag.version"
-                },
-                {
-                  "op": "replace",
-                  "source": "lit",
-                  "target": "BlockEntityTag.lit"
+                  "source": "canvas",
+                  "target": "BlockEntityTag.canvas"
                 }
               ],
               "source": "block_entity"

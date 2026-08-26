@@ -183,9 +183,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
 															.apply(
 																	CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-																			.copy("pixels", "BlockEntityTag.pixels")
-																			.copy("version", "BlockEntityTag.version")
-																			.copy("lit", "BlockEntityTag.lit")
+																			.copy("canvas", "BlockEntityTag.canvas")
 															)
 											)
 							)

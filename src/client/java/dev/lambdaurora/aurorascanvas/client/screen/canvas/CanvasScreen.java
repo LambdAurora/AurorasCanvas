@@ -11,14 +11,12 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
 import dev.lambdaurora.aurorascanvas.network.CanvasEditSubmitPayload;
 import dev.lambdaurora.spruceui.screen.SpruceScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
@@ -45,10 +43,6 @@ public class CanvasScreen extends SpruceScreen {
 		this.controller = controller;
 	}
 
-	Minecraft client() {
-		return this.minecraft;
-	}
-
 	int canvasEndX() {
 		return this.canvasStartX + 16 * PIXEL_SIZE;
 	}
@@ -59,11 +53,10 @@ public class CanvasScreen extends SpruceScreen {
 
 	@Override
 	public void onClose() {
-		if (!Arrays.equals(this.controller.canvas.history().effectiveCanvas().getPixels(), this.controller.root().canvas().getPixels())) {
+		if (!Arrays.equals(this.controller.canvas.getDefault().history().effectiveCanvas().getPixels(), this.controller.root().getDefault().getPixels())) {
 			// Changed.
 			var buffer = PacketByteBufs.create();
-			var canvas = new IndexedCanvas(this.controller.root().key(), this.controller.canvas.history().effectiveCanvas());
-			var payload = new CanvasEditSubmitPayload(this.controller.id(), canvas);
+			var payload = new CanvasEditSubmitPayload(this.controller.id(), this.controller.canvas.mapToCanvas(canvas -> canvas.history().effectiveCanvas()));
 			ClientPlayNetworking.getSender().sendPacket(payload);
 		}
 
@@ -77,7 +70,7 @@ public class CanvasScreen extends SpruceScreen {
 		this.canvasStartX = this.width / 2 - 8 * PIXEL_SIZE;
 		this.canvasStartY = this.height / 2 - 8 * PIXEL_SIZE;
 
-		this.controller.canvas.history().clearListeners();
+		this.controller.canvas.stream().map(TrackedCanvasHandler::history).forEach(CanvasHistory::clearListeners);
 		int actionY = this.canvasStartY - 13;
 		var buttons = new ArrayList<ToolButton>();
 
@@ -128,7 +121,7 @@ public class CanvasScreen extends SpruceScreen {
 				.build()
 		);
 
-		this.controller.canvas.history().invokeListeners();
+		this.controller.canvas.stream().map(TrackedCanvasHandler::history).forEach(CanvasHistory::invokeListeners);
 	}
 
 	@Override
@@ -152,7 +145,7 @@ public class CanvasScreen extends SpruceScreen {
 				int screenX = this.canvasStartX + x * PIXEL_SIZE;
 				int screenY = this.canvasStartY + y * PIXEL_SIZE;
 
-				var effectiveCanvas = this.currentHistory != null ? this.currentHistory : this.controller.canvas;
+				var effectiveCanvas = this.currentHistory != null ? this.currentHistory : this.controller.canvas.getDefault();
 				int color = effectiveCanvas.getColor(x, y);
 
 				graphics.fill(screenX, screenY, screenX + PIXEL_SIZE, screenY + PIXEL_SIZE, FastColor.ARGB32.color(
@@ -169,7 +162,7 @@ public class CanvasScreen extends SpruceScreen {
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (button == 0) {
 			if (mouseX >= this.canvasStartX && mouseX < this.canvasEndX() && mouseY >= this.canvasStartY && mouseY < this.canvasEndY()) {
-				this.currentHistory = new TrackedCanvasHandler(this.controller.canvas);
+				this.currentHistory = new TrackedCanvasHandler(this.controller.canvas.getDefault());
 			}
 		}
 
@@ -206,14 +199,14 @@ public class CanvasScreen extends SpruceScreen {
 
 				if (this.currentHistory != null) {
 					this.controller.currentAction.execute(this.currentHistory, x, y, this.controller.currentModifier);
-					this.controller.canvas.history().push(this.currentHistory.history().fold());
+					this.controller.canvas.getDefault().history().push(this.currentHistory.history().fold());
 					this.currentHistory = null;
 					return true;
 				}
 			}
 
 			if (this.currentHistory != null) {
-				this.controller.canvas.history().push(this.currentHistory.history().fold());
+				this.controller.canvas.getDefault().history().push(this.currentHistory.history().fold());
 				this.currentHistory = null;
 				return true;
 			}

@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.network;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.canvas.IndexedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -26,11 +26,11 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * @version 1.1.0
  * @since 1.0.0
  */
-public record CanvasEditSubmitPayload(int easelEntityId, IndexedCanvas canvas) implements CustomPacketPayload {
+public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?> canvas) implements CustomPacketPayload {
 	public static Type<CanvasEditSubmitPayload> TYPE = new Type<>(AurorasCanvas.id("canvas/open_gui"));
 	public static final StreamCodec<FriendlyByteBuf, CanvasEditSubmitPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.VAR_INT, CanvasEditSubmitPayload::easelEntityId,
-			IndexedCanvas.STREAM_CODEC, CanvasEditSubmitPayload::canvas,
+			CanvasHolder.STREAM_CODEC, CanvasEditSubmitPayload::canvas,
 			CanvasEditSubmitPayload::new
 	);
 

@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -111,16 +110,20 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 			boolean leftHanded, BakedModel model
 	) {
 		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			this.applyPose(mode, matrices, leftHanded, model);
+		if (nbt != null) {
+			var canvases = SimpleCanvasHolder.TYPE.fromNbt(nbt);
+			var canvas = canvases.canvas();
 
-			var canvas = Canvas.fromNbt(nbt);
-			CanvasTexture.fromCanvas(canvas)
-					.render(
-							matrices.last().pose(), vertexConsumers,
-							canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
-							false
-					);
+			if (!canvas.isEmpty()) {
+				this.applyPose(mode, matrices, leftHanded, model);
+
+				CanvasTexture.fromCanvas(canvas)
+						.render(
+								matrices.last().pose(), vertexConsumers,
+								canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
+								false
+						);
+			}
 		}
 	}
 }

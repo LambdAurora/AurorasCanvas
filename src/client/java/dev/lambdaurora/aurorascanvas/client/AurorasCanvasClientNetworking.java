@@ -21,7 +21,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 @Environment(EnvType.CLIENT)
 public final class AurorasCanvasClientNetworking {
 	static void handleCanvasOpenGui(CanvasOpenGuiPayload payload, ClientPlayNetworking.Context context) {
-		if (!(payload.canvas().getItem() instanceof CanvasItem item)) {
+		if (!(payload.canvas().getItem() instanceof CanvasItem<?> item)) {
 			return;
 		}
 
@@ -37,7 +37,7 @@ public final class AurorasCanvasClientNetworking {
 					player.level(),
 					item,
 					painterPalette,
-					item.getCanvases(payload.canvas(), true).getFirst()
+					item.getCanvases(payload.canvas())
 			)));
 		});
 	}
