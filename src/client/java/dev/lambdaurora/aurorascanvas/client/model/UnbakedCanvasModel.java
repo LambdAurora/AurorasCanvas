@@ -5,31 +5,28 @@
  *
  * Licensed under the Lambda License. For more information,
  * see the LICENSE file.
- */package dev.lambdaurora.aurorascanvas.client.model;
+ */
+
+package dev.lambdaurora.aurorascanvas.client.model;
 
 import dev.lambdaurora.aurorascanvas.client.model.glass.UnbakedGlassboardModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BlockModelDefinition;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.Identifier;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public class UnbakedCanvasModel implements UnbakedModel {
 	protected final UnbakedModel baseModel;
 
-	public static UnbakedCanvasModel of(ModelResourceLocation id, UnbakedModel baseModel, BiConsumer<Identifier, UnbakedModel> modelConsumer) {
+	public static UnbakedCanvasModel of(Identifier id, UnbakedModel baseModel, Function<Identifier, UnbakedModel> modelConsumer) {
 		if (id.getPath().contains("glass")) {
-			return new UnbakedGlassboardModel(id, baseModel,
-					Minecraft.getInstance().getResourceManager(), new BlockModelDefinition.Context(), modelConsumer
-			);
+			return new UnbakedGlassboardModel(id, baseModel, modelConsumer);
 		} else {
 			return new UnbakedCanvasModel(baseModel);
 		}
@@ -51,14 +48,14 @@ public class UnbakedCanvasModel implements UnbakedModel {
 
 	@Override
 	public BakedModel bake(
-			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
 	) {
-		return new BakedCanvasModel(this.bakeBaseModel(modelBaker, textureGetter, modelState, modelId));
+		return new BakedCanvasModel(this.bakeBaseModel(baker, spriteGetter, state));
 	}
 
 	protected BakedModel bakeBaseModel(
-			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
 	) {
-		return Objects.requireNonNull(this.baseModel.bake(modelBaker, textureGetter, modelState, modelId));
+		return Objects.requireNonNull(this.baseModel.bake(baker, spriteGetter, state));
 	}
 }

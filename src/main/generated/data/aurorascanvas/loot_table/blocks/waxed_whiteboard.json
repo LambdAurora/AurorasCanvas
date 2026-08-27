@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "aurorascanvas:canvas"
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "aurorascanvas:waxed_whiteboard"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

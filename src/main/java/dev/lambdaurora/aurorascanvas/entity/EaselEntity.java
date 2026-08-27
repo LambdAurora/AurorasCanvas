@@ -34,7 +34,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
@@ -212,8 +211,7 @@ public class EaselEntity extends LivingEntity {
 		if (this.fixed || this.isRemoved() || this.getItem().isEmpty()) return;
 
 		var canvasStack = this.getItem();
-		var encodedNbt = canvas.toNbt();
-		canvasStack.addTagElement(BlockItem.BLOCK_ENTITY_TAG, encodedNbt);
+		canvas.setOnStack(canvasStack);
 		this.setItem(canvasStack);
 
 		this.gameEvent(GameEvent.BLOCK_CHANGE, player);

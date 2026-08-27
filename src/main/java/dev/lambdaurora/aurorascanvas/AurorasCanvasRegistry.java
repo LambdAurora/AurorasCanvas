@@ -17,6 +17,8 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
@@ -84,6 +86,16 @@ public final class AurorasCanvasRegistry {
 	//endregion
 
 	//region Item Components
+	public static final DataComponentType<SimpleCanvasHolder> CANVAS_COMPONENT_TYPE = Registry.register(
+			BuiltInRegistries.DATA_COMPONENT_TYPE,
+			id("canvas"),
+			DataComponentType.<SimpleCanvasHolder>builder().persistent(SimpleCanvasHolder.CODEC).networkSynchronized(SimpleCanvasHolder.STREAM_CODEC).build()
+	);
+	public static final DataComponentType<GlassCanvasHolder> GLASS_CANVAS_COMPONENT_TYPE = Registry.register(
+			BuiltInRegistries.DATA_COMPONENT_TYPE,
+			id("canvas/glass"),
+			DataComponentType.<GlassCanvasHolder>builder().persistent(GlassCanvasHolder.CODEC).networkSynchronized(GlassCanvasHolder.STREAM_CODEC).build()
+	);
 	public static final DataComponentType<PainterPaletteInventory> PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE = Registry.register(
 			BuiltInRegistries.DATA_COMPONENT_TYPE,
 			id("palette_inventory"),
@@ -143,7 +155,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockItemEntry<GlassCanvasBlock, GlassCanvasItem> GLASSBOARD = registerBlockWithItem(
 			GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, false),
-			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value).noCollission().sound(SoundType.GLASS),
+			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value).noOcclusion().sound(SoundType.GLASS),
 			GlassCanvasItem::new,
 			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
 	);

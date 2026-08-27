@@ -11,12 +11,14 @@ package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> implements CanvasHolder<SimpleCanvasHolder> {
@@ -47,6 +49,11 @@ public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> imp
 		}
 
 		@Override
+		public DataComponentType<SimpleCanvasHolder> componentType() {
+			return AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE;
+		}
+
+		@Override
 		public SimpleCanvasHolder createDefault() {
 			return new SimpleCanvasHolder(new Canvas());
 		}
@@ -59,5 +66,18 @@ public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> imp
 	@Override
 	public Type<SimpleCanvasHolder> type() {
 		return TYPE;
+	}
+
+	@Override
+	public SimpleCanvasHolder copy() {
+		var clone = new Canvas();
+		clone.copy(this.canvas());
+		return new SimpleCanvasHolder(clone);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof SimpleCanvasHolder that)) return false;
+		return Objects.equals(this.canvas(), that.canvas());
 	}
 }

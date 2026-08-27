@@ -117,19 +117,17 @@ public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<Canva
 				var modelLoader = (ModelBakeryAccessor) ctx.loader();
 
 				var pressModel = initModel(PRESS_PLATE_ID, PRESS_PLATE_MODEL_ID);
-				modelLoader.invokeCacheAndQueueDependencies(PRESS_PLATE_MODEL_ID, pressModel);
-				modelLoader.getTopLevelModels().put(PRESS_PLATE_MODEL_ID, pressModel);
+				modelLoader.invokeRegisterModelAndLoadDependencies(PRESS_PLATE_MODEL_ID, pressModel);
 
 				var screwModel = initModel(SCREW_ID, SCREW_MODEL_ID);
-				modelLoader.invokeCacheAndQueueDependencies(SCREW_MODEL_ID, screwModel);
-				modelLoader.getTopLevelModels().put(SCREW_MODEL_ID, screwModel);
+				modelLoader.invokeRegisterModelAndLoadDependencies(SCREW_MODEL_ID, screwModel);
 			}
 
 			return model;
 		});
 	}
 
-	private static @Nullable UnbakedModel initModel(Identifier resourceId, Identifier modelId) {
+	private static @Nullable UnbakedModel initModel(Identifier resourceId, ModelResourceLocation modelId) {
 		var model = Minecraft.getInstance().getResourceManager().getResource(resourceId).map(resource -> {
 			try (var reader = new InputStreamReader(resource.open())) {
 				var context = new BlockModelDefinition.Context();

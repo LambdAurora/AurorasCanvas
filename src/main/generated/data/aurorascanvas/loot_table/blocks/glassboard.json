@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_name",
+              "source": "block_entity"
+            },
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "aurorascanvas:canvas/glass"
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "aurorascanvas:glassboard"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

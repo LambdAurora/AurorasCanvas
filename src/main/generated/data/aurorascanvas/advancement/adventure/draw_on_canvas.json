@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:adventure/root",
+  "criteria": {
+    "draw": {
+      "trigger": "aurorascanvas:draw_on_canvas"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.aurorascanvas.adventure.draw_on_canvas.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "aurorascanvas:painter_palette"
+    },
+    "title": {
+      "translate": "advancements.aurorascanvas.adventure.draw_on_canvas.title"
+    }
+  },
+  "requirements": [
+    [
+      "draw"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

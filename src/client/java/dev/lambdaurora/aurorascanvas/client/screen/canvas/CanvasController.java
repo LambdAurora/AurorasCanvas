@@ -15,7 +15,7 @@ import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
-import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventoryView;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.Identifier;
@@ -30,7 +30,7 @@ import java.util.Objects;
 public class CanvasController {
 	private final int id;
 	private final CanvasHolder<?> root;
-	private final PainterPaletteInventory painterPalette;
+	private final PainterPaletteInventoryView painterPalette;
 	private final List<DrawAction> availableTools;
 	final CanvasLikeHolder<TrackedCanvasHandler> canvas;
 	final Identifier backgroundTexture;
@@ -38,7 +38,7 @@ public class CanvasController {
 	DrawAction currentAction;
 	DrawModifier currentModifier;
 
-	public CanvasController(int id, Level level, CanvasItem<?> item, PainterPaletteInventory painterPalette, CanvasHolder<?> root) {
+	public CanvasController(int id, Level level, CanvasItem<?> item, PainterPaletteInventoryView painterPalette, CanvasHolder<?> root) {
 		this.id = id;
 		this.root = root;
 		this.painterPalette = painterPalette;

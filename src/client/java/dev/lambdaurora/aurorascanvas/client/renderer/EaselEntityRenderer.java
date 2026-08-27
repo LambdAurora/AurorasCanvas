@@ -48,8 +48,8 @@ public class EaselEntityRenderer extends LivingEntityRenderer<EaselEntity, Easel
 	}
 
 	@Override
-	protected void setupRotations(EaselEntity entity, PoseStack matrices, float ageInTicks, float rotationYaw, float partialTicks) {
-		matrices.mulPose(Axis.YP.rotationDegrees(180.f - rotationYaw));
+	protected void setupRotations(EaselEntity entity, PoseStack matrices, float bob, float yBodyRot, float partialTicks, float scale) {
+		matrices.mulPose(Axis.YP.rotationDegrees(180.f - yBodyRot));
 
 		float lastHitDelta = (float) (entity.level().getGameTime() - entity.lastHit) + partialTicks;
 		if (lastHitDelta < 5.f) {

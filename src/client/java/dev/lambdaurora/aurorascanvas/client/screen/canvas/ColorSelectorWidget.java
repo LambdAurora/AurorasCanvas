@@ -14,7 +14,9 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
+import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.border.Border;
 import dev.lambdaurora.spruceui.widget.SpruceWidget;
@@ -24,12 +26,15 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
 public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidget.Entry> {
+	private static final Identifier COLOR_SLOTS_SPRITE = AurorasCanvas.id("editor/color_slots");
+
 	private static final int MARGIN = 7;
 	private final CanvasController controller;
 
@@ -39,7 +44,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 
 		this.setBorder(new WidgetBorder());
 		this.setBackground((graphics, widget, vOffset, mouseX, mouseY, delta) -> {
-			graphics.blit(CanvasScreen.TEXTURE, widget.getX(), widget.getY(), 216, 116, widget.getWidth(), widget.getHeight());
+			graphics.blitSprite(COLOR_SLOTS_SPRITE, widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight());
 		});
 
 		for (var colorStack : screen.controller.getAvailableColors()) {
@@ -82,9 +87,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 				int realTop = entry.getY() - 2 < top - 2 ? top : (top - 2);
 				int realBottom = entry.getY() + entry.getHeight() + 2 > bottom + 2 ? bottom : (bottom + 2);
 				graphics.enableScissor(left - 2, realTop, right, realBottom);
-				graphics.blit(CanvasScreen.TEXTURE,
-						entry.getX() - 2, entry.getY() - 2, 176 + 24, 0, 22, 22, 256, 256
-				);
+				graphics.blitSprite(PainterPaletteScreen.SELECT_HIGHLIGHT_SPRITE, entry.getX() - 2, entry.getY() - 2, 22, 22);
 				graphics.disableScissor();
 				break;
 			}
@@ -143,10 +146,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 
 		@Override
 		protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-			graphics.setColor(1.f, 1.f, 1.f, 1.f);
-			graphics.blit(CanvasScreen.TEXTURE,
-					this.getX(), this.getY(), 176 + 26, 42, 18, 18
-			);
+			graphics.blitSprite(PainterPaletteScreen.SLOT_SPRITE, this.getX(), this.getY(), 18, 18);
 
 			var matrices = graphics.pose();
 			matrices.pushPose();

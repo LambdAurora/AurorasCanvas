@@ -16,15 +16,15 @@ import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
 import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
+import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.*;
 import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.FrameType;
-import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.criterion.ItemPredicate;
-import net.minecraft.advancements.criterion.KilledTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
@@ -34,8 +34,8 @@ import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.models.blockstates.*;
 import net.minecraft.data.models.model.*;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.network.chat.Component;
@@ -49,12 +49,11 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.ApplyExplosionDecay;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
-import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.functions.FunctionUserBuilder;
 import net.minecraft.world.level.storage.loot.predicates.ConditionUserBuilder;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
-import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 
 import java.nio.file.Path;
@@ -127,7 +126,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					)
 					.addTag(WAXED_CANVAS_ITEMS);
 
-			this.tag(TagKey.create(Registries.ITEM, new Identifier("trinkets", "head/face")))
+			this.tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("trinkets", "head/face")))
 					.addTag(CANVAS_ITEMS);
 		}
 	}
@@ -144,8 +143,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 				WAXED_GLASSBOARD
 		).map(ItemLike::asItem).collect(Collectors.toUnmodifiableSet());
 
-		public LootDataProvider(FabricDataOutput output) {
-			super(output);
+		public LootDataProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+			super(output, registries);
 		}
 
 		@Override
@@ -182,8 +181,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 													LootItem.lootTableItem(block)
 															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
 															.apply(
-																	CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-																			.copy("canvas", "BlockEntityTag.canvas")
+																	CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+																			.include(CANVAS_COMPONENT_TYPE)
 															)
 											)
 							)
@@ -201,9 +200,8 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 													LootItem.lootTableItem(block)
 															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
 															.apply(
-																	CopyNbtFunction.copyData(ContextNbtProvider.BLOCK_ENTITY)
-																			.copy("front", "BlockEntityTag.front")
-																			.copy("back", "BlockEntityTag.back")
+																	CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+																			.include(GLASS_CANVAS_COMPONENT_TYPE)
 															)
 											)
 							)
@@ -212,30 +210,14 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 	}
 
 	private static class AdvancementProvider extends FabricAdvancementProvider {
-		public AdvancementProvider(FabricDataOutput output) {
-			super(output);
+		public AdvancementProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
+			super(output, registryLookup);
 		}
 
 		@Override
-		public void generateAdvancement(Consumer<Advancement> consumer) {
-			Advancement root = Advancement.Builder.advancement()
-					.display(
-							Items.MAP,
-							Component.translatable("advancements.adventure.root.title"),
-							Component.translatable("advancements.adventure.root.description"),
-							new Identifier("textures/gui/advancements/backgrounds/adventure.png"),
-							FrameType.TASK,
-							false,
-							false,
-							false
-					)
-					.requirements(RequirementsStrategy.OR)
-					.addCriterion("killed_something", KilledTrigger.TriggerInstance.playerKilledEntity())
-					.addCriterion("killed_by_something", KilledTrigger.TriggerInstance.entityKilledPlayer())
-					.build(new Identifier(Identifier.DEFAULT_NAMESPACE, "adventure/root"));
-
+		public void generateAdvancement(HolderLookup.Provider registryLookup, Consumer<AdvancementHolder> consumer) {
 			var drawOnCanvas = Advancement.Builder.advancement()
-					.parent(root)
+					.parent(new AdvancementHolder(Identifier.withDefaultNamespace("adventure/root"), null))
 					.display(
 							PAINTER_PALETTE_ITEM,
 							Component.translatable(
@@ -245,7 +227,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 									"advancements.%s.adventure.draw_on_canvas.description".formatted(AurorasCanvas.NAMESPACE)
 							),
 							null,
-							FrameType.TASK,
+							AdvancementType.TASK,
 							true,
 							true,
 							false
@@ -265,7 +247,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 									"advancements.%s.adventure.put_canvas_on_easel.description".formatted(AurorasCanvas.NAMESPACE)
 							),
 							null,
-							FrameType.TASK,
+							AdvancementType.TASK,
 							true,
 							true,
 							false
@@ -277,12 +259,12 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 	}
 
 	private static class AurorasRecipeProvider extends FabricRecipeProvider {
-		public AurorasRecipeProvider(FabricDataOutput output) {
-			super(output);
+		public AurorasRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+			super(output, registries);
 		}
 
 		@Override
-		public void buildRecipes(Consumer<FinishedRecipe> exporter) {
+		public void buildRecipes(RecipeOutput exporter) {
 			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, BLACKBOARD)
 					.group(CANVAS_ITEMS.location().toString())
 					.define('S', Items.STICK)
@@ -327,7 +309,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					.unlockedBy("has_glass_pane", has(Items.GLASS_PANE))
 					.unlockedBy("has_self", has(CANVAS_ITEMS))
 					.save(exporter);
-			SpecialRecipeBuilder.special(CANVAS_CLONE_RECIPE_SERIALIZER)
+			SpecialRecipeBuilder.special(CanvasCloneRecipe::new)
 					.save(exporter, AurorasCanvas.id("canvas_clone").toString());
 		}
 	}

@@ -11,12 +11,14 @@ package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> implements CanvasHolder<GlassCanvasHolder> {
@@ -54,6 +56,11 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 		}
 
 		@Override
+		public DataComponentType<GlassCanvasHolder> componentType() {
+			return AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE;
+		}
+
+		@Override
 		public GlassCanvasHolder createDefault() {
 			return new GlassCanvasHolder(new Canvas(), new Canvas());
 		}
@@ -66,5 +73,20 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 	@Override
 	public Type<GlassCanvasHolder> type() {
 		return TYPE;
+	}
+
+	@Override
+	public GlassCanvasHolder copy() {
+		var frontClone = new Canvas();
+		frontClone.copy(this.front());
+		var backClone = new Canvas();
+		backClone.copy(this.back());
+		return new GlassCanvasHolder(frontClone, backClone);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof GlassCanvasHolder that)) return false;
+		return Objects.equals(this.front(), that.back());
 	}
 }

@@ -21,7 +21,6 @@ import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -362,13 +361,8 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	@Override
 	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
 		var stack = super.getCloneItemStack(level, pos, state);
-		var canvasEntity = this.getCanvasEntity(level, pos);
-		if (canvasEntity != null && !canvasEntity.isEmpty()) {
-			var nbt = canvasEntity.writeCanvasNbt(new CompoundTag());
-			nbt.remove("custom_name");
-			Utils.writeBlockEntityNbtToStack(stack, this.getBlockEntityType(), nbt, false);
-		}
-
+		level.getBlockEntity(pos, this.getBlockEntityType())
+				.ifPresent(canvasEntity -> canvasEntity.saveToItem(stack, level.registryAccess()));
 		return stack;
 	}
 

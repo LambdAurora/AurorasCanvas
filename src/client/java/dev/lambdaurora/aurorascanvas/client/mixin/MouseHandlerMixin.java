@@ -10,14 +10,11 @@
 package dev.lambdaurora.aurorascanvas.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
-import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
-import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
@@ -48,11 +45,10 @@ public class MouseHandlerMixin {
 
 		if (player != null && player.isShiftKeyDown()) {
 			var mainHandStack = player.getMainHandItem();
+			var inventory = mainHandStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 
-			if (mainHandStack.getItem() instanceof PainterPaletteItem) {
-				var inventory = PainterPaletteInventory.fromNbt(mainHandStack.getTagElement("inventory"));
-
-				if (!inventory.isEmpty()) {
+			if (inventory != null) {
+				if (!inventory.isPaletteEmpty()) {
 					var payload = new PainterPaletteScrollPayload(scrollDelta, Screen.hasControlDown());
 					ClientPlayNetworking.send(payload);
 

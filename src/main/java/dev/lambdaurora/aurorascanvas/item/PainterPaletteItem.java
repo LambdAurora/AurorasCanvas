@@ -17,7 +17,6 @@ import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.NestedMenu;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
-import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
@@ -49,20 +48,7 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public static PainterPaletteInventory getInventory(ItemStack paletteStack) {
-		var inventory = paletteStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
-
-		return inventory != null ? inventory : new PainterPaletteInventory();
-	}
-
-	public ItemStack getCurrentColorAsItem(ItemStack paletteStack) {
-		return getInventory(paletteStack).getSelectedColor();
-	}
-
-	public ItemStack getCurrentToolAsItem(ItemStack paletteStack) {
-		var inventory = getInventory(paletteStack);
-		if (inventory.getSelectedToolSlot() == -1) return ItemStack.EMPTY;
-
-		return inventory.getSelectedTool();
+		return paletteStack.getOrDefault(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, PainterPaletteInventory.EMPTY);
 	}
 
 	public static MutableComponent getSelectedToolMessage(PainterPaletteInventory inventory, FeatureFlagSet enabledFeatures) {
@@ -118,32 +104,36 @@ public class PainterPaletteItem extends Item {
 	}
 
 	public void onScroll(Player player, ItemStack paletteStack, double scrollDelta, boolean toolModifier) {
-		var inventory = this.getInventory(paletteStack);
+		var inventory = getInventory(paletteStack);
 
-		if (inventory.isEmpty()) {
+		if (inventory.isPaletteEmpty()) {
 			return;
 		}
 
+		var mutable = inventory.toMutable();
+
 		if (!toolModifier) {
 			if (scrollDelta < 0) {
-				byte nextColor = inventory.findFirstNextColor();
+				byte nextColor = mutable.findFirstNextColor();
 
 				if (nextColor != -1) {
-					inventory.setSelectedColor(nextColor);
+					mutable.setSelectedColor(nextColor);
 				}
 			} else {
-				byte previousColor = inventory.findFirstPreviousColor();
+				byte previousColor = mutable.findFirstPreviousColor();
 
 				if (previousColor != -1) {
-					inventory.setSelectedColor(previousColor);
+					mutable.setSelectedColor(previousColor);
 				}
 			}
 
-			if (inventory.isEmpty()) {
-				paletteStack.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+			var copy = paletteStack.copy();
+			if (mutable.isEmpty()) {
+				copy.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 			} else {
-				paletteStack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, inventory);
+				copy.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, mutable.toImmutable());
 			}
+			player.setItemInHand(InteractionHand.MAIN_HAND, copy);
 
 			player.inventoryMenu.broadcastChanges();
 
@@ -153,16 +143,18 @@ public class PainterPaletteItem extends Item {
 				player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
 			}
 		} else {
-			int nextTool = inventory.scrollTool(scrollDelta < 0);
+			int nextTool = mutable.scrollTool(scrollDelta < 0);
 
-			if (inventory.getSelectedToolSlot() != nextTool) {
-				inventory.setSelectedToolSlot(nextTool);
+			if (mutable.getSelectedToolSlot() != nextTool) {
+				mutable.setSelectedToolSlot(nextTool);
 
-				if (inventory.isEmpty()) {
-					paletteStack.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+				var copy = paletteStack.copy();
+				if (mutable.isEmpty()) {
+					copy.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 				} else {
-					paletteStack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, inventory);
+					copy.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, mutable.toImmutable());
 				}
+				player.setItemInHand(InteractionHand.MAIN_HAND, copy);
 
 				player.inventoryMenu.broadcastChanges();
 
@@ -202,7 +194,7 @@ public class PainterPaletteItem extends Item {
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
 		var inventory = stack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
 		if (inventory != null) {
-			return Optional.of(new PainterPaletteTooltipData(inventory));
+			return Optional.of(inventory);
 		}
 		return super.getTooltipImage(stack);
 	}

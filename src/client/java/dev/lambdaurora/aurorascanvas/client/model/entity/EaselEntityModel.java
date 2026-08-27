@@ -76,8 +76,8 @@ public class EaselEntityModel<T extends EaselEntity> extends EntityModel<T> {
 
 	@Override
 	public void renderToBuffer(
-			PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha
+			PoseStack matrices, VertexConsumer buffer, int packedLight, int packedOverlay, int color
 	) {
-		this.root.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+		this.root.render(matrices, buffer, packedLight, packedOverlay, color);
 	}
 }

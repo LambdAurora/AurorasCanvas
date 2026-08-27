@@ -32,15 +32,15 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 public class PainterPaletteMenu extends NestedMenu {
-	private final PainterPaletteInventory inventory;
+	private final PainterPaletteInventory.Mutable inventory;
 
 	public PainterPaletteMenu(int syncId, Inventory playerInventory, OpenData data) {
-		this(syncId, playerInventory, data.type, data.lockedSlot, new PainterPaletteInventory());
+		this(syncId, playerInventory, data.type, data.lockedSlot, PainterPaletteInventory.EMPTY.toMutable());
 	}
 
 	public PainterPaletteMenu(
 			int syncId, Inventory playerInventory, OriginType originType, int lockedSlot,
-			PainterPaletteInventory inventory
+			PainterPaletteInventory.Mutable inventory
 	) {
 		super(AurorasCanvasRegistry.PAINTER_PALETTE_MENU_TYPE, syncId, originType, lockedSlot);
 		this.inventory = inventory;
@@ -64,7 +64,7 @@ public class PainterPaletteMenu extends NestedMenu {
 		this.addDataSlots(inventory.getProperties());
 	}
 
-	public PainterPaletteInventory getInventory() {
+	public PainterPaletteInventory.Mutable getInventory() {
 		return this.inventory;
 	}
 
@@ -137,7 +137,11 @@ public class PainterPaletteMenu extends NestedMenu {
 
 	@Override
 	protected boolean saveToOriginItem(ItemStack stack) {
-		stack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, this.inventory);
+		if (this.inventory.isPaletteEmpty()) {
+			stack.remove(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+		} else {
+			stack.set(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, this.inventory.toImmutable());
+		}
 
 		return true;
 	}
@@ -163,13 +167,9 @@ public class PainterPaletteMenu extends NestedMenu {
 
 		@Override
 		public AbstractContainerMenu createMenu(int syncId, Inventory playerInventory, Player player) {
-			var inventory = this.self.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
+			var inventory = this.self.getOrDefault(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE, PainterPaletteInventory.EMPTY);
 
-			if (inventory == null) {
-				inventory = new PainterPaletteInventory();
-			}
-
-			return new PainterPaletteMenu(syncId, playerInventory, this.type, this.lockedSlot, inventory);
+			return new PainterPaletteMenu(syncId, playerInventory, this.type, this.lockedSlot, inventory.toMutable());
 		}
 	}
 }

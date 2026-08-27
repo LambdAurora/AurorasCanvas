@@ -1,0 +1,9 @@
+{
+  "values": [
+    "aurorascanvas:blackboard",
+    "aurorascanvas:chalkboard",
+    "aurorascanvas:whiteboard",
+    "aurorascanvas:glassboard",
+    "#aurorascanvas:waxed_canvases"
+  ]
+}

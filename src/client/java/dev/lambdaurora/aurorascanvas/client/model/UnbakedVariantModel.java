@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> the type of the unbaked models of the variants
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -58,17 +58,17 @@ public class UnbakedVariantModel<T extends UnbakedModel> implements UnbakedModel
 
 	@Override
 	public BakedModel bake(
-			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
 	) {
 		var map = new Object2ReferenceOpenHashMap<String, BlockState>();
 		var models = new Reference2ObjectOpenHashMap<BlockState, BakedModel>();
 
-		this.block.getStateDefinition().getPossibleStates().forEach(state -> {
-			map.put(this.propertyMapToString(state.getValues()), state);
+		this.block.getStateDefinition().getPossibleStates().forEach(blockState -> {
+			map.put(this.propertyMapToString(blockState.getValues()), blockState);
 		});
 
 		this.unbakedVariantMap.forEach((variant, model) -> {
-			models.put(map.get(variant), model.bake(modelBaker, textureGetter, modelState, modelId));
+			models.put(map.get(variant), model.bake(baker, spriteGetter, state));
 		});
 
 		return new BakedVariantModel(models);

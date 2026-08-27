@@ -13,7 +13,6 @@ import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
 import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasEditSubmitPayload;
 import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
-import dev.yumi.commons.event.EventManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
@@ -27,7 +26,6 @@ import net.minecraft.resources.Identifier;
  */
 public final class AurorasCanvas implements ModInitializer {
 	public static final String NAMESPACE = "aurorascanvas";
-	public static final EventManager<Identifier> EVENT_MANAGER = new EventManager<>(id("default"), Identifier::parse);
 
 	@Override
 	public void onInitialize() {

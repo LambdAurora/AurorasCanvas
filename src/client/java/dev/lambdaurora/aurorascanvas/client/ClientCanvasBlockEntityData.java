@@ -46,7 +46,7 @@ public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.Side
 	}
 
 	@Override
-	public @Nullable Object getRenderAttachmentData() {
+	public @Nullable Object getRenderData() {
 		if (this.meshDirty)
 			this.rebuildMesh();
 		return this.mesh.isEmpty() ? null : new RenderAttachmentData(this.mesh);

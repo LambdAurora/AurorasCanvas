@@ -11,12 +11,12 @@ package dev.lambdaurora.aurorascanvas.recipe;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
-import dev.lambdaurora.aurorascanvas.util.Utils;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
@@ -64,6 +64,7 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
 		Canvas blackboard = null;
 		ItemStack output = null;
+		CanvasHolder<?> holder = null;
 		Component customName = null;
 
 		for (int slot = 0; slot < input.size(); ++slot) {
@@ -71,40 +72,33 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			if (!craftStack.isEmpty()) {
 				if (OUTPUT.test(craftStack) && !this.isInput(craftStack)) {
 					output = craftStack;
-				} else if (this.isInput(craftStack)) {
-					var nbt = BlockItem.getBlockEntityData(craftStack);
-					blackboard = Canvas.fromNbt(nbt);
-					if (craftStack.hasCustomHoverName())
-						customName = craftStack.getHoverName();
 				}
 			}
 		}
 
-
+		assert output != null;
 		var out = output.copy();
 		out.setCount(1);
-		var nbt = Utils.getOrCreateBlockEntityNbt(out, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
-		blackboard.writeNbt(nbt);
 
-		if (customName != null)
-			out.setHoverName(customName);
+		for (int slot = 0; slot < input.size(); ++slot) {
+			var craftStack = input.getItem(slot);
+			if (this.isInput(craftStack) && craftStack.getItem() instanceof CanvasItem<?> canvasItem) {
+				var canvases = craftStack.get(canvasItem.canvasType().componentType());
+
+				if (canvases != null) {
+					canvases.copy().setOnStack(out);
+				}
+				if (craftStack.has(DataComponents.CUSTOM_NAME)) {
+					out.set(DataComponents.CUSTOM_NAME, craftStack.get(DataComponents.CUSTOM_NAME));
+				}
+			}
+		}
 
 		return out;
 	}
 
 	private boolean isInput(ItemStack stack) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			if (nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-				byte[] pixels = nbt.getByteArray("pixels");
-				for (byte pixel : pixels) {
-					if (pixel != 0) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+		return stack.has(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE) || stack.has(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
 	}
 
 	@Override

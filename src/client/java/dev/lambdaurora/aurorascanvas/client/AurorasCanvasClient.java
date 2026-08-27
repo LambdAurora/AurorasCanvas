@@ -12,7 +12,6 @@ package dev.lambdaurora.aurorascanvas.client;
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
-import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasModelLayers;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
 import dev.lambdaurora.aurorascanvas.client.model.entity.EaselEntityModel;
@@ -23,8 +22,8 @@ import dev.lambdaurora.aurorascanvas.client.renderer.GlassCanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
 import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
+import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
-import dev.lambdaurora.aurorascanvas.tooltip.PainterPaletteTooltipData;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -35,6 +34,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 import java.util.function.Function;
@@ -45,6 +45,8 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 public final class AurorasCanvasClient implements ClientModInitializer {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
+	public static final Identifier BLACKBOARD_MASK = AurorasCanvas.id("item/blackboard_mask");
+
 	@Override
 	public void onInitializeClient() {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
@@ -54,14 +56,14 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, CanvasPressBlockEntityRenderer::new);
 
-		this.registerCanvasItemRenderer(BLACKBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(CHALKBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WHITEBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_BLACKBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_CHALKBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_WHITEBOARD.block().value(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_GLASSBOARD.block().value(), GlassCanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(BLACKBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(CHALKBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WHITEBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(GLASSBOARD.block(), GlassCanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_BLACKBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_CHALKBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_WHITEBOARD.block(), CanvasItemRenderer::new);
+		this.registerCanvasItemRenderer(WAXED_GLASSBOARD.block(), GlassCanvasItemRenderer::new);
 
 		ClientCanvasBlockEntityData.init();
 
@@ -70,7 +72,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		TooltipComponentCallback.EVENT.register(data -> {
 			if (data instanceof CanvasTooltipData canvasTooltipData) {
 				return new CanvasTooltipComponent(canvasTooltipData);
-			} else if (data instanceof PainterPaletteTooltipData(var inventory)) {
+			} else if (data instanceof PainterPaletteInventory inventory) {
 				return new PainterPaletteTooltipComponent(inventory);
 			} else {
 				return null;
@@ -85,13 +87,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			context.modifyModelOnLoad().register((model, ctx) -> {
 				if (ctx.topLevelId() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
 					if (modelId.id().getPath().endsWith("board")) {
-						return UnbakedCanvasModel.of(modelId, model,
-								(partId, m) -> {
-									var modelLoader = (ModelBakeryAccessor) ctx.loader();
-									modelLoader.invokeCacheAndQueueDependencies(partId, m);
-									modelLoader.getTopLevelModels().put(partId, m);
-								}
-						);
+						return UnbakedCanvasModel.of(modelId.id(), model, ctx::getOrLoadModel);
 					}
 
 				return model;
@@ -106,10 +102,9 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 		AurorasCanvasClientNetworking.init();
 	}
 
-	private void registerCanvasItemRenderer(CanvasBlock canvas, Function<ModelResourceLocation, CanvasItemRenderer> factory) {
-		@SuppressWarnings("deprecation") var id = canvas.builtInRegistryHolder().key().identifier();
-		var modelId = new ModelResourceLocation(id.withSuffix("_base"), "inventory");
-		BuiltinItemRendererRegistry.INSTANCE.register(canvas, factory.apply(modelId));
-		ModelLoadingPlugin.register(context -> context.addModels(id.withSuffix("_base"), AurorasCanvas.id("blackboard_mask")));
+	private void registerCanvasItemRenderer(BlockEntry<? extends CanvasBlock> canvas, Function<Identifier, CanvasItemRenderer> factory) {
+		var modelId = canvas.key().identifier().withPrefix("item/").withSuffix("_base");
+		BuiltinItemRendererRegistry.INSTANCE.register(canvas.value(), factory.apply(modelId));
+		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
 	}
 }

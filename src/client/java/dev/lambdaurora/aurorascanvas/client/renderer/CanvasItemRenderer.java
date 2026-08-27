@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,14 +28,14 @@ import net.minecraft.world.item.ItemStack;
  * Represents the dynamic item renderer of canvases.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
 public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
-	private final ModelResourceLocation modelId;
+	private final Identifier modelId;
 
-	public CanvasItemRenderer(ModelResourceLocation modelId) {
+	public CanvasItemRenderer(Identifier modelId) {
 		this.modelId = modelId;
 	}
 
@@ -109,9 +109,8 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 			MultiBufferSource vertexConsumers, int light,
 			boolean leftHanded, BakedModel model
 	) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			var canvases = SimpleCanvasHolder.TYPE.fromNbt(nbt);
+		var canvases = stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
+		if (canvases != null) {
 			var canvas = canvases.canvas();
 
 			if (!canvas.isEmpty()) {

@@ -9,12 +9,10 @@
 
 package dev.lambdaurora.aurorascanvas.item;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
-import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
@@ -27,7 +25,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -50,12 +47,13 @@ public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
 	public abstract CanvasHolder.Type<T> canvasType();
 
 	public T getCanvases(ItemStack stack) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			return this.canvasType().fromNbt(nbt);
-		}
+		var component = stack.get(this.canvasType().componentType());
 
-		return this.canvasType().createDefault();
+		if (component == null) {
+			return this.canvasType().createDefault();
+		} else {
+			return component;
+		}
 	}
 
 	public String getBackground() {
@@ -105,29 +103,10 @@ public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
 		}).count();
 
 		if (cleared > 0) {
-			self.addTagElement(BlockItem.BLOCK_ENTITY_TAG, this.canvasType().toNbt(canvases));
+			canvases.setOnStack(self);
 		}
 
 		return cleared > 0;
-	}
-
-	@Override
-	public void onCraftedBy(ItemStack stack, Level world, Player player) {
-		this.ensureValidStack(stack);
-	}
-
-	@Override
-	public ItemStack getDefaultInstance() {
-		return this.ensureValidStack(new ItemStack(this));
-	}
-
-	private ItemStack ensureValidStack(ItemStack stack) {
-		if (BlockItem.getBlockEntityData(stack) == null) {
-			var nbt = Utils.getOrCreateBlockEntityNbt(stack, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
-			var blackboard = new Canvas();
-			blackboard.writeNbt(nbt);
-		}
-		return stack;
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Represents a canvas drawing.
@@ -209,6 +210,17 @@ public final class Canvas implements CanvasHandler {
 	@Override
 	public void setGlowing(boolean glowing) {
 		this.glowing = glowing;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Canvas canvas)) return false;
+		return this.glowing == canvas.glowing && Arrays.equals(this.pixels, canvas.pixels);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(Arrays.hashCode(this.pixels), this.glowing);
 	}
 
 	/* Serialization */

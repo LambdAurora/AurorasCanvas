@@ -9,13 +9,16 @@
 
 package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
+import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
+import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +27,19 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class ToolButton extends BaseToolButton {
+	private static final Sprites PENCIL_SPRITES = new Sprites(
+			AurorasCanvas.id("editor/pencil"),
+			AurorasCanvas.id("editor/pencil_disabled")
+	);
+	private static final Sprites FILL_SPRITES = new Sprites(
+			AurorasCanvas.id("editor/fill"),
+			AurorasCanvas.id("editor/fill_disabled")
+	);
+	private static final Sprites REPLACE_SPRITE = new Sprites(
+			AurorasCanvas.id("editor/replace"),
+			AurorasCanvas.id("editor/replace_disabled")
+	);
+
 	protected final CanvasController controller;
 	protected final DrawAction drawAction;
 
@@ -56,12 +72,11 @@ public class ToolButton extends BaseToolButton {
 
 		var item = drawAction.getOffHandTool(client.level.enabledFeatures());
 		if (this.drawAction == DrawAction.DEFAULT || this.drawAction == DrawAction.FILL || this.drawAction == DrawAction.REPLACE) {
-			int vOffset = 256 - 80;
-			graphics.blit(CanvasScreen.TEXTURE, this.getX(), this.getY(), switch (this.drawAction) {
-				case FILL -> 20;
-				case REPLACE -> 40;
-				default -> 0;
-			}, vOffset + (this.active ? 0 : 20), 20, 20);
+			graphics.blitSprite((switch (this.drawAction) {
+				case FILL -> FILL_SPRITES;
+				case REPLACE -> REPLACE_SPRITE;
+				default -> PENCIL_SPRITES;
+			}).get(this.active), this.getX(), this.getY(), 20, 20);
 		} else if (item != null) {
 			var matrices = graphics.pose();
 			matrices.pushPose();
@@ -79,9 +94,13 @@ public class ToolButton extends BaseToolButton {
 		}
 
 		if (this.controller.currentAction == this.drawAction) {
-			graphics.blit(CanvasScreen.TEXTURE,
-					this.getX() - 1, this.getY() - 1, 176 + 24, 0, 22, 22, 256, 256
-			);
+			graphics.blitSprite(PainterPaletteScreen.SELECT_HIGHLIGHT_SPRITE, this.getX() - 1, this.getY() - 1, 22, 22);
+		}
+	}
+
+	private record Sprites(Identifier active, Identifier disabled) {
+		Identifier get(boolean active) {
+			return active ? this.active : this.disabled;
 		}
 	}
 }

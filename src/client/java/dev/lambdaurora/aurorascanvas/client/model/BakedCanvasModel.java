@@ -9,12 +9,14 @@
 
 package dev.lambdaurora.aurorascanvas.client.model;
 
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.blockview.v2.FabricBlockView;
 import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
@@ -49,9 +51,9 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 	}
 
 	protected void emitBlockMesh(BlockAndTintGetter world, BlockPos pos, RenderContext context) {
-		var attachment = ((RenderAttachedBlockView) world).getBlockEntityRenderAttachment(pos);
-		if (attachment instanceof ClientCanvasBlockEntityData.RenderAttachmentData data) {
-			data.meshes().forEach(mesh -> mesh.outputTo(context.getEmitter()));
+		var attachment = world.getBlockEntityRenderData(pos);
+		if (attachment instanceof ClientCanvasBlockEntityData.RenderAttachmentData(var meshes)) {
+			meshes.forEach(mesh -> mesh.outputTo(context.getEmitter()));
 		}
 	}
 
@@ -59,10 +61,9 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 	public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
 		super.emitItemQuads(stack, randomSupplier, context);
 
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			var canvas = Canvas.fromNbt(nbt);
-			CanvasMeshBaker.buildMesh(new PlacedCanvas(canvas, Direction.NORTH))
+		var canvases = stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
+		if (canvases != null && !canvases.canvas().isEmpty()) {
+			CanvasMeshBaker.buildMesh(new PlacedCanvas(canvases.canvas(), Direction.NORTH))
 					.outputTo(context.getEmitter());
 		}
 	}

@@ -33,7 +33,7 @@ public class HoneycombItemMixin {
 			var blockEntity = block.getCanvasEntity(level, pos);
 			if (blockEntity != null && !(blockEntity.isEmpty() && !blockEntity.hasCustomName())) {
 				blockEntityData = new CompoundTag();
-				blockEntity.saveAdditional(blockEntityData);
+				blockEntity.saveAdditional(blockEntityData, level.registryAccess());
 			}
 		}
 
@@ -42,7 +42,7 @@ public class HoneycombItemMixin {
 		if (state.getBlock() instanceof CanvasBlock block) {
 			var blockEntity = block.getCanvasEntity(level, pos);
 			if (blockEntity != null && blockEntityData != null) {
-				blockEntity.load(blockEntityData);
+				blockEntity.loadAdditional(blockEntityData, level.registryAccess());
 				blockEntity.setChanged();
 			}
 		}

@@ -1,0 +1,11 @@
+{
+  "values": [
+    "aurorascanvas:blackboard",
+    "aurorascanvas:waxed_blackboard",
+    "aurorascanvas:chalkboard",
+    "aurorascanvas:waxed_chalkboard",
+    "aurorascanvas:whiteboard",
+    "aurorascanvas:waxed_whiteboard",
+    "#aurorascanvas:glassboards"
+  ]
+}

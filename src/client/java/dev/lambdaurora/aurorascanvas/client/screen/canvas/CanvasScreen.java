@@ -21,7 +21,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +29,6 @@ import java.util.Arrays;
 
 @Environment(EnvType.CLIENT)
 public class CanvasScreen extends SpruceScreen {
-	static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/editor_widgets.png");
 	private static final int PIXEL_SIZE = 8;
 	final CanvasController controller;
 	private int canvasStartX;
@@ -91,21 +89,21 @@ public class CanvasScreen extends SpruceScreen {
 
 		this.addRenderableWidget(new ActionButton(this.controller, Component.translatable(AurorasCanvas.NAMESPACE + ".tool.undo"),
 				this.canvasStartX - 40, actionY,
-				0,
+				ActionButton.UNDO_SPRITE, ActionButton.DISABLED_UNDO_SPRITE,
 				canvas -> canvas.history().undo(),
 				canvas -> canvas.history().canUndo()
 		));
 
 		this.addRenderableWidget(new ActionButton(this.controller, Component.translatable(AurorasCanvas.NAMESPACE + ".tool.redo"),
 				this.canvasStartX - 40, actionY += 22,
-				20,
+				ActionButton.REDO_SPRITE, ActionButton.DISABLED_REDO_SPRITE,
 				canvas -> canvas.history().redo(),
 				canvas -> canvas.history().canRedo()
 		));
 
 		this.addRenderableWidget(new ActionButton(this.controller, Component.translatable(AurorasCanvas.NAMESPACE + ".tool.clear"),
 				this.canvasStartX - 40, actionY += 22,
-				40,
+				ActionButton.CLEAR_SPRITE, ActionButton.DISABLED_CLEAR_SPRITE,
 				TrackedCanvasHandler::clear,
 				canvas -> !canvas.isEmpty()
 		));

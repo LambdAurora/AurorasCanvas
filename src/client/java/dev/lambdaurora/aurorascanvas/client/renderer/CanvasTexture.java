@@ -29,7 +29,7 @@ import java.util.Map;
  * Represents a canvas texture.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -71,18 +71,18 @@ public final class CanvasTexture {
 
 	public void render(Matrix4f model, MultiBufferSource vertexConsumers, int light, boolean mirror) {
 		var vertices = vertexConsumers.getBuffer(this.renderType);
-		vertices.vertex(model, mirror ? 1.f : 0.f, 1.f, 0.f)
-				.color(255, 255, 255, 255)
-				.uv(mirror ? 1.f : 0.f, 1.f).uv2(light).endVertex();
-		vertices.vertex(model, mirror ? 0.f : 1.f, 1.f, 0.f)
-				.color(255, 255, 255, 255)
-				.uv(mirror ? 0.f : 1.f, 1.f).uv2(light).endVertex();
-		vertices.vertex(model, mirror ? 0.f : 1.f, 0.f, 0.f)
-				.color(255, 255, 255, 255)
-				.uv(mirror ? 0.f : 1.f, 0.f).uv2(light).endVertex();
-		vertices.vertex(model, mirror ? 1.f : 0.f, 0.f, 0.f)
-				.color(255, 255, 255, 255)
-				.uv(mirror ? 1.f : 0.f, 0.f).uv2(light).endVertex();
+		vertices.addVertex(model, mirror ? 1.f : 0.f, 1.f, 0.f)
+				.setColor(255, 255, 255, 255)
+				.setUv(mirror ? 1.f : 0.f, 1.f).setLight(light);
+		vertices.addVertex(model, mirror ? 0.f : 1.f, 1.f, 0.f)
+				.setColor(255, 255, 255, 255)
+				.setUv(mirror ? 0.f : 1.f, 1.f).setLight(light);
+		vertices.addVertex(model, mirror ? 0.f : 1.f, 0.f, 0.f)
+				.setColor(255, 255, 255, 255)
+				.setUv(mirror ? 0.f : 1.f, 0.f).setLight(light);
+		vertices.addVertex(model, mirror ? 1.f : 0.f, 0.f, 0.f)
+				.setColor(255, 255, 255, 255)
+				.setUv(mirror ? 1.f : 0.f, 0.f).setLight(light);
 	}
 
 	public void update(Canvas canvas) {

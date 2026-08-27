@@ -18,21 +18,17 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.block.model.BlockModelDefinition;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Set;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
@@ -40,14 +36,12 @@ public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
 	private final Int2ObjectMap<Identifier> identifiers = new Int2ObjectOpenHashMap<>();
-	private final String variant;
+	private final Set<UnbakedModel> models;
 
 	public UnbakedGlassboardModel(
-			ModelResourceLocation id, UnbakedModel baseModel, ResourceManager resourceManager,
-			BlockModelDefinition.Context deserializationContext, BiConsumer<Identifier, UnbakedModel> modelConsumer
+			Identifier id, UnbakedModel baseModel, Function<Identifier, UnbakedModel> modelConsumer
 	) {
 		super(baseModel);
-		this.variant = id.getVariant();
 
 		String prefix = "";
 		if (id.getPath().contains("waxed")) {
@@ -56,48 +50,34 @@ public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 
 		Block block = BuiltInRegistries.BLOCK.get(AurorasCanvas.id(id.getPath()));
 
+		var models = new HashSet<UnbakedModel>();
 		for (var corner : Corner.CORNERS) {
 			for (var type : Type.TYPES) {
-				var identifier = new ModelResourceLocation(AurorasCanvas.id(GlassboardModel.getModelPath(prefix, corner, type)), variant);
-
-				this.identifiers.put(GlassboardModel.getCornerDataIndex(corner, type), identifier);
-
-				if (block != Blocks.AIR) {
-					var resourceId = AurorasCanvas.id("blockstates/" + identifier.getPath() + ".json");
-					var resource = resourceManager.getResource(resourceId);
-
-					if (resource.isEmpty()) {
-						LOGGER.warn("Could not load glassboard model part ({}, {}): could not locate the blockstate file.", corner, type);
-					} else {
-						try (var reader = new InputStreamReader(resource.get().open())) {
-							deserializationContext.setDefinition(block.getStateDefinition());
-							var map = BlockModelDefinition.fromStream(deserializationContext, reader);
-
-							map.getVariants().forEach((variant, model) -> modelConsumer.accept(
-									new ModelResourceLocation(identifier.getNamespace(), identifier.getPath(), this.variant.replaceFirst("facing=\\w+,pane=\\w+", variant)),
-									model
-							));
-						} catch (IOException e) {
-							LOGGER.warn("Could not load glassboard model part ({}, {}):", corner, type, e);
-						}
-					}
-				}
+				var modelId = AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, type));
+				this.identifiers.put(GlassboardModel.getCornerDataIndex(corner, type), modelId);
+				models.add(modelConsumer.apply(modelId));
 			}
 		}
+		this.models = models;
+	}
+
+	@Override
+	public void resolveParents(Function<Identifier, UnbakedModel> models) {
+		super.resolveParents(models);
+		this.models.forEach(model -> model.resolveParents(models));
 	}
 
 	@Override
 	public BakedModel bake(
-			ModelBaker modelBaker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState, Identifier modelId
+			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
 	) {
-		var baseModel = this.bakeBaseModel(modelBaker, textureGetter, modelState, modelId);
+		var baseModel = this.bakeBaseModel(baker, spriteGetter, state);
 
-		return new BakedGlassboardModel(baseModel, this.bakeAllConnectingModels(modelBaker, textureGetter, modelState, modelId, baseModel));
+		return new BakedGlassboardModel(baseModel, this.bakeAllConnectingModels(baker, spriteGetter, state, baseModel));
 	}
 
 	private Int2ObjectMap<List<BakedModel>> bakeAllConnectingModels(
-			ModelBaker baker, Function<Material, TextureAtlasSprite> textureGetter, ModelState modelState,
-			Identifier modelId, BakedModel baseModel
+			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state, BakedModel baseModel
 	) {
 		var map = new Int2ObjectOpenHashMap<List<BakedModel>>();
 
@@ -107,9 +87,7 @@ public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 		for (var corner : Corner.CORNERS) {
 			for (var type : Type.TYPES) {
 				int id = GlassboardModel.getCornerDataIndex(corner, type);
-				bakedModels.put(id, baker.getModel(this.identifiers.get(id))
-						.bake(baker, textureGetter, modelState, modelId)
-				);
+				bakedModels.put(id, baker.bake(this.identifiers.get(id), state));
 			}
 		}
 

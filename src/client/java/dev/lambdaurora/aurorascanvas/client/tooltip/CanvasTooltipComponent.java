@@ -32,13 +32,13 @@ import java.util.List;
  * Represents the blackboard tooltip component. Displays the blackboard's contents.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
 public class CanvasTooltipComponent implements ClientTooltipComponent {
-	private static final Identifier LOCK_ICON_TEXTURE = new Identifier("textures/gui/container/cartography_table.png");
-	private static final Identifier GLOW_TEXTURE = AurorasCanvas.id("textures/gui/glowing_sprite.png");
+	private static final Identifier LOCK_ICON_TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/cartography_table.png");
+	private static final Identifier GLOWING_SPRITE = AurorasCanvas.id("glowing");
 
 	private final Minecraft client = Minecraft.getInstance();
 	private final RenderType background;
@@ -85,18 +85,10 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 
 		if (entry.glowing) {
 			matrices.pushPose();
+			matrices.scale(1 / 128.f, 1/128.f, 1);
 			matrices.translate(0, 0, 1);
-			model = matrices.last().pose();
 
-			var glow = RenderType.text(GLOW_TEXTURE);
-
-			float speed = 600.f;
-			float offset = ((System.currentTimeMillis() % (int) speed) / speed);
-
-			offset *= 4.f;
-			offset = (float) (Math.floor(offset) / 4.f);
-
-			this.quad(glow, 0.f, offset, 1.f, offset + (0.25f), model, vertexConsumers, LightTexture.FULL_BRIGHT);
+			graphics.blitSprite(GLOWING_SPRITE, 0, 0, 128, 128);
 
 			matrices.popPose();
 		}
@@ -130,14 +122,14 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 			Matrix4f model, MultiBufferSource vertexConsumers, int light
 	) {
 		var vertices = vertexConsumers.getBuffer(renderType);
-		vertices.vertex(model, 0.f, 1.f, 0.f).color(255, 255, 255, 255)
-				.uv(uMin, vMax).uv2(light).endVertex();
-		vertices.vertex(model, 1.f, 1.f, 0.f).color(255, 255, 255, 255)
-				.uv(uMax, vMax).uv2(light).endVertex();
-		vertices.vertex(model, 1.f, 0.f, 0.f).color(255, 255, 255, 255)
-				.uv(uMax, vMin).uv2(light).endVertex();
-		vertices.vertex(model, 0.f, 0.f, 0.f).color(255, 255, 255, 255)
-				.uv(uMin, vMin).uv2(light).endVertex();
+		vertices.addVertex(model, 0.f, 1.f, 0.f).setColor(255, 255, 255, 255)
+				.setUv(uMin, vMax).setLight(light);
+		vertices.addVertex(model, 1.f, 1.f, 0.f).setColor(255, 255, 255, 255)
+				.setUv(uMax, vMax).setLight(light);
+		vertices.addVertex(model, 1.f, 0.f, 0.f).setColor(255, 255, 255, 255)
+				.setUv(uMax, vMin).setLight(light);
+		vertices.addVertex(model, 0.f, 0.f, 0.f).setColor(255, 255, 255, 255)
+				.setUv(uMin, vMin).setLight(light);
 	}
 
 	private record Entry(CanvasTexture texture, boolean glowing) {}

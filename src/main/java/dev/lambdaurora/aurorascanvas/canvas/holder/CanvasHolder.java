@@ -12,10 +12,12 @@ package dev.lambdaurora.aurorascanvas.canvas.holder;
 import com.mojang.serialization.Codec;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Map;
@@ -31,7 +33,25 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 	/**
 	 * {@return the type of this canvas holder}
 	 */
+	@Contract(pure = true)
 	Type<H> type();
+
+	/**
+	 * Clones this canvas holder.
+	 *
+	 * @return the cloned canvas holder.
+	 */
+	@Contract(value = "-> new", pure = true)
+	H copy();
+
+	@SuppressWarnings("unchecked")
+	default void setOnStack(ItemStack stack) {
+		if (this.stream().allMatch(Canvas::isUnedited)) {
+			stack.remove(this.type().componentType());
+		} else {
+			stack.set(this.type().componentType(), (H) this);
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	default CompoundTag toNbt() {
@@ -51,6 +71,8 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 		Codec<H> codec();
 
 		StreamCodec<ByteBuf, H> streamCodec();
+
+		DataComponentType<H> componentType();
 
 		@Contract("-> new")
 		H createDefault();

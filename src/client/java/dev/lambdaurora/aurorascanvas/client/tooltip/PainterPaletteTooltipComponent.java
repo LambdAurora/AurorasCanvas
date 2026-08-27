@@ -9,8 +9,8 @@
 
 package dev.lambdaurora.aurorascanvas.client.tooltip;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
+import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import net.fabricmc.api.EnvType;
@@ -20,7 +20,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -32,7 +31,7 @@ import org.joml.Matrix4f;
  * Represents the painter's palette tooltip component.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.1.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -82,21 +81,23 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 		if (primaryColorStack.isEmpty()) return;
 
 		var matrices = graphics.pose();
+		byte previousColorIndex = this.inventory.findFirstPreviousColor();
 		ItemStack previousColorStack = this.inventory.getPreviousColorStack();
+		byte nextColorIndex = this.inventory.findFirstNextColor();
 		ItemStack nextColorStack = this.inventory.getNextColorStack();
 
 		matrices.pushPose();
 		y += 12;
 
 		matrices.translate(x, y, 0);
-		this.drawSlot(graphics, previousColorStack, inventory.getSlotOf(previousColorStack), true, false);
+		this.drawSlot(graphics, previousColorStack, previousColorIndex, true, false);
 
 		matrices.translate(18, 0, 0);
 		this.drawSlot(graphics, primaryColorStack, inventory.getSelectedColorSlot(), false, false);
 		AbstractContainerScreen.renderSlotHighlight(graphics, 2, 2, 0);
 
 		matrices.translate(18, 0, 0);
-		this.drawSlot(graphics, nextColorStack, inventory.getSlotOf(nextColorStack), false, true);
+		this.drawSlot(graphics, nextColorStack, nextColorIndex, false, true);
 
 		matrices.popPose();
 	}
@@ -105,19 +106,7 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 			GuiGraphics graphics, ItemStack stack,
 			int index, boolean start, boolean end
 	) {
-		this.drawSlotPart(graphics, 1, 1, 0, 0, 0, 18, 20);
-
-		if (start) this.drawSlotPart(graphics, 0, 0, 0, 0, 20, 1, 1);
-		if (end) this.drawSlotPart(graphics, 0, 0, 0, 0, 20, 1, 1);
-
-		this.drawSlotPart(graphics, 1, 0, 0, 0, 20, 18, 1);
-		this.drawSlotPart(graphics, 1, 20, 0, 0, 60, 18, 1);
-
-		if (start) this.drawSlotPart(graphics, 0, 0, 0, 0, 18, 1, 20);
-		if (end) this.drawSlotPart(graphics, 18 + 1, 0, 0, 0, 18, 1, 20);
-
-		if (start) this.drawSlotPart(graphics, 0, 20, 0, 0, 60, 1, 1);
-		if (end) this.drawSlotPart(graphics, 18 + 1, 20, 0, 0, 60, 1, 1);
+		graphics.blitSprite(PainterPaletteScreen.SLOT_SPRITE, 1, 1, 0, 18, 18);
 
 		if (!stack.isEmpty()) {
 			graphics.renderItem(stack, 2, 2, index);
@@ -134,11 +123,5 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 			graphics.fill(0, 0, 4, 4, color.getColor());
 			matrices.popPose();
 		}
-	}
-
-	private void drawSlotPart(GuiGraphics graphics, int x, int y, int z, float u, float v, int width, int height) {
-		graphics.setColor(1.f, 1.f, 1.f, 1.f);
-		RenderSystem.setShaderTexture(0, ClientBundleTooltip.TEXTURE_LOCATION);
-		graphics.blit(ClientBundleTooltip.TEXTURE_LOCATION, x, y, 0, u, v, width, height, 128, 128);
 	}
 }

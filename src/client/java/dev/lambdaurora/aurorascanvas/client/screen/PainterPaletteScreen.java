@@ -32,6 +32,10 @@ import net.minecraft.world.inventory.Slot;
  */
 @Environment(EnvType.CLIENT)
 public class PainterPaletteScreen extends AbstractContainerScreen<PainterPaletteMenu> {
+	public static final Identifier SLOT_SPRITE = AurorasCanvas.id("palette/slot");
+	public static final Identifier TOOL_SLOT_SPRITE = AurorasCanvas.id("palette/empty_tool_slot");
+	public static final Identifier SELECT_HIGHLIGHT_SPRITE = AurorasCanvas.id("palette/select_highlight");
+
 	private static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/container/painter_palette.png");
 	private static final Identifier LOCK_TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/cartography_table.png");
 
@@ -51,7 +55,6 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
-		graphics.setColor(1.f, 1.f, 1.f, 1.f);
 		graphics.blit(TEXTURE,
 				this.getBackgroundX(), this.getBackgroundY(), 0, 0, this.imageWidth + 24, this.imageHeight
 		);
@@ -67,9 +70,9 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				int y = this.getBackgroundY() + slot.y - 1;
 
 				if (slot.getItem().isEmpty()) {
-					graphics.blit(TEXTURE, x, y, this.imageWidth + 26, 24, 18, 18, 256, 256);
+					graphics.blitSprite(TOOL_SLOT_SPRITE, x, y, 18, 18);
 				} else {
-					graphics.blit(TEXTURE, x, y, this.imageWidth + 26, 42, 18, 18, 256, 256);
+					graphics.blitSprite(SLOT_SPRITE, x, y, 18, 18);
 				}
 			}
 		}
@@ -100,7 +103,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	}
 
 	private void drawSelectedIndicator(GuiGraphics graphics) {
-		graphics.blit(TEXTURE, -3, -3, this.imageWidth + 24, 0, 22, 22, 256, 256);
+		graphics.blitSprite(SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
 	}
 
 	@Override

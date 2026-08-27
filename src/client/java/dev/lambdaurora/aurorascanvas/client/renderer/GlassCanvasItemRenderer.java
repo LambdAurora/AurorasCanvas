@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -18,6 +19,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +33,7 @@ import net.minecraft.world.item.ItemStack;
  */
 @Environment(EnvType.CLIENT)
 public class GlassCanvasItemRenderer extends CanvasItemRenderer {
-	public GlassCanvasItemRenderer(ModelResourceLocation modelId) {
+	public GlassCanvasItemRenderer(Identifier modelId) {
 		super(modelId);
 	}
 
@@ -41,10 +43,8 @@ public class GlassCanvasItemRenderer extends CanvasItemRenderer {
 			MultiBufferSource vertexConsumers, int light,
 			boolean leftHanded, BakedModel model
 	) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			var canvases = GlassCanvasHolder.TYPE.fromNbt(nbt);
-
+		var canvases = stack.get(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
+		if (canvases != null) {
 			this.applyPose(mode, matrices, leftHanded, model);
 
 			var back = canvases.back();

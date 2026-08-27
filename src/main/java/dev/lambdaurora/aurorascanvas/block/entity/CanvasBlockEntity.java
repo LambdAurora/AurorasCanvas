@@ -17,15 +17,19 @@ import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.yumi.commons.event.Event;
 import dev.yumi.mc.core.api.YumiEvents;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Unmodifiable;
@@ -35,7 +39,7 @@ import java.lang.ref.WeakReference;
 import java.util.stream.Stream;
 
 public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends CanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>>
-		extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
+		extends BasicBlockEntity implements Nameable, RenderDataBlockEntity {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = YumiEvents.EVENTS.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
@@ -69,6 +73,11 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	public abstract @Unmodifiable Stream<PlacedCanvas> canvases();
 
 	public abstract SyncedCanvas getSyncedCanvas(Direction facing);
+
+	@SuppressWarnings("unchecked")
+	private T getCanvasHolder() {
+		return (T) this.canvases.mapToCanvas(SyncedCanvas::getCanvas);
+	}
 
 	/**
 	 * Clears the source.
@@ -133,46 +142,54 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	/* Client */
 
 	@Override
-	public @Nullable Object getRenderAttachmentData() {
-		return this.sidedData.getRenderAttachmentData();
+	public @Nullable Object getRenderData() {
+		return this.sidedData.getRenderData();
 	}
 
 	/* Serialization */
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
-		this.customName = Component.Serializer.fromJson(nbt.getString("custom_name"));
-		this.loadCanvasNbt(nbt);
+	public void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+		super.loadAdditional(nbt, registries);
+		if (nbt.contains("custom_name", CompoundTag.TAG_STRING)) {
+			this.customName = parseCustomNameSafe(nbt.getString("custom_name"), registries);
+		}
+		this.canvasType().fromNbt(nbt).into(this.canvases, SyncedCanvas::setCanvas);
 
 		if (this.level != null && this.level.isClientSide()) {
 			this.sidedData.markChanged();
 		}
 	}
 
-	protected void loadCanvasNbt(CompoundTag nbt) {
-		this.canvasType().fromNbt(nbt).into(this.canvases, SyncedCanvas::setCanvas);
+	@Override
+	public void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
+		if (this.customName != null) {
+			nbt.putString("custom_name", Component.Serializer.toJson(this.customName, registries));
+		}
+
+		var encodedNbt = this.canvasType().toNbt(this.getCanvasHolder());
+		nbt.merge(encodedNbt);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
-		this.writeCanvasNbt(nbt);
-	}
-
-	@SuppressWarnings("unchecked")
-	public CompoundTag writeCanvasNbt(CompoundTag nbt) {
-		if (this.customName != null) {
-			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
+	protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
+		super.applyImplicitComponents(componentInput);
+		this.customName = componentInput.get(DataComponents.CUSTOM_NAME);
+		var data = componentInput.get(this.canvasType().componentType());
+		if (data != null) {
+			data.into(this.canvases, SyncedCanvas::setCanvas);
 		}
-
-		var encodedNbt = this.canvasType().toNbt((T) this.canvases.mapToCanvas(SyncedCanvas::getCanvas));
-		nbt.merge(encodedNbt);
-
-		return nbt;
 	}
 
-	public interface SidedData extends RenderAttachmentBlockEntity {
+	@Override
+	protected void collectImplicitComponents(DataComponentMap.Builder components) {
+		super.collectImplicitComponents(components);
+		components.set(DataComponents.CUSTOM_NAME, this.customName);
+		components.set(this.canvasType().componentType(), this.getCanvasHolder());
+	}
+
+	public interface SidedData extends RenderDataBlockEntity {
 		void markChanged();
 
 		void onRemoved();
@@ -190,7 +207,7 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 		public void onRemoved() {}
 
 		@Override
-		public @Nullable Object getRenderAttachmentData() {
+		public @Nullable Object getRenderData() {
 			return null;
 		}
 	}
