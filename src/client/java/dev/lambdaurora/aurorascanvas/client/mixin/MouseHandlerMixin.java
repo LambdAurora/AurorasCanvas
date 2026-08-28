@@ -39,7 +39,7 @@ public class MouseHandlerMixin {
 	)
 	private void onScroll(
 			long window, double scrollDeltaX, double scrollDeltaY, CallbackInfo ci,
-			@Local(ordinal = 2) double scrollDelta
+			@Local(ordinal = 2) int scrollDelta
 	) {
 		var player = this.minecraft.player;
 

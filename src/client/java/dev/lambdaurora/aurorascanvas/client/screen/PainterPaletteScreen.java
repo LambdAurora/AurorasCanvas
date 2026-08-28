@@ -37,7 +37,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	public static final Identifier SELECT_HIGHLIGHT_SPRITE = AurorasCanvas.id("palette/select_highlight");
 
 	private static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/container/painter_palette.png");
-	private static final Identifier LOCK_TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/cartography_table.png");
+	private static final Identifier LOCKED_SPRITE = Identifier.withDefaultNamespace("container/cartography_table/locked");
 
 	public PainterPaletteScreen(PainterPaletteMenu handler, Inventory inventory, Component title) {
 		super(handler, inventory, title);
@@ -64,6 +64,8 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
 		this.renderBackground(graphics, mouseX, mouseY, delta);
 
+		graphics.pose().pushPose();
+		graphics.pose().translate(0, 0, 1);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof CanvasToolSlot) {
 				int x = this.getBackgroundX() + slot.x + 24 - 1;
@@ -76,6 +78,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				}
 			}
 		}
+		graphics.pose().popPose();
 
 		super.render(graphics, mouseX, mouseY, delta);
 
@@ -84,11 +87,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 		matrices.translate(this.getBackgroundX(), this.getBackgroundY(), 275);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof LockedSlot) {
-				matrices.pushPose();
-				matrices.translate(slot.x + 24 + 4, slot.y + 4, 0);
-				matrices.scale(.75f, .75f, 1);
-				graphics.blit(LOCK_TEXTURE, 0, 0, 46, 212, 16, 16, 256, 256);
-				matrices.popPose();
+				graphics.blitSprite(LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
 			} else if ((slot instanceof ColorSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedColorSlot())
 					|| (slot instanceof CanvasToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
 				matrices.pushPose();

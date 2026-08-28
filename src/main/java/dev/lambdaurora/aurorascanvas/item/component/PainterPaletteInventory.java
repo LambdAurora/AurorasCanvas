@@ -191,14 +191,14 @@ public final class PainterPaletteInventory implements PainterPaletteInventoryVie
 
 	public Mutable toMutable() {
 		var mutable = new Mutable();
-		mutable.selectedColor = this.selectedColor;
-		mutable.selectedTool = this.selectedTool;
 		for (int i = 0; i < this.colors.size(); i++) {
 			mutable.setItem(i, this.colors.get(i));
 		}
 		for (int i = 0; i < this.tools.size(); i++) {
 			mutable.setItem(COLOR_SIZE + i, this.tools.get(i));
 		}
+		mutable.selectedColor = this.selectedColor;
+		mutable.selectedTool = this.selectedTool;
 		return mutable;
 	}
 
