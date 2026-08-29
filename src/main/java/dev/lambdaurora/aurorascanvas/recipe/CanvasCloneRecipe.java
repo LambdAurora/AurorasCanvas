@@ -11,20 +11,23 @@ package dev.lambdaurora.aurorascanvas.recipe;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Represents the canvas clone recipe.
@@ -55,9 +58,11 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			var stack = inv.getItem(slot);
 
 			if (INPUT.test(stack)) {
-				if (OUTPUT.test(stack) && !this.isInput(stack))
+				var input = this.getInput(stack);
+
+				if (OUTPUT.test(stack) && input.isEmpty())
 					hasOutput = true;
-				else if (this.isInput(stack))
+				else if (input.isPresent())
 					hasInput = true;
 				count++;
 			}
@@ -67,29 +72,47 @@ public class CanvasCloneRecipe extends CustomRecipe {
 
 	@Override
 	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
-		Canvas blackboard = null;
+		CanvasHolder<?> canvases = null;
 		ItemStack output = null;
 		Component customName = null;
 
 		for (int slot = 0; slot < inv.getContainerSize(); ++slot) {
 			var craftStack = inv.getItem(slot);
 			if (!craftStack.isEmpty()) {
-				if (OUTPUT.test(craftStack) && !this.isInput(craftStack)) {
+				var input = this.getInput(craftStack);
+
+				if (OUTPUT.test(craftStack) && input.isEmpty()) {
 					output = craftStack;
-				} else if (this.isInput(craftStack)) {
-					var nbt = BlockItem.getBlockEntityData(craftStack);
-					blackboard = Canvas.fromNbt(nbt);
+				} else if (input.isPresent()) {
+					canvases = input.get();
 					if (craftStack.hasCustomHoverName())
 						customName = craftStack.getHoverName();
 				}
 			}
 		}
 
-
 		var out = output.copy();
 		out.setCount(1);
+
+		if (!(output.getItem() instanceof CanvasItem<?> canvasItem)) {
+			return ItemStack.EMPTY;
+		}
+
+		var outputCanvases = canvasItem.getCanvases(output);
+
+		if (outputCanvases.type().equals(canvases.type())) {
+			var inputCanvasList = canvases.stream().toList();
+			var outputCanvasList = outputCanvases.stream().toList();
+
+			for (int i = 0; i < inputCanvasList.size(); i++) {
+				outputCanvasList.get(i).copy(inputCanvasList.get(i));
+			}
+		} else {
+			outputCanvases.getDefault().copy(canvases.getDefault());
+		}
+
 		var nbt = Utils.getOrCreateBlockEntityNbt(out, AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
-		blackboard.writeNbt(nbt);
+		nbt.merge(outputCanvases.toNbt());
 
 		if (customName != null)
 			out.setHoverName(customName);
@@ -97,19 +120,12 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		return out;
 	}
 
-	private boolean isInput(ItemStack stack) {
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			if (nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-				byte[] pixels = nbt.getByteArray("pixels");
-				for (byte pixel : pixels) {
-					if (pixel != 0) {
-						return true;
-					}
-				}
-			}
+	private Optional<? extends CanvasHolder<?>> getInput(ItemStack stack) {
+		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?>> canvasItem) {
+			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(canvases -> canvases.stream().allMatch(Canvas::isEmpty)));
 		}
-		return false;
+
+		return Optional.empty();
 	}
 
 	@Override
@@ -121,7 +137,7 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			if (!invStack.isEmpty()) {
 				if (invStack.getItem().hasCraftingRemainingItem()) {
 					defaultedList.set(i, new ItemStack(invStack.getItem().getCraftingRemainingItem()));
-				} else if (this.isInput(invStack)) {
+				} else if (this.getInput(invStack).isPresent()) {
 					ItemStack remainder = invStack.copy();
 					remainder.setCount(1);
 					defaultedList.set(i, remainder);
