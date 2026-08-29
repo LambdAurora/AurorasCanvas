@@ -1,2 +1,6 @@
 classTweaker v1 named
 accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
+
+# Client
+accessible method net/minecraft/client/resources/model/BlockStateModelLoader predicate (Lnet/minecraft/world/level/block/state/StateDefinition;Ljava/lang/String;)Ljava/util/function/Predicate;
+accessible method net/minecraft/client/resources/model/ModelBakery registerModelAndLoadDependencies (Lnet/minecraft/client/resources/model/ModelResourceLocation;Lnet/minecraft/client/resources/model/UnbakedModel;)V

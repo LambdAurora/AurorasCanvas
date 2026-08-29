@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.client.model;
 import dev.lambdaurora.aurorascanvas.client.model.glass.UnbakedGlassboardModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.Identifier;
@@ -24,9 +25,12 @@ import java.util.function.Function;
 public class UnbakedCanvasModel implements UnbakedModel {
 	protected final UnbakedModel baseModel;
 
-	public static UnbakedCanvasModel of(Identifier id, UnbakedModel baseModel, Function<Identifier, UnbakedModel> modelConsumer) {
-		if (id.getPath().contains("glass")) {
-			return new UnbakedGlassboardModel(id, baseModel, modelConsumer);
+	public static UnbakedCanvasModel of(
+			ModelResourceLocation id, UnbakedModel baseModel,
+			UnbakedModel missingModel
+	) {
+		if (id.id().getPath().contains("glass")) {
+			return new UnbakedGlassboardModel(id, baseModel, missingModel, Minecraft.getInstance().getResourceManager());
 		} else {
 			return new UnbakedCanvasModel(baseModel);
 		}

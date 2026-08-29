@@ -18,53 +18,134 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.renderer.block.BlockModelShaper;
+import net.minecraft.client.renderer.block.model.BlockModelDefinition;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 	private static final Logger LOGGER = LogUtils.getLogger();
 
-	private final Int2ObjectMap<Identifier> identifiers = new Int2ObjectOpenHashMap<>();
-	private final Set<UnbakedModel> models;
+	private final Int2ObjectMap<UnbakedModel> models;
 
 	public UnbakedGlassboardModel(
-			Identifier id, UnbakedModel baseModel, Function<Identifier, UnbakedModel> modelConsumer
+			ModelResourceLocation id, UnbakedModel baseModel, UnbakedModel missingModel, ResourceManager resourceManager
 	) {
 		super(baseModel);
+		this.models = loadModelParts(id, missingModel, resourceManager);
+	}
+
+	private static Int2ObjectMap<UnbakedModel> loadModelParts(ModelResourceLocation id, UnbakedModel missingModel, ResourceManager resourceManager) {
+		Int2ObjectMap<UnbakedModel> models = new Int2ObjectOpenHashMap<>();
+		var deserializationContext = new BlockModelDefinition.Context();
 
 		String prefix = "";
-		if (id.getPath().contains("waxed")) {
+		if (id.id().getPath().contains("waxed")) {
 			prefix = "waxed/";
 		}
 
-		Block block = BuiltInRegistries.BLOCK.get(AurorasCanvas.id(id.getPath()));
+		Block block = BuiltInRegistries.BLOCK.get(AurorasCanvas.id(id.id().getPath()));
 
-		var models = new HashSet<UnbakedModel>();
 		for (var corner : Corner.CORNERS) {
 			for (var type : Type.TYPES) {
-				var modelId = AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, type));
-				this.identifiers.put(GlassboardModel.getCornerDataIndex(corner, type), modelId);
-				models.add(modelConsumer.apply(modelId));
+				var identifier = new ModelResourceLocation(AurorasCanvas.id(GlassboardModel.getModelPath(prefix, corner, type)), id.variant());
+
+				if (block != Blocks.AIR) {
+					var resourceId = AurorasCanvas.id("blockstates/" + identifier.id().getPath() + ".json");
+					var resource = resourceManager.getResource(resourceId);
+
+					if (resource.isEmpty()) {
+						LOGGER.warn("Could not load glassboard model part ({}, {}): could not locate the blockstate file.", corner, type);
+					} else {
+						try (var reader = new InputStreamReader(resource.get().open())) {
+							deserializationContext.setDefinition(block.getStateDefinition());
+							var definition = BlockModelDefinition.fromStream(deserializationContext, reader);
+
+							if (definition.isMultiPart()) {
+								models.put(GlassboardModel.getCornerDataIndex(corner, type), definition.getMultiPart());
+							} else {
+								models.put(
+										GlassboardModel.getCornerDataIndex(corner, type),
+										loadModelVariants(identifier, deserializationContext, definition, missingModel)
+								);
+							}
+						} catch (IOException e) {
+							LOGGER.warn("Could not load glassboard model part ({}, {}):", corner, type, e);
+						}
+					}
+				}
 			}
 		}
-		this.models = models;
+
+		return models;
+	}
+
+	private static UnbakedModel loadModelVariants(
+			ModelResourceLocation id, BlockModelDefinition.Context context, BlockModelDefinition definition, UnbakedModel missingModel
+	) {
+		final var loaded = new HashMap<ModelResourceLocation, UnbakedModel>();
+
+		definition.getVariants()
+				.forEach(
+						(variant, data) -> {
+							try {
+								context.getDefinition().getPossibleStates().stream()
+										.filter(BlockStateModelLoader.predicate(context.getDefinition(), variant))
+										.forEach(
+												state -> {
+													var key = BlockModelShaper.stateToModelLocation(id.id(), state);
+
+													var loadedModel = loaded.put(key, data);
+													if (loadedModel != null) {
+														loaded.put(key, missingModel);
+														throw new RuntimeException(
+																"Overlapping definition with: "
+																		+ (definition.getVariants().entrySet().stream().filter(entry -> entry.getValue() == loadedModel).findFirst().get())
+																		.getKey()
+														);
+													}
+												}
+										);
+							} catch (Exception e) {
+								LOGGER.warn(
+										"Exception loading blockstate definition: '{}' for variant: '{}': {}",
+										id,
+										variant,
+										e.getMessage()
+								);
+							}
+						}
+				);
+
+		return loaded.getOrDefault(id, missingModel);
+	}
+
+	@Override
+	public Collection<Identifier> getDependencies() {
+		var dependencies = new ArrayList<>(super.getDependencies());
+		this.models.values().stream().map(UnbakedModel::getDependencies).forEach(dependencies::addAll);
+		return dependencies;
 	}
 
 	@Override
 	public void resolveParents(Function<Identifier, UnbakedModel> models) {
 		super.resolveParents(models);
-		this.models.forEach(model -> model.resolveParents(models));
+		this.models.values().forEach(model -> model.resolveParents(models));
 	}
 
 	@Override
@@ -87,7 +168,7 @@ public class UnbakedGlassboardModel extends UnbakedCanvasModel {
 		for (var corner : Corner.CORNERS) {
 			for (var type : Type.TYPES) {
 				int id = GlassboardModel.getCornerDataIndex(corner, type);
-				bakedModels.put(id, baker.bake(this.identifiers.get(id), state));
+				bakedModels.put(id, this.models.get(id).bake(baker, spriteGetter, state));
 			}
 		}
 

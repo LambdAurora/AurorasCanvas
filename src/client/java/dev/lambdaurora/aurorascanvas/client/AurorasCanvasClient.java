@@ -33,6 +33,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -87,7 +89,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			context.modifyModelOnLoad().register((model, ctx) -> {
 				if (ctx.topLevelId() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
 					if (modelId.id().getPath().endsWith("board")) {
-						return UnbakedCanvasModel.of(modelId.id(), model, ctx::getOrLoadModel);
+						return UnbakedCanvasModel.of(modelId, model, ctx.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
 					}
 
 				return model;
