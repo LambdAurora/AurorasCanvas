@@ -15,6 +15,7 @@ import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
 import net.minecraft.network.FriendlyByteBuf;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> implements CanvasHolder<GlassCanvasHolder> {
@@ -64,9 +65,24 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 	}
 
 	@Override
+	public GlassCanvasHolder copy() {
+		var frontClone = new Canvas();
+		frontClone.copy(this.front());
+		var backClone = new Canvas();
+		backClone.copy(this.back());
+		return new GlassCanvasHolder(frontClone, backClone);
+	}
+
+	@Override
 	public void writeBuffer(FriendlyByteBuf buffer) {
 		buffer.writeUtf(this.type().name());
 		CanvasSerialization.writeCanvasToBuffer(buffer, this.front());
 		CanvasSerialization.writeCanvasToBuffer(buffer, this.back());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof GlassCanvasHolder that)) return false;
+		return Objects.equals(this.front(), that.back());
 	}
 }

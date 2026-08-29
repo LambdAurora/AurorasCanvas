@@ -15,6 +15,7 @@ import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
 import net.minecraft.network.FriendlyByteBuf;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> implements CanvasHolder<SimpleCanvasHolder> {
@@ -59,8 +60,21 @@ public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> imp
 	}
 
 	@Override
+	public SimpleCanvasHolder copy() {
+		var clone = new Canvas();
+		clone.copy(this.canvas());
+		return new SimpleCanvasHolder(clone);
+	}
+
+	@Override
 	public void writeBuffer(FriendlyByteBuf buffer) {
 		buffer.writeUtf(this.type().name());
 		CanvasSerialization.writeCanvasToBuffer(buffer, this.canvas());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof SimpleCanvasHolder that)) return false;
+		return Objects.equals(this.canvas(), that.canvas());
 	}
 }

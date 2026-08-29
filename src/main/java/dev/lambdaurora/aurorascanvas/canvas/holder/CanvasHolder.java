@@ -31,6 +31,14 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 	 */
 	Type<H> type();
 
+	/**
+	 * Clones this canvas holder.
+	 *
+	 * @return the cloned canvas holder.
+	 */
+	@Contract(value = "-> new", pure = true)
+	H copy();
+
 	void writeBuffer(FriendlyByteBuf buffer);
 
 	@SuppressWarnings("unchecked")

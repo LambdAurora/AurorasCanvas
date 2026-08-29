@@ -10,7 +10,9 @@
 package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import org.jetbrains.annotations.Contract;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -24,10 +26,12 @@ public class GlassCanvasLikeHolder<T> implements CanvasLikeHolder<T> {
 		this.back = back;
 	}
 
+	@Contract(pure = true)
 	public T front() {
 		return this.front;
 	}
 
+	@Contract(pure = true)
 	public T back() {
 		return this.back;
 	}
@@ -58,5 +62,16 @@ public class GlassCanvasLikeHolder<T> implements CanvasLikeHolder<T> {
 			consumer.accept(actualOther.front, this.front);
 			consumer.accept(actualOther.back, this.back);
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof GlassCanvasLikeHolder<?> that)) return false;
+		return Objects.equals(this.front, that.front) && Objects.equals(this.back, that.back);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.front, this.back);
 	}
 }
