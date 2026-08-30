@@ -12,7 +12,6 @@ package dev.lambdaurora.aurorascanvas.client;
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
-import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasModelLayers;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
 import dev.lambdaurora.aurorascanvas.client.model.entity.EaselEntityModel;
@@ -89,9 +88,9 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 					if (modelId.getPath().endsWith("board")) {
 						return UnbakedCanvasModel.of(modelId, model,
 								(partId, m) -> {
-									var modelLoader = (ModelBakeryAccessor) ctx.loader();
-									modelLoader.invokeCacheAndQueueDependencies(partId, m);
-									modelLoader.getTopLevelModels().put(partId, m);
+									var modelLoader = ctx.loader();
+									modelLoader.cacheAndQueueDependencies(partId, m);
+									modelLoader.topLevelModels.put(partId, m);
 								}
 						);
 					}

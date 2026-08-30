@@ -17,9 +17,19 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
+import java.nio.ByteBuffer;
 import java.util.function.Function;
 
 public final class Utils {
+	public static final Codec<byte[]> BYTE_ARRAY_CODEC = Codec.BYTE_BUFFER.xmap(buffer -> {
+		if (buffer.hasArray()) {
+			return buffer.array();
+		}
+		var bytes = new byte[buffer.limit()];
+		buffer.get(bytes);
+		return bytes;
+	}, ByteBuffer::wrap);
+
 	private Utils() {
 		throw new UnsupportedOperationException("Utils only contains static definitions.");
 	}

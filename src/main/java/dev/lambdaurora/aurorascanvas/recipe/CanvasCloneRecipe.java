@@ -12,6 +12,7 @@ package dev.lambdaurora.aurorascanvas.recipe;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.NonNullList;
@@ -19,6 +20,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -28,6 +30,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Represents the canvas clone recipe.
@@ -37,7 +40,10 @@ import java.util.function.Predicate;
  * @since 1.0.0
  */
 public class CanvasCloneRecipe extends CustomRecipe {
-	private static final Ingredient INPUT = Ingredient.of(AurorasCanvasRegistry.CANVAS_ITEMS);
+	private static final Ingredient INPUT = Ingredient.fromValues(Stream.of(
+			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_ITEMS),
+			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_COMPATIBLE_ITEMS)
+	));
 	private static final Ingredient OUTPUT = Ingredient.of(
 			AurorasCanvasRegistry.BLACKBOARD,
 			AurorasCanvasRegistry.CHALKBOARD,
@@ -123,6 +129,10 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	private Optional<? extends CanvasHolder<?>> getInput(ItemStack stack) {
 		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?>> canvasItem) {
 			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(canvases -> canvases.stream().allMatch(Canvas::isEmpty)));
+		} else if (stack.getItem().getClass().getName().equals("net.mehvahdjukaar.supplementaries.common.items.BlackboardItem")) {
+			var blockEntityData = BlockItem.getBlockEntityData(stack);
+			if (blockEntityData == null) return Optional.empty();
+			return SupplementariesCompat.canvasHolderFromNbt(blockEntityData);
 		}
 
 		return Optional.empty();

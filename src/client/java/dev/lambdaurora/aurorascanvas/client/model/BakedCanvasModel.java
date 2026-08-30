@@ -17,7 +17,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,7 +48,7 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 	}
 
 	protected void emitBlockMesh(BlockAndTintGetter world, BlockPos pos, RenderContext context) {
-		var attachment = ((RenderAttachedBlockView) world).getBlockEntityRenderAttachment(pos);
+		var attachment = world.getBlockEntityRenderData(pos);
 		if (attachment instanceof ClientCanvasBlockEntityData.RenderAttachmentData data) {
 			data.meshes().forEach(mesh -> mesh.outputTo(context.getEmitter()));
 		}

@@ -211,6 +211,7 @@ public final class AurorasCanvasRegistry {
 
 	public static final TagKey<Item> CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("canvases"));
 	public static final TagKey<Item> WAXED_CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("waxed_canvases"));
+	public static final TagKey<Item> CANVAS_COMPATIBLE_ITEMS = TagKey.create(Registries.ITEM, id("compatible_canvases"));
 
 	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));

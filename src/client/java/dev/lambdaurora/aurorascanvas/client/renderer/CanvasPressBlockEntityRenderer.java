@@ -16,7 +16,6 @@ import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
-import dev.lambdaurora.aurorascanvas.client.mixin.ModelBakeryAccessor;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedVariantModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -114,15 +113,15 @@ public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<Canva
 			if (firstRun[0]) {
 				firstRun[0] = false;
 
-				var modelLoader = (ModelBakeryAccessor) ctx.loader();
+				var modelLoader = ctx.loader();
 
 				var pressModel = initModel(PRESS_PLATE_ID, PRESS_PLATE_MODEL_ID);
-				modelLoader.invokeCacheAndQueueDependencies(PRESS_PLATE_MODEL_ID, pressModel);
-				modelLoader.getTopLevelModels().put(PRESS_PLATE_MODEL_ID, pressModel);
+				modelLoader.cacheAndQueueDependencies(PRESS_PLATE_MODEL_ID, pressModel);
+				modelLoader.topLevelModels.put(PRESS_PLATE_MODEL_ID, pressModel);
 
 				var screwModel = initModel(SCREW_ID, SCREW_MODEL_ID);
-				modelLoader.invokeCacheAndQueueDependencies(SCREW_MODEL_ID, screwModel);
-				modelLoader.getTopLevelModels().put(SCREW_MODEL_ID, screwModel);
+				modelLoader.cacheAndQueueDependencies(SCREW_MODEL_ID, screwModel);
+				modelLoader.topLevelModels.put(SCREW_MODEL_ID, screwModel);
 			}
 
 			return model;

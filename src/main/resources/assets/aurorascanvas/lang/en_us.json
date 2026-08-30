@@ -30,6 +30,7 @@
 	"item.aurorascanvas.painter_palette": "Painter's Palette",
 	"subtitles.entity.aurorascanvas.easel.fall": "Something fell",
 	"tag.aurorascanvas.canvases": "Canvases",
+	"tag.aurorascanvas.compatible_canvases": "Canvases-like",
 	"tag.aurorascanvas.waxed_canvases": "Waxed Canvases",
 	"modmenu.bluesky": "Bluesky"
 }

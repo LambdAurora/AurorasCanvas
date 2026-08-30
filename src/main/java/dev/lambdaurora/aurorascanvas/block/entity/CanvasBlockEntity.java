@@ -17,7 +17,7 @@ import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.yumi.commons.event.Event;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -35,7 +35,7 @@ import java.lang.ref.WeakReference;
 import java.util.stream.Stream;
 
 public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends CanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>>
-		extends BasicBlockEntity implements Nameable, RenderAttachmentBlockEntity {
+		extends BasicBlockEntity implements Nameable, RenderDataBlockEntity {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
 			SidedLogic.class,
 			sidedLogics -> blockEntity -> {
@@ -133,8 +133,8 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	/* Client */
 
 	@Override
-	public @Nullable Object getRenderAttachmentData() {
-		return this.sidedData.getRenderAttachmentData();
+	public @Nullable Object getRenderData() {
+		return this.sidedData.getRenderData();
 	}
 
 	/* Serialization */
@@ -172,7 +172,7 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 		return nbt;
 	}
 
-	public interface SidedData extends RenderAttachmentBlockEntity {
+	public interface SidedData extends RenderDataBlockEntity {
 		void markChanged();
 
 		void onRemoved();
@@ -190,7 +190,7 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 		public void onRemoved() {}
 
 		@Override
-		public @Nullable Object getRenderAttachmentData() {
+		public @Nullable Object getRenderData() {
 			return null;
 		}
 	}

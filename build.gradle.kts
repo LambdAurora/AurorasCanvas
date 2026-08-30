@@ -64,6 +64,7 @@ repositories {
 }
 
 loom {
+	accessWidenerPath = file("src/main/resources/aurorascanvas.classtweaker")
 	splitEnvironmentSourceSets()
 	mixin {
 		useLegacyMixinAp = false
