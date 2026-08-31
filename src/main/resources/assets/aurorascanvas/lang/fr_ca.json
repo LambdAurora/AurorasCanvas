@@ -30,6 +30,7 @@
 	"item.aurorascanvas.painter_palette": "Palette de peintre",
 	"subtitles.entity.aurorascanvas.easel.fall": "Quelque chose est tombé",
 	"tag.aurorascanvas.canvases": "Supports de dessin",
+	"tag.aurorascanvas.compatible_canvases": "Supports de dessin compatibles",
 	"tag.aurorascanvas.waxed_canvases": "Supports de dessin cirés",
 	"modmenu.bluesky": "Bluesky"
 }

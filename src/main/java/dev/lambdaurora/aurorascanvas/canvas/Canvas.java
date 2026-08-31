@@ -9,9 +9,6 @@
 
 package dev.lambdaurora.aurorascanvas.canvas;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -221,30 +218,5 @@ public final class Canvas implements CanvasHandler {
 	@Override
 	public int hashCode() {
 		return Objects.hash(Arrays.hashCode(this.pixels), this.glowing);
-	}
-
-	/* Serialization */
-
-	public CompoundTag toNbt() {
-		var encoded = CanvasSerialization.CANVAS_CODEC.encodeStart(NbtOps.INSTANCE, this)
-				.getOrThrow();
-
-		if (!(encoded instanceof CompoundTag encodedNbt))
-			throw new IllegalStateException("Canvas codec did not encode into a NBT compound.");
-
-		return encodedNbt;
-	}
-
-	public CompoundTag writeNbt(CompoundTag nbt) {
-		var encodedNbt = this.toNbt();
-
-		nbt.merge(encodedNbt);
-
-		return nbt;
-	}
-
-	public static Canvas fromNbt(CompoundTag nbt) {
-		return CanvasSerialization.CANVAS_CODEC.parse(NbtOps.INSTANCE, nbt)
-				.result().orElseGet(Canvas::new);
 	}
 }

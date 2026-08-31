@@ -11,5 +11,8 @@
 - Added Painter's Palette - a useful item to hold all your drawing materials!
 - Added Easel - an entity to put a canvas up for display.
 - Added a GUI to edit canvas, right-click with a Painter's Palette on an Easel that has a canvas.
+- Added some integration with Supplementaries' blackboards:
+  - If the mod is present, you can clone a Supplementaries blackboard to a canvas.
+  - If the mod is not present, the Supplementaries blackboards are converted to canvases to avoid any loss.
 
 [Yumi Minecraft Libraries: Foundation]: https://github.com/YumiProject/yumi-minecraft-foundation-library "Yumi Minecraft Foundation Library page"

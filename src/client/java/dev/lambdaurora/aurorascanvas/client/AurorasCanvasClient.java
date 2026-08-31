@@ -24,7 +24,8 @@ import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
 import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
-import net.fabricmc.api.ClientModInitializer;
+import dev.yumi.mc.core.api.ModContainer;
+import dev.yumi.mc.core.api.entrypoint.client.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
@@ -33,7 +34,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.Identifier;
@@ -50,7 +50,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 	public static final Identifier BLACKBOARD_MASK = AurorasCanvas.id("item/blackboard_mask");
 
 	@Override
-	public void onInitializeClient() {
+	public void onInitializeClient(ModContainer mod) {
 		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
 				GLASSBOARD.block().value(),
 				WAXED_GLASSBOARD.block().value()

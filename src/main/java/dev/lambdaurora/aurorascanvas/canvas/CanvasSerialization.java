@@ -11,27 +11,18 @@ package dev.lambdaurora.aurorascanvas.canvas;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lambdaurora.aurorascanvas.util.Utils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-import java.nio.ByteBuffer;
-
 public final class CanvasSerialization {
 	public static int MAX_PIXELS_BYTES = 2 * CanvasHandler.PIXELS_COUNT;
 
-	private static final Codec<byte[]> BYTE_ARRAY_CODEC = Codec.BYTE_BUFFER.xmap(buffer -> {
-		if (buffer.hasArray()) {
-			return buffer.array();
-		}
-		var bytes = new byte[buffer.limit()];
-		buffer.get(bytes);
-		return bytes;
-	}, ByteBuffer::wrap);
 	private static final Codec<RawCanvas> RAW_CANVAS_CODEC = RecordCodecBuilder.create(instance -> instance.group(
 					Codec.INT.optionalFieldOf("version", 0).forGetter(RawCanvas::version),
-					BYTE_ARRAY_CODEC.optionalFieldOf("pixels", new byte[0]).forGetter(RawCanvas::pixels),
+					Utils.BYTE_ARRAY_CODEC.optionalFieldOf("pixels", new byte[0]).forGetter(RawCanvas::pixels),
 					Codec.BOOL.optionalFieldOf("lit", false).forGetter(RawCanvas::glowing)
 			).apply(instance, RawCanvas::new)
 	);

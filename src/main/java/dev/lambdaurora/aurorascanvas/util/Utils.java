@@ -9,7 +9,20 @@
 
 package dev.lambdaurora.aurorascanvas.util;
 
+import com.mojang.serialization.Codec;
+
+import java.nio.ByteBuffer;
+
 public final class Utils {
+	public static final Codec<byte[]> BYTE_ARRAY_CODEC = Codec.BYTE_BUFFER.xmap(buffer -> {
+		if (buffer.hasArray()) {
+			return buffer.array();
+		}
+		var bytes = new byte[buffer.limit()];
+		buffer.get(bytes);
+		return bytes;
+	}, ByteBuffer::wrap);
+
 	private Utils() {
 		throw new UnsupportedOperationException("Utils only contains static definitions.");
 	}

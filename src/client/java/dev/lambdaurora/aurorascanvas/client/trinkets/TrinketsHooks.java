@@ -12,8 +12,9 @@ package dev.lambdaurora.aurorascanvas.client.trinkets;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.client.TrinketRendererRegistry;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
+import dev.yumi.mc.core.api.ModContainer;
+import dev.yumi.mc.core.api.YumiMods;
+import dev.yumi.mc.core.api.entrypoint.client.ClientModInitializer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
@@ -29,10 +30,10 @@ import net.minecraft.world.item.ItemStack;
 import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
 
 public final class TrinketsHooks implements ClientModInitializer {
-	private static final boolean HAS_TRINKETS = FabricLoader.getInstance().isModLoaded("trinkets");
+	private static final boolean HAS_TRINKETS = YumiMods.get().isModLoaded("trinkets");
 
 	@Override
-	public void onInitializeClient() {
+	public void onInitializeClient(ModContainer mod) {
 		init(
 				BLACKBOARD.asItem(), WAXED_BLACKBOARD.asItem(),
 				CHALKBOARD.asItem(), WAXED_CHALKBOARD.asItem(),

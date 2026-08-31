@@ -9,11 +9,13 @@
 
 package dev.lambdaurora.aurorascanvas;
 
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
 import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.lambdaurora.aurorascanvas.network.CanvasEditSubmitPayload;
 import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
-import net.fabricmc.api.ModInitializer;
+import dev.yumi.mc.core.api.ModContainer;
+import dev.yumi.mc.core.api.entrypoint.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
 
@@ -28,7 +30,7 @@ public final class AurorasCanvas implements ModInitializer {
 	public static final String NAMESPACE = "aurorascanvas";
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize(ModContainer mod) {
 		AurorasCanvasRegistry.init();
 
 		ItemTree.init();
@@ -41,6 +43,8 @@ public final class AurorasCanvas implements ModInitializer {
 				PainterPaletteScrollPayload.TYPE,
 				AurorasCanvasNetworking::handlePainterPaletteScroll
 		);
+
+		SupplementariesCompat.init();
 	}
 
 	public static Identifier id(String path) {

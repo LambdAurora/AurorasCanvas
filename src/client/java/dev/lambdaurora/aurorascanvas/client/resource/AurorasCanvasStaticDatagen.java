@@ -16,6 +16,7 @@ import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
 import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
@@ -128,6 +129,9 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 			this.tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("trinkets", "head/face")))
 					.addTag(CANVAS_ITEMS);
+
+			this.tag(CANVAS_COMPATIBLE_ITEMS)
+					.addOptional(Identifier.fromNamespaceAndPath(SupplementariesCompat.NAMESPACE, "blackboard"));
 		}
 	}
 

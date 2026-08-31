@@ -61,6 +61,19 @@ repositories {
 			includeGroupAndSubgroups("com.terraformersmc")
 		}
 	}
+
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = uri("https://api.modrinth.com/maven")
+			}
+		}
+		// forRepositories(fg.repository) // Uncomment when using ForgeGradle
+		filter {
+			includeGroup("maven.modrinth")
+		}
+	}
 }
 
 loom {
@@ -101,6 +114,8 @@ dependencies {
 		exclude(group = libs.fabric.loader.get().group)
 		exclude(group = libs.fabric.api.get().group)
 	}
+
+	compileOnly("maven.modrinth:fFEIiSDQ:Uds6VJIs")
 }
 
 java {

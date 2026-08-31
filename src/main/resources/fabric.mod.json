@@ -16,10 +16,10 @@
 	"icon": "assets/aurorascanvas/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
+		"yumi:init": [
 			"dev.lambdaurora.aurorascanvas.AurorasCanvas"
 		],
-		"client": [
+		"yumi:client_init": [
 			"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient",
 			"dev.lambdaurora.aurorascanvas.client.trinkets.TrinketsHooks"
 		],
@@ -39,7 +39,7 @@
 		"fabricloader": ">=0.18.0",
 		"minecraft": "~1.21 <1.21.2-",
 		"java": ">=21",
-		"fabric-api": ">=0.116.5+1.21.1",
+		"fabric-api": ">=0.116.6+1.21.1",
 		"spruceui": ">=6.2.5+1.21.1"
 	},
 	"custom": {

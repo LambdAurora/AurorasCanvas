@@ -13,13 +13,19 @@ import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
+import dev.yumi.commons.event.Event;
+import dev.yumi.mc.core.api.YumiEvents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Represents the canvas clone recipe.
@@ -29,7 +35,23 @@ import net.minecraft.world.level.Level;
  * @since 1.0.0
  */
 public class CanvasCloneRecipe extends CustomRecipe {
-	private static final Ingredient INPUT = Ingredient.of(AurorasCanvasRegistry.CANVAS_ITEMS);
+	public static final Event<Identifier, InputGetter> INPUT_GETTER_EVENT = YumiEvents.EVENTS.create(InputGetter.class,
+			listeners -> stack -> {
+				for (var listener : listeners) {
+					var result = listener.getInput(stack);
+
+					if (result.isPresent()) {
+						return result;
+					}
+				}
+
+				return Optional.empty();
+			});
+
+	private static final Ingredient INPUT = Ingredient.fromValues(Stream.of(
+			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_ITEMS),
+			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_COMPATIBLE_ITEMS)
+	));
 	private static final Ingredient OUTPUT = Ingredient.of(
 			AurorasCanvasRegistry.BLACKBOARD,
 			AurorasCanvasRegistry.CHALKBOARD,
@@ -50,9 +72,11 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			var stack = input.getItem(slot);
 
 			if (INPUT.test(stack)) {
-				if (OUTPUT.test(stack) && !this.isInput(stack))
+				var inputCanvases = this.getInput(stack);
+
+				if (OUTPUT.test(stack) && inputCanvases.isEmpty())
 					hasOutput = true;
-				else if (this.isInput(stack))
+				else if (inputCanvases.isPresent())
 					hasInput = true;
 				count++;
 			}
@@ -62,15 +86,14 @@ public class CanvasCloneRecipe extends CustomRecipe {
 
 	@Override
 	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-		Canvas blackboard = null;
 		ItemStack output = null;
-		CanvasHolder<?> holder = null;
-		Component customName = null;
 
 		for (int slot = 0; slot < input.size(); ++slot) {
 			var craftStack = input.getItem(slot);
 			if (!craftStack.isEmpty()) {
-				if (OUTPUT.test(craftStack) && !this.isInput(craftStack)) {
+				var inputCanvases = this.getInput(craftStack);
+
+				if (OUTPUT.test(craftStack) && inputCanvases.isEmpty()) {
 					output = craftStack;
 				}
 			}
@@ -82,12 +105,21 @@ public class CanvasCloneRecipe extends CustomRecipe {
 
 		for (int slot = 0; slot < input.size(); ++slot) {
 			var craftStack = input.getItem(slot);
-			if (this.isInput(craftStack) && craftStack.getItem() instanceof CanvasItem<?> canvasItem) {
-				var canvases = craftStack.get(canvasItem.canvasType().componentType());
+			var inputCanvases = this.getInput(craftStack);
 
-				if (canvases != null) {
-					canvases.copy().setOnStack(out);
+			if (inputCanvases.isPresent() && out.getItem() instanceof CanvasItem<?> canvasItem) {
+				var canvases = inputCanvases.get();
+
+				var outputCanvases = canvasItem.getCanvases(out);
+
+				if (outputCanvases.type().equals(canvases.type())) {
+					outputCanvases = canvases.copy();
+				} else {
+					outputCanvases.getDefault().copy(canvases.getDefault());
 				}
+
+				outputCanvases.setOnStack(out);
+
 				if (craftStack.has(DataComponents.CUSTOM_NAME)) {
 					out.set(DataComponents.CUSTOM_NAME, craftStack.get(DataComponents.CUSTOM_NAME));
 				}
@@ -97,8 +129,12 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		return out;
 	}
 
-	private boolean isInput(ItemStack stack) {
-		return stack.has(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE) || stack.has(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
+	private Optional<? extends CanvasHolder<?>> getInput(ItemStack stack) {
+		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?>> canvasItem) {
+			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(canvases -> canvases.stream().allMatch(Canvas::isEmpty)));
+		}
+
+		return INPUT_GETTER_EVENT.invoker().getInput(stack);
 	}
 
 	@Override
@@ -110,7 +146,7 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			if (!invStack.isEmpty()) {
 				if (invStack.getItem().hasCraftingRemainingItem()) {
 					defaultedList.set(i, new ItemStack(invStack.getItem().getCraftingRemainingItem()));
-				} else if (this.isInput(invStack)) {
+				} else if (this.getInput(invStack).isPresent()) {
 					ItemStack remainder = invStack.copy();
 					remainder.setCount(1);
 					defaultedList.set(i, remainder);
@@ -130,5 +166,9 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	@Override
 	public RecipeSerializer<?> getSerializer() {
 		return AurorasCanvasRegistry.CANVAS_CLONE_RECIPE_SERIALIZER;
+	}
+
+	public interface InputGetter {
+		Optional<? extends CanvasHolder<?>> getInput(ItemStack stack);
 	}
 }

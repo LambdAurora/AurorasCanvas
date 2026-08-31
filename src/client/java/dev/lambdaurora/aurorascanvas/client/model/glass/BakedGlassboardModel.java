@@ -37,11 +37,6 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 		this.models = models;
 	}
 
-	@Override
-	public boolean isVanillaAdapter() {
-		return false;
-	}
-
 	private int isBlockSame(BlockAndTintGetter world, BlockPos pos, BlockState state, int mask) {
 		BlockState neighborState = world.getBlockState(pos);
 		if (neighborState.is(state.getBlock())) {

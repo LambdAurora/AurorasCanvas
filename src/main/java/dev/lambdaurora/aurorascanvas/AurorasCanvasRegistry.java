@@ -17,9 +17,11 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.canvas.holder.ExtraCompatibleSimpleCanvasesCodec;
 import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
@@ -89,7 +91,10 @@ public final class AurorasCanvasRegistry {
 	public static final DataComponentType<SimpleCanvasHolder> CANVAS_COMPONENT_TYPE = Registry.register(
 			BuiltInRegistries.DATA_COMPONENT_TYPE,
 			id("canvas"),
-			DataComponentType.<SimpleCanvasHolder>builder().persistent(SimpleCanvasHolder.CODEC).networkSynchronized(SimpleCanvasHolder.STREAM_CODEC).build()
+			DataComponentType.<SimpleCanvasHolder>builder()
+					.persistent(new ExtraCompatibleSimpleCanvasesCodec(SimpleCanvasHolder.CODEC, SupplementariesCompat.CODEC))
+					.networkSynchronized(SimpleCanvasHolder.STREAM_CODEC)
+					.build()
 	);
 	public static final DataComponentType<GlassCanvasHolder> GLASS_CANVAS_COMPONENT_TYPE = Registry.register(
 			BuiltInRegistries.DATA_COMPONENT_TYPE,
@@ -236,6 +241,7 @@ public final class AurorasCanvasRegistry {
 
 	public static final TagKey<Item> CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("canvases"));
 	public static final TagKey<Item> WAXED_CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("waxed_canvases"));
+	public static final TagKey<Item> CANVAS_COMPATIBLE_ITEMS = TagKey.create(Registries.ITEM, id("compatible_canvases"));
 
 	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
