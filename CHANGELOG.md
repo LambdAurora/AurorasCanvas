@@ -15,4 +15,9 @@
   - If the mod is present, you can clone a Supplementaries blackboard to a canvas.
   - If the mod is not present, the Supplementaries blackboards are converted to canvases to avoid any loss.
 
+## 1.1.0
+
+- Updated to Minecraft 1.21.
+  - Ensured proper datafixing of worlds using Aurora's Canvas or Aurora's Decorations on 1.20 or earlier.
+
 [Yumi Minecraft Libraries: Foundation]: https://github.com/YumiProject/yumi-minecraft-foundation-library "Yumi Minecraft Foundation Library page"
