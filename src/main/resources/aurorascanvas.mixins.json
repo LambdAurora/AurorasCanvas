@@ -5,8 +5,9 @@
 	"mixins": [
 		"BlockEntityMixin",
 		"HoneycombItemMixin",
-		"IdentifierMixin",
-		"IronBarsBlockMixin"
+		"IronBarsBlockMixin",
+		"ItemStackMixin",
+		"MappedRegistryMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

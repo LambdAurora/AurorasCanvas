@@ -9,6 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas;
 
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.item.tree.ItemTree;
 import dev.lambdaurora.aurorascanvas.network.AurorasCanvasNetworking;
 import dev.yumi.commons.event.EventManager;
@@ -41,6 +42,8 @@ public final class AurorasCanvas implements ModInitializer {
 				AurorasCanvasNetworking.PAINTER_PALETTE_SCROLL,
 				AurorasCanvasNetworking::handlePainterPaletteScroll
 		);
+
+		SupplementariesCompat.init();
 	}
 
 	public static Identifier id(String path) {

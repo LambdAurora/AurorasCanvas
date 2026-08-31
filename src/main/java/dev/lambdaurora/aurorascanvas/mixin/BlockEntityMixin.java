@@ -11,10 +11,12 @@ package dev.lambdaurora.aurorascanvas.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
+import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,13 +35,16 @@ public class BlockEntityMixin {
 			)
 	)
 	private static Optional aurorascanvas$backwardsCompat(
-			Registry<BlockEntity> instance, Identifier id, Operation<Optional> original, BlockPos pos, BlockState state
+			Registry<BlockEntity> instance, Identifier id, Operation<Optional> original, BlockPos pos, BlockState state, CompoundTag nbt
 	) {
-		if (id.getNamespace().equals(AurorasCanvas.NAMESPACE) && id.getPath().equals("blackboard")) {
+		if (id.getNamespace().equals(AurorasDecoDataUpper.OLD_NAMESPACE) && id.getPath().equals("blackboard")) {
 			if (state.is(AurorasCanvasRegistry.GLASSBOARD.block().value()) || state.is(AurorasCanvasRegistry.GLASSBOARD.block().value())) {
 				return Optional.of(AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE);
 			}
 
+			return Optional.of(AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
+		} else if (SupplementariesCompat.SHOULD_DATAFIX && id.getNamespace().equals(SupplementariesCompat.NAMESPACE) && id.getPath().equals("blackboard")) {
+			SupplementariesCompat.fixNbt(nbt);
 			return Optional.of(AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
 		} else {
 			return original.call(instance, id);

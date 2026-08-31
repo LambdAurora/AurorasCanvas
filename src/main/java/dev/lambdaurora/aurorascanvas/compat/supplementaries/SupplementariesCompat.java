@@ -11,22 +11,36 @@ package dev.lambdaurora.aurorascanvas.compat.supplementaries;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lambdaurora.aurorascanvas.AurorasCanvasIds;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasPixel;
 import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
+import dev.lambdaurora.aurorascanvas.util.FabricRegistry;
 import dev.lambdaurora.aurorascanvas.util.Utils;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.Identifier;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.LongStream;
 
+/**
+ * Represents utilities related to Supplementaries' integration.
+ *
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public final class SupplementariesCompat {
 	public static final String NAMESPACE = "supplementaries";
+
+	public static final boolean SHOULD_DATAFIX = !FabricLoader.getInstance().isModLoaded(NAMESPACE);
 
 	private static final Codec<byte[]> MATRIX_CODEC_OR_LEGACY = Utils.codecWithAlternative(
 			Codec.LONG_STREAM.xmap(LongStream::toArray, Arrays::stream)
@@ -127,6 +141,24 @@ public final class SupplementariesCompat {
 		});
 	}
 
+	public static void fixNbt(CompoundTag nbt) {
+		canvasHolderFromNbt(nbt).ifPresent(canvases -> {
+			// Clean up leftovers.
+			nbt.remove("values");
+			nbt.remove("Pixels");
+			nbt.remove("glow");
+			nbt.remove("waxed");
+			nbt.remove("Waxed");
+			// Merge the new NBT.
+			nbt.merge(canvases.toNbt());
+		});
+	}
+
+	public static void init() {
+		if (SHOULD_DATAFIX) {
+			((FabricRegistry) BuiltInRegistries.BLOCK).aurorascanvas$addAlias(new Identifier(NAMESPACE, "blackboard"), AurorasCanvasIds.BLACKBOARD_ID);
+		}
+	}
 
 	public record Raw(short[] pixels, boolean glow, boolean waxed) {
 	}

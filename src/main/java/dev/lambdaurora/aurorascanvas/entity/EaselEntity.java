@@ -204,7 +204,7 @@ public class EaselEntity extends LivingEntity {
 	}
 
 	public void submit(ServerPlayer player, CanvasHolder<?> canvas) {
-		if (this.fixed || this.isRemoved() || this.getItem().isEmpty()) return;
+		if (this.fixed || this.isRemoved() || this.getItem().isEmpty() || this.getItem().is(WAXED_CANVAS_ITEMS)) return;
 
 		var canvasStack = this.getItem();
 		var encodedNbt = canvas.toNbt();

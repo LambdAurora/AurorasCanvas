@@ -17,6 +17,7 @@ import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.GlassCanvasBlockEntity;
 import dev.lambdaurora.aurorascanvas.block.entity.SimpleCanvasBlockEntity;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import dev.lambdaurora.aurorascanvas.dispenser.CanvasDispenseItemBehavior;
 import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
 import dev.lambdaurora.aurorascanvas.item.EaselEntityItem;
@@ -293,5 +294,7 @@ public final class AurorasCanvasRegistry {
 		DispenserBlock.registerBehavior(WAXED_GLASSBOARD.item(), CanvasDispenseItemBehavior.INSTANCE);
 
 		AurorasCanvasSoundEvents.init();
+
+		AurorasDecoDataUpper.init();
 	}
 }

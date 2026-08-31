@@ -14,11 +14,53 @@ A mod all about drawing and self-expression.
 ## 📖 What's this mod?
 
 Originally part of Aurora's Decorations, Aurora's Canvas is focusing on drawing and self-expression,
-bringing to the game blackboards and glassboards!
+bringing to the game different kinds of canvases like blackboards or glassboards!
 
 ![Quick Overview](assets/overview.png)
 
 ## 📋 Features
+
+### 🖼️ Canvases
+
+### 🎨 Painter's Palette
+
+### 🖼️ Easel
+
+### 🖌️ Drawing
+
+There are multiple ways to draw on canvases, either through in-world interactions or through interacting with an [Easel].
+
+#### Drawing in-world
+
+To draw on a canvas use a dye or a [Painter's Palette] on it in-game, it will color the targeted pixel.
+You can shade a pixel using bone meal to lighten it, or coal to darken it;
+and you can use glowstone dust to toggle the saturation state of a pixel.
+
+To draw multiple things at once, you can hold in your off-hand:
+
+- a brush;
+- a bucket to fill an area;
+- an ender-pearl to replace a color;
+- a stick to draw lines.
+
+To erase a canvas you can either:
+
+- put it in water;
+- use a water bucket on it;
+- use a water potion on it, will consume the water in the bottle;
+- place a non-waxed canvas in water.
+
+You also can erase a single pixel with paper.
+
+A canvas can glow in the dark if a glow ink sac is used on it, to stop the glow a normal ink sac can be used.
+
+Once you are satisfied with your drawing you can use wax it using honeycomb, either by right-clicking it.
+Waxed canvases cannot be edited.
+
+#### Drawing on Easel
+
+Simply right-click with a [Painter's Palette] on an [Easel] displaying a canvas, it will open a drawing GUI!
+The colors and tools available depend on what you've put in your [Painter's Palette].
 
 ## 📖 Usage
 
@@ -38,6 +80,9 @@ Aurora's Canvas is compatible with some versions of Aurora's Decorations.
 The mod is also backwards compatible with worlds that used older versions of Aurora's Decorations,
 which means any placed blackboards that were from Aurora's Decorations which are now present in this mod will
 not be lost!
+
+If Supplementaries is present, its blackboards can be used in the copy recipe to copy towards this mod's canvases.  
+If Supplementaries is not present, any existing Supplementaries blackboards will be automatically be preserved and converted into this mod's canvases.
 
 <!-- modrinth_exclude.long_start -->
 ## Downloads
@@ -62,3 +107,5 @@ GitHub
 [Mod loader: Fabric]: https://img.shields.io/badge/modloader-Fabric-1976d2?style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAFHGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDIgNzkuMTYwOTI0LCAyMDE3LzA3LzEzLTAxOjA2OjM5ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOCAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDE4LTEyLTE2VDE2OjU0OjE3LTA4OjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAxOS0wNy0yOFQyMToxNzo0OC0wNzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAxOS0wNy0yOFQyMToxNzo0OC0wNzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowZWRiMWMyYy1mZjhjLWU0NDEtOTMxZi00OTVkNGYxNGM3NjAiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MGVkYjFjMmMtZmY4Yy1lNDQxLTkzMWYtNDk1ZDRmMTRjNzYwIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6MGVkYjFjMmMtZmY4Yy1lNDQxLTkzMWYtNDk1ZDRmMTRjNzYwIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDowZWRiMWMyYy1mZjhjLWU0NDEtOTMxZi00OTVkNGYxNGM3NjAiIHN0RXZ0OndoZW49IjIwMTgtMTItMTZUMTY6NTQ6MTctMDg6MDAiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE4IChXaW5kb3dzKSIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4/HiGMAAAAtUlEQVRYw+XXrQqAMBQF4D2P2eBL+QIG8RnEJFaNBjEum+0+zMQLtwwv+wV3ZzhhMDgfJ0wUSinxZUQWgKos1JP/AbD4OneIDyQPwCFniA+EJ4CaXm4TxAXCC0BNHgLhAdAnx9hC8PwGSRtAFVMQjF7cNTWED8B1cgwW20yfJgAvrssAsZ1cB3g/xckAxr6FmCDU5N6f488BrpCQ4rQBJkiMYh4ACmLzwOQF0CExinkCsvw7vgGikl+OotaKRwAAAABJRU5ErkJggg==
 [Fabric API]: https://modrinth.com/mod/fabric-api "Fabric API Modrinth page"
 [Forgified Fabric API]: https://modrinth.com/mod/forgified-fabric-api "Forgified Fabric API Modrinth page"
+[Painter's Palette]: #-painters-palette
+[Easel]: #-easel
