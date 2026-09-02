@@ -10,7 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.tooltip;
 
 import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
-import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
+import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import dev.lambdaurora.aurorascanvas.item.PainterPaletteItem;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import net.fabricmc.api.EnvType;
@@ -106,7 +106,7 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 			GuiGraphics graphics, ItemStack stack,
 			int index, boolean start, boolean end
 	) {
-		graphics.blitSprite(PainterPaletteScreen.SLOT_SPRITE, 1, 1, 0, 18, 18);
+		graphics.blitSprite(SpriteIds.SLOT_SPRITE, 1, 1, 0, 18, 18);
 
 		if (!stack.isEmpty()) {
 			graphics.renderItem(stack, 2, 2, index);

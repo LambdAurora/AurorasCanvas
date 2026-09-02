@@ -15,9 +15,11 @@ import dev.lambdaurora.aurorascanvas.client.CanvasClientUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 
 import java.util.ArrayDeque;
@@ -38,10 +40,11 @@ public final class CanvasTexture {
 	private static final Deque<CanvasTexture> UNUSED_TEXTURE_CACHE = new ArrayDeque<>();
 
 	private final DynamicTexture texture = new DynamicTexture(16, 16, true);
+	private final Identifier id;
 	private final RenderType renderType;
 
 	public CanvasTexture() {
-		var id = Minecraft.getInstance().getTextureManager().register(AurorasCanvas.NAMESPACE + "/canvas", this.texture);
+		this.id = Minecraft.getInstance().getTextureManager().register(AurorasCanvas.NAMESPACE + "/canvas", this.texture);
 		this.renderType = RenderType.text(id);
 	}
 
@@ -67,6 +70,10 @@ public final class CanvasTexture {
 		synchronized (UNUSED_TEXTURE_CACHE) {
 			UNUSED_TEXTURE_CACHE.push(texture);
 		}
+	}
+
+	public void render(GuiGraphics graphics, int x, int y, int width, int height) {
+		graphics.blit(this.id, x, y, width, height, 0.f, 0.f, 16, 16, 16, 16);
 	}
 
 	public void render(Matrix4f model, MultiBufferSource vertexConsumers, int light, boolean mirror) {

@@ -16,7 +16,7 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
-import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
+import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.border.Border;
 import dev.lambdaurora.spruceui.widget.SpruceWidget;
@@ -87,7 +87,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 				int realTop = entry.getY() - 2 < top - 2 ? top : (top - 2);
 				int realBottom = entry.getY() + entry.getHeight() + 2 > bottom + 2 ? bottom : (bottom + 2);
 				graphics.enableScissor(left - 2, realTop, right, realBottom);
-				graphics.blitSprite(PainterPaletteScreen.SELECT_HIGHLIGHT_SPRITE, entry.getX() - 2, entry.getY() - 2, 22, 22);
+				graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, entry.getX() - 2, entry.getY() - 2, 22, 22);
 				graphics.disableScissor();
 				break;
 			}
@@ -146,7 +146,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 
 		@Override
 		protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-			graphics.blitSprite(PainterPaletteScreen.SLOT_SPRITE, this.getX(), this.getY(), 18, 18);
+			graphics.blitSprite(SpriteIds.SLOT_SPRITE, this.getX(), this.getY(), 18, 18);
 
 			var matrices = graphics.pose();
 			matrices.pushPose();

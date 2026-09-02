@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
-import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
+import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -94,7 +94,7 @@ public class ToolButton extends BaseToolButton {
 		}
 
 		if (this.controller.currentAction == this.drawAction) {
-			graphics.blitSprite(PainterPaletteScreen.SELECT_HIGHLIGHT_SPRITE, this.getX() - 1, this.getY() - 1, 22, 22);
+			graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, this.getX() - 1, this.getY() - 1, 22, 22);
 		}
 	}
 

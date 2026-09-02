@@ -32,12 +32,7 @@ import net.minecraft.world.inventory.Slot;
  */
 @Environment(EnvType.CLIENT)
 public class PainterPaletteScreen extends AbstractContainerScreen<PainterPaletteMenu> {
-	public static final Identifier SLOT_SPRITE = AurorasCanvas.id("palette/slot");
-	public static final Identifier TOOL_SLOT_SPRITE = AurorasCanvas.id("palette/empty_tool_slot");
-	public static final Identifier SELECT_HIGHLIGHT_SPRITE = AurorasCanvas.id("palette/select_highlight");
-
 	private static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/container/painter_palette.png");
-	private static final Identifier LOCKED_SPRITE = Identifier.withDefaultNamespace("container/cartography_table/locked");
 
 	public PainterPaletteScreen(PainterPaletteMenu handler, Inventory inventory, Component title) {
 		super(handler, inventory, title);
@@ -72,9 +67,9 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				int y = this.getBackgroundY() + slot.y - 1;
 
 				if (slot.getItem().isEmpty()) {
-					graphics.blitSprite(TOOL_SLOT_SPRITE, x, y, 18, 18);
+					graphics.blitSprite(SpriteIds.TOOL_SLOT_SPRITE, x, y, 18, 18);
 				} else {
-					graphics.blitSprite(SLOT_SPRITE, x, y, 18, 18);
+					graphics.blitSprite(SpriteIds.SLOT_SPRITE, x, y, 18, 18);
 				}
 			}
 		}
@@ -87,7 +82,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 		matrices.translate(this.getBackgroundX(), this.getBackgroundY(), 275);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof LockedSlot) {
-				graphics.blitSprite(LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
+				graphics.blitSprite(SpriteIds.LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
 			} else if ((slot instanceof ColorSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedColorSlot())
 					|| (slot instanceof CanvasToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
 				matrices.pushPose();
@@ -102,7 +97,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	}
 
 	private void drawSelectedIndicator(GuiGraphics graphics) {
-		graphics.blitSprite(SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
+		graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
 	}
 
 	@Override
