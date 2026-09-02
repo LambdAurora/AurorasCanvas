@@ -2,6 +2,12 @@ import dev.lambdaurora.mcdev.api.McVersionLookup
 import dev.lambdaurora.mcdev.api.ModUtils
 import dev.lambdaurora.mcdev.api.ModVersionDependency
 import dev.lambdaurora.mcdev.task.packaging.PackageModrinthTask
+import dev.lambdaurora.mcdev.api.EnvironmentType
+import dev.lambdaurora.mcdev.api.manifest.Nmt
+import dev.lambdaurora.mcdev.api.manifest.ModEnvironment
+import dev.lambdaurora.mcdev.api.manifest.MixinEntry
+import dev.lambdaurora.mcdev.task.ConvertAccessWidenerToTransformer
+import dev.lambdaurora.mcdev.task.GenerateNeoForgeJiJDataTask
 
 plugins {
 	alias(libs.plugins.loom)
@@ -11,25 +17,27 @@ plugins {
 	`maven-publish`
 }
 
-base.archivesName.set(project.property("mod_namespace") as String)
+lambdamcdev.namespace.set(project.property("mod_namespace") as String)
+base.archivesName.set(lambdamcdev.namespace)
 
 val mcVersion = libs.versions.minecraft.get()
-val compatibleMcVersions: Set<String> = setOf("1.21")
+val compatibleMcVersions: Set<String> = setOf("26.1", "26.1.1")
 val VERSION = project.property("mod_version") as String
+val supportNeoforge = (project.property("support_neoforge") as String).toBoolean()
 version = "$VERSION+$mcVersion"
 
 // This field defines the Java version your mod target.
 val targetJavaVersion = Integer.parseInt(project.property("java_version").toString())
 
+if (supportNeoforge) {
+	sourceSets.create("neoforge") {
+		this.compileClasspath += sourceSets.main.get().compileClasspath
+		this.runtimeClasspath += sourceSets.main.get().runtimeClasspath
+	}
+}
+
 repositories {
 	mavenCentral()
-	maven {
-		name = "ParchmentMC"
-		url = uri("https://maven.parchmentmc.org/")
-		content {
-			includeGroup("org.parchmentmc.data")
-		}
-	}
 	maven {
 		name = "Gegy"
 		url = uri("https://maven.gegy.dev/releases/")
@@ -39,14 +47,15 @@ repositories {
 	}
 
 	exclusiveContent {
+		filter {
+			includeGroupAndSubgroups("eu.pb4")
+		}
+
 		forRepository {
 			maven {
-				name = "Ladysnake Libs"
-				url = uri("https://maven.ladysnake.org/releases")
+				name = "Nucleoid"
+				url = uri("https://maven.nucleoid.xyz/releases")
 			}
-		}
-		filter {
-			includeGroup("org.ladysnake.cardinal-components-api")
 		}
 	}
 	exclusiveContent {
@@ -62,6 +71,21 @@ repositories {
 		}
 	}
 
+	if (supportNeoforge) {
+		exclusiveContent {
+			forRepository {
+				maven {
+					name = "NeoForge"
+					url = uri("https://maven.neoforged.net/releases/")
+				}
+			}
+			filter {
+				includeGroupAndSubgroups("net.neoforged")
+				includeGroupAndSubgroups("cpw.mods")
+			}
+		}
+	}
+
 	exclusiveContent {
 		forRepository {
 			maven {
@@ -69,7 +93,6 @@ repositories {
 				url = uri("https://api.modrinth.com/maven")
 			}
 		}
-		// forRepositories(fg.repository) // Uncomment when using ForgeGradle
 		filter {
 			includeGroup("maven.modrinth")
 		}
@@ -95,27 +118,18 @@ fabricApi {
 
 dependencies {
 	minecraft(libs.minecraft)
-	@Suppress("UnstableApiUsage")
-	mappings(loom.layered {
-		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-1.21.1:2024.11.17@zip")
-		mappings("dev.lambdaurora:yalmm-mojbackward:${mcVersion}+build.${libs.versions.mappings.yalmm.get()}")
-	})
-	modImplementation(libs.fabric.loader)
-	modImplementation(libs.fabric.api)
+	implementation(libs.fabric.loader)
+	implementation(libs.fabric.api)
 
-	compileOnly(libs.jspecify)
-	modImplementation(libs.yumi.mc.foundation)
+	implementation(libs.yumi.mc.foundation)
 	include(libs.yumi.mc.foundation)
-	modImplementation(libs.spruceui)
+	implementation(libs.spruceui)
 	include(libs.spruceui)
 
-	"modClientImplementation"(libs.trinkets) {
+	"implementation"(libs.trinkets) {
 		exclude(group = libs.fabric.loader.get().group)
 		exclude(group = libs.fabric.api.get().group)
 	}
-
-	compileOnly("maven.modrinth:fFEIiSDQ:Uds6VJIs")
 }
 
 java {
@@ -126,9 +140,9 @@ java {
 }
 
 lambdamcdev {
-	/*manifests {
+	manifests {
 		fmj {
-			val sourcesLink = "https://github.com/LambdAurora/AurorasLanterns"
+			val sourcesLink = "https://github.com/LambdAurora/AurorasCanvas"
 
 			withName(project.property("mod_name") as String)
 			withDescription(project.property("mod_description") as String)
@@ -142,8 +156,12 @@ lambdamcdev {
 			withIcon("assets/${namespace.get()}/icon.png")
 			withEnvironment("*")
 			withEntrypoints("yumi:init", "dev.lambdaurora.aurorascanvas.AurorasCanvas")
-			withEntrypoints("yumi:client_init", "dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient")
-			withEntrypoints("fabric-datagen", "dev.lambdaurora.aurorascanvas.resource.AurorasCanvasStaticDatagen")
+			withEntrypoints("yumi:client_init",
+				"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient",
+				"dev.lambdaurora.aurorascanvas.client.trinkets.TrinketsHooks",
+			)
+			withEntrypoints("fabric-datagen", "dev.lambdaurora.aurorascanvas.client.resource.AurorasCanvasStaticDatagen")
+			withAccessWidener("${namespace.get()}.classtweaker")
 			withMixins(
 				MixinEntry("${namespace.get()}.mixins.json"),
 				MixinEntry("${namespace.get()}.client.mixins.json", ModEnvironment.CLIENT),
@@ -152,7 +170,6 @@ lambdamcdev {
 			withDepend("minecraft", project.property("fabric_mc_constraints").toString())
 			withDepend("java", ">=$targetJavaVersion")
 			withDepend("fabric-api", ">=${libs.versions.fabric.api.get()}")
-			withBreak("aurorasdeco", "<=1.0.0-beta.22")
 			withModMenu {
 				it.withCurseForge("https://www.curseforge.com/minecraft/mc-mods/aurorascanvas")
 					.withDiscord("https://discord.lambdaurora.dev/")
@@ -172,10 +189,9 @@ lambdamcdev {
 				withBlurIcon(false)
 				withYumiEntrypoints(
 					"yumi:init",
-					"dev.lambdaurora.auroraslanterns.AurorasLanterns",
-					"dev.lambdaurora.auroraslanterns.platform.neoforge.NeoAurorasLanterns",
+					"dev.lambdaurora.aurorascanvas.AurorasCanvas",
 				)
-				withYumiEntrypoints("yumi:client_init", "dev.lambdaurora.auroraslanterns.client.AurorasLanternsClient")
+				withYumiEntrypoints("yumi:client_init", "dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient")
 				withAccessTransformer("META-INF/accesstransformer.cfg")
 				withMixins("${namespace.get()}.mixins.json", "${namespace.get()}.client.mixins.json")
 				withDepend("minecraft", project.property("neoforge_mc_constraints").toString())
@@ -185,7 +201,7 @@ lambdamcdev {
 		}
 	}
 
-	setupActionsRefCheck()*/
+	setupActionsRefCheck()
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -196,12 +212,6 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.processResources {
-	inputs.property("version", project.version)
-
-	filesMatching("fabric.mod.json") {
-		expand("version" to (inputs.properties["version"] as String))
-	}
-
 	exclude(".cache/**")
 }
 
@@ -218,8 +228,50 @@ license {
 	include("**/*.java")
 }
 
+val convertAWtoATTask = tasks.register("convertAWtoAT", ConvertAccessWidenerToTransformer::class) {
+	this.group = "generation"
+	this.enabled = supportNeoforge
+	this.input = loom.accessWidenerPath
+	this.output = project.layout.buildDirectory.get().file("generated/accesstransformer.cfg")
+}
+
+val generateJarJarMetadataTask = tasks.register<GenerateNeoForgeJiJDataTask>("generateJarJarMetadata") {
+	this.enabled = supportNeoforge
+	val includeConfig = project.configurations.getByName("includeInternal");
+	this.from(includeConfig)
+	this.outputFile.set(
+		project.layout.buildDirectory
+			.asFile
+			.map(File::toPath)
+			.map { path -> path.resolve("generated/jarjar/metadata.json").toFile() }
+			.get()
+	)
+}
+
+if (supportNeoforge) {
+	tasks.named<Jar>("jar") {
+		from(generateJarJarMetadataTask.map { it.outputFile }) {
+			into("META-INF/jarjar")
+		}
+		from(sourceSets.named("neoforge").map { it.output })
+		from(convertAWtoATTask) {
+			into("META-INF")
+		}
+	}
+
+	tasks.named<Jar>("sourcesJar") {
+		val neoforge = sourceSets.named("neoforge")
+		this.from(neoforge.map { it.java.sourceDirectories })
+		this.from(neoforge.map { it.resources.sourceDirectories })
+		this.from(convertAWtoATTask) {
+			into("META-INF")
+		}
+	}
+}
+
+
 val README = ModUtils.parseReadme(
-	project, "https://raw.githubusercontent.com/LambdAurora/AurorasCanvas/1.21/\$2"
+	project, "https://raw.githubusercontent.com/LambdAurora/AurorasCanvas/26.1/\$2"
 )
 val CHANGELOG_CONTENT = ModUtils.fetchChangelog(project, VERSION)
 
@@ -236,7 +288,7 @@ tasks.register<PackageModrinthTask>("packageModrinth") {
 	)
 	this.changelog.set(CHANGELOG_CONTENT)
 	this.readme.set(README)
-	this.files.setFrom(tasks.remapJar.get())
+	this.files.setFrom(tasks.jar.get())
 }
 
 publishing {

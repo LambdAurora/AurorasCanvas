@@ -11,8 +11,8 @@ package dev.lambdaurora.aurorascanvas.item.tree;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasIds;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -88,13 +88,13 @@ public class ItemTree extends ItemTreeGroupNode {
 	}
 
 	private static void register(ResourceKey<CreativeModeTab> tab, Consumer<ItemTree> modifier) {
-		var event = ItemGroupEvents.modifyEntriesEvent(tab);
+		var event = CreativeModeTabEvents.modifyOutputEvent(tab);
 		event.addPhaseOrdering(Event.DEFAULT_PHASE, PHASE);
 		event.register(PHASE, modifyItems(modifier));
 	}
 
 	@SuppressWarnings("UnstableApiUsage")
-	private static ItemGroupEvents.ModifyEntries modifyItems(Consumer<ItemTree> modifier) {
+	private static CreativeModeTabEvents.ModifyOutput modifyItems(Consumer<ItemTree> modifier) {
 		return entries -> {
 			var tree = fromStacks(entries.getDisplayStacks(), entries.getSearchTabStacks());
 

@@ -13,7 +13,7 @@ import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.slot.CanvasToolSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -28,7 +28,7 @@ import net.minecraft.world.item.ItemStack;
  * Represents the painter's palette screen handler.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class PainterPaletteMenu extends NestedMenu {
@@ -154,7 +154,7 @@ public class PainterPaletteMenu extends NestedMenu {
 		);
 	}
 
-	public record Factory(ItemStack self, OriginType type, int lockedSlot) implements ExtendedScreenHandlerFactory<OpenData> {
+	public record Factory(ItemStack self, OriginType type, int lockedSlot) implements ExtendedMenuProvider<OpenData> {
 		@Override
 		public OpenData getScreenOpeningData(ServerPlayer player) {
 			return new OpenData(this.type, this.lockedSlot);

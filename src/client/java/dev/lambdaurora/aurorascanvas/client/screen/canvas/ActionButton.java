@@ -12,9 +12,10 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -54,9 +55,9 @@ public class ActionButton extends BaseToolButton {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-		super.renderWidget(graphics, mouseX, mouseY, partialTick);
+	protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+		super.extractContents(graphics, mouseX, mouseY, partialTick);
 
-		graphics.blitSprite(this.active ? this.sprite : this.disabledSprite, this.getX(), this.getY(), 20, 20);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.active ? this.sprite : this.disabledSprite, this.getX(), this.getY(), 20, 20);
 	}
 }

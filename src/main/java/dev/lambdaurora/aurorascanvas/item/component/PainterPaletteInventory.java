@@ -31,7 +31,7 @@ import java.util.function.Predicate;
  * Represents a painter's palette inventory.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public final class PainterPaletteInventory implements PainterPaletteInventoryView, TooltipComponent {
@@ -214,6 +214,8 @@ public final class PainterPaletteInventory implements PainterPaletteInventoryVie
 	}
 
 	public static final class Mutable extends SimpleContainer implements PainterPaletteInventoryView {
+		private final List<Listener> listeners = new ArrayList<>();
+
 		private byte selectedColor = EMPTY.selectedColor;
 		private byte selectedTool = EMPTY.selectedTool;
 
@@ -403,6 +405,22 @@ public final class PainterPaletteInventory implements PainterPaletteInventoryVie
 			return true;
 		}
 
+		public void addListener(Listener listener) {
+			this.listeners.add(listener);
+		}
+
+		public void removeListener(Listener listener) {
+			this.listeners.remove(listener);
+		}
+
+		@Override
+		public void setChanged() {
+			super.setChanged();
+			for (var listener : this.listeners) {
+				listener.containerChanged(this);
+			}
+		}
+
 		public PainterPaletteInventory toImmutable() {
 			return new PainterPaletteInventory(
 					this.items.subList(0, COLOR_SIZE),
@@ -410,6 +428,10 @@ public final class PainterPaletteInventory implements PainterPaletteInventoryVie
 					this.selectedColor,
 					this.selectedTool
 			);
+		}
+
+		public interface Listener {
+			void containerChanged(Mutable container);
 		}
 	}
 

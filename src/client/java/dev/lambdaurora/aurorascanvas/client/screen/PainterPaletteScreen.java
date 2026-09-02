@@ -16,18 +16,21 @@ import dev.lambdaurora.aurorascanvas.menu.slot.ColorSlot;
 import dev.lambdaurora.aurorascanvas.menu.slot.LockedSlot;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
+import java.awt.event.MouseEvent;
+
 /**
  * Represents the painter's palette container screen.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -35,8 +38,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	private static final Identifier TEXTURE = AurorasCanvas.id("textures/gui/container/painter_palette.png");
 
 	public PainterPaletteScreen(PainterPaletteMenu handler, Inventory inventory, Component title) {
-		super(handler, inventory, title);
-		this.imageHeight += 2;
+		super(handler, inventory, title, 176, 166);
 		this.inventoryLabelY = this.imageHeight - 94;
 	}
 
@@ -49,16 +51,14 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics graphics, float delta, int mouseX, int mouseY) {
-		graphics.blit(TEXTURE,
-				this.getBackgroundX(), this.getBackgroundY(), 0, 0, this.imageWidth + 24, this.imageHeight
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE,
+				this.getBackgroundX(), this.getBackgroundY(), 0, 0, this.imageWidth + 24, this.imageHeight, 256, 256
 		);
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		this.renderBackground(graphics, mouseX, mouseY, delta);
-
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
 		graphics.pose().pushPose();
 		graphics.pose().translate(0, 0, 1);
 		for (var slot : this.menu.slots) {
@@ -67,49 +67,47 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				int y = this.getBackgroundY() + slot.y - 1;
 
 				if (slot.getItem().isEmpty()) {
-					graphics.blitSprite(SpriteIds.TOOL_SLOT_SPRITE, x, y, 18, 18);
+					graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.TOOL_SLOT_SPRITE, x, y, 18, 18);
 				} else {
-					graphics.blitSprite(SpriteIds.SLOT_SPRITE, x, y, 18, 18);
+					graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SLOT_SPRITE, x, y, 18, 18);
 				}
 			}
 		}
 		graphics.pose().popPose();
 
-		super.render(graphics, mouseX, mouseY, delta);
+		super.extractRenderState(graphics, mouseX, mouseY, delta);
 
 		var matrices = graphics.pose();
 		matrices.pushPose();
 		matrices.translate(this.getBackgroundX(), this.getBackgroundY(), 275);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof LockedSlot) {
-				graphics.blitSprite(SpriteIds.LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
+				graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
 			} else if ((slot instanceof ColorSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedColorSlot())
 					|| (slot instanceof CanvasToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
 				matrices.pushPose();
 				matrices.translate(slot.x + 24, slot.y, 0);
-				this.drawSelectedIndicator(graphics);
+				this.extractSelectedIndicator(graphics);
 				matrices.popPose();
 			}
 		}
 		matrices.popPose();
-
-		this.renderTooltip(graphics, mouseX, mouseY);
 	}
 
-	private void drawSelectedIndicator(GuiGraphics graphics) {
-		graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
+	private void extractSelectedIndicator(GuiGraphicsExtractor graphics) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (button == 2) {
-			if (this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, button)) {
+	public boolean mouseClicked(MouseEvent event) {
+		if (event.getButton() == 2) {
+			if (this.hasClickedOutside(event.getX(), event.getY(), this.leftPos, this.topPos, event.getButton())) {
 				if (this.menu.clickMenuButton(this.minecraft.player, this.menu.getInventory().getContainerSize())) {
 					this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, this.menu.getInventory().getContainerSize());
 					return true;
 				}
 			} else {
-				int slot = this.getSlotAt(mouseX, mouseY);
+				int slot = this.getSlotAt(event.getX(), event.getY());
 
 				if (slot != -1 && this.menu.clickMenuButton(this.minecraft.player, slot)) {
 					this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot);
@@ -118,7 +116,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 			}
 		}
 
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(event);
 	}
 
 	private int getSlotAt(double x, double y) {

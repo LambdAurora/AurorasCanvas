@@ -17,8 +17,9 @@ import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -28,7 +29,7 @@ import java.util.List;
  * Represents the blackboard tooltip component. Displays the blackboard's contents.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -50,7 +51,7 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public int getHeight() {
+	public int getHeight(final Font font) {
 		return 128 + 2;
 	}
 
@@ -60,18 +61,18 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 	}
 
 	@Override
-	public void renderImage(Font font, int x, int y, GuiGraphics graphics) {
-		graphics.blit(this.background, x, y, 128, 128, 0, 0, 16, 16, 16, 16);
+	public void extractImage(Font font, int x, int y, int width, int height, GuiGraphicsExtractor graphics) {
+		graphics.blit(RenderPipelines.GUI_TEXTURED, this.background, x, y, 128, 128, 0, 0, 16, 16, 16, 16);
 
 		var entry = this.selectEntry();
-		entry.texture.render(graphics, x, y, 128, 128);
+		entry.texture.extract(graphics, x, y, 128, 128);
 
 		if (this.locked) {
-			graphics.blitSprite(SpriteIds.LOCKED_SPRITE, x + 112, y + 112, 16, 16);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.LOCKED_SPRITE, x + 112, y + 112, 16, 16);
 		}
 
 		if (entry.glowing) {
-			graphics.blitSprite(GLOWING_SPRITE, x, y, 128, 128);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, GLOWING_SPRITE, x, y, 128, 128);
 		}
 	}
 

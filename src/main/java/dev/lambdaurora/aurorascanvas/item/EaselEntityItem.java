@@ -18,8 +18,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 /**
  * Represents an easel entity item.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class EaselEntityItem extends Item {
@@ -60,20 +60,20 @@ public class EaselEntityItem extends Item {
 			if (level.noCollision(null, boundingBox) && level.getEntities(null, boundingBox).isEmpty()) {
 				if (level instanceof ServerLevel serverLevel) {
 					Consumer<EaselEntity> consumer = EntityType.createDefaultStackConfig(serverLevel, handStack, context.getPlayer());
-					var easel = AurorasCanvasRegistry.EASEL_ENTITY_TYPE.create(serverLevel, consumer, blockPos, MobSpawnType.SPAWN_EGG, true, true);
+					var easel = AurorasCanvasRegistry.EASEL_ENTITY_TYPE.create(serverLevel, consumer, blockPos, EntitySpawnReason.SPAWN_ITEM_USE, true, true);
 					if (easel == null) {
 						return InteractionResult.FAIL;
 					}
 
 					float yRot = Mth.floor((Mth.wrapDegrees(context.getRotation() - 180.f) + 22.5f) / 45.f) * 45.f;
-					easel.moveTo(easel.getX(), easel.getY(), easel.getZ(), yRot, 0.f);
+					easel.snapTo(easel.getX(), easel.getY(), easel.getZ(), yRot, 0.f);
 					serverLevel.addFreshEntityWithPassengers(easel);
 					level.playSound(null, easel.getX(), easel.getY(), easel.getZ(), AurorasCanvasSoundEvents.EASEL_PLACE, SoundSource.BLOCKS, 0.75F, 0.8F);
 					easel.gameEvent(GameEvent.ENTITY_PLACE, context.getPlayer());
 				}
 
 				handStack.shrink(1);
-				return InteractionResult.sidedSuccess(level.isClientSide());
+				return InteractionResult.SUCCESS;
 			} else {
 				return InteractionResult.FAIL;
 			}

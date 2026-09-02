@@ -9,39 +9,52 @@
 
 package dev.lambdaurora.aurorascanvas.client.resource;
 
+import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import com.mojang.math.Quadrant;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
 import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
-import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
+import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.*;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.data.models.model.*;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
+import net.minecraft.client.renderer.block.dispatch.Variant;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.data.models.blockstates.*;
-import net.minecraft.data.models.model.*;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -51,8 +64,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.ApplyExplosionDecay;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
-import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
 import net.minecraft.world.level.storage.loot.functions.FunctionUserBuilder;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.ConditionUserBuilder;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -83,14 +96,15 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 		pack.addProvider(ModelProvider::new);
 	}
 
-	private static class BlockTagProvider extends FabricTagProvider.BlockTagProvider {
-		public BlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	private static class BlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
+		public BlockTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 			super(output, registriesFuture);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void addTags(HolderLookup.Provider arg) {
-			this.tag(CANVAS_BLOCKS)
+			this.builder(CANVAS_BLOCKS)
 					.add(
 							BLACKBOARD.block().key(), WAXED_BLACKBOARD.block().key(),
 							CHALKBOARD.block().key(), WAXED_CHALKBOARD.block().key(),
@@ -98,19 +112,20 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					)
 					.addTag(GLASSBOARD_BLOCKS);
 
-			this.tag(GLASSBOARD_BLOCKS)
+			this.builder(GLASSBOARD_BLOCKS)
 					.add(GLASSBOARD.block().key(), WAXED_GLASSBOARD.block().key());
 		}
 	}
 
-	private static class ItemTagProvider extends FabricTagProvider.ItemTagProvider {
-		public ItemTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	private static class ItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
+		public ItemTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 			super(output, registriesFuture);
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		protected void addTags(HolderLookup.Provider arg) {
-			this.tag(WAXED_CANVAS_ITEMS)
+			this.builder(WAXED_CANVAS_ITEMS)
 					.add(
 							WAXED_BLACKBOARD.item().key(),
 							WAXED_CHALKBOARD.item().key(),
@@ -118,7 +133,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 							WAXED_GLASSBOARD.item().key()
 					);
 
-			this.tag(CANVAS_ITEMS)
+			this.builder(CANVAS_ITEMS)
 					.add(
 							BLACKBOARD.item().key(),
 							CHALKBOARD.item().key(),
@@ -127,15 +142,12 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 					)
 					.addTag(WAXED_CANVAS_ITEMS);
 
-			this.tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("trinkets", "head/face")))
+			this.builder(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("trinkets", "head/face")))
 					.addTag(CANVAS_ITEMS);
-
-			this.tag(CANVAS_COMPATIBLE_ITEMS)
-					.addOptional(Identifier.fromNamespaceAndPath(SupplementariesCompat.NAMESPACE, "blackboard"));
 		}
 	}
 
-	private static class LootDataProvider extends FabricBlockLootTableProvider {
+	private static class LootDataProvider extends FabricBlockLootSubProvider {
 		protected final Set<Item> explosionResistant = Stream.of(
 				BLACKBOARD,
 				WAXED_BLACKBOARD,
@@ -147,7 +159,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 				WAXED_GLASSBOARD
 		).map(ItemLike::asItem).collect(Collectors.toUnmodifiableSet());
 
-		public LootDataProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+		public LootDataProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
 			super(output, registries);
 		}
 
@@ -183,9 +195,9 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 											.setRolls(ConstantValue.exactly(1.f))
 											.add(
 													LootItem.lootTableItem(block)
-															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
 															.apply(
-																	CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+																	CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+																			.include(DataComponents.CUSTOM_NAME)
 																			.include(CANVAS_COMPONENT_TYPE)
 															)
 											)
@@ -202,9 +214,9 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 											.setRolls(ConstantValue.exactly(1.f))
 											.add(
 													LootItem.lootTableItem(block)
-															.apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
 															.apply(
-																	CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+																	CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+																			.include(DataComponents.CUSTOM_NAME)
 																			.include(GLASS_CANVAS_COMPONENT_TYPE)
 															)
 											)
@@ -214,7 +226,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 	}
 
 	private static class AdvancementProvider extends FabricAdvancementProvider {
-		public AdvancementProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
+		public AdvancementProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registryLookup) {
 			super(output, registryLookup);
 		}
 
@@ -256,74 +268,84 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 							true,
 							false
 					)
-					.addCriterion("put", PutCanvasOnEaselTrigger.TriggerInstance.put(ItemPredicate.Builder.item().of(CANVAS_ITEMS).build()))
+					.addCriterion("put", PutCanvasOnEaselTrigger.TriggerInstance.put(ItemPredicate.Builder.item().of(registryLookup.lookupOrThrow(Registries.ITEM), CANVAS_ITEMS).build()))
 					.build(AurorasCanvas.id("adventure/put_canvas_on_easel"));
 			consumer.accept(putCanvasOnEasel);
 		}
 	}
 
 	private static class AurorasRecipeProvider extends FabricRecipeProvider {
-		public AurorasRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+		public AurorasRecipeProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
 			super(output, registries);
 		}
 
 		@Override
-		public void buildRecipes(RecipeOutput exporter) {
-			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, BLACKBOARD)
-					.group(CANVAS_ITEMS.location().toString())
-					.define('S', Items.STICK)
-					.define('C', Items.BLACK_CONCRETE)
-					.pattern("SSS")
-					.pattern("SCS")
-					.pattern("SSS")
-					.unlockedBy("has_stick", has(Items.STICK))
-					.unlockedBy("has_concrete", has(Items.BLACK_CONCRETE))
-					.unlockedBy("has_self", has(CANVAS_ITEMS))
-					.save(exporter);
-			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, CHALKBOARD)
-					.group(CANVAS_ITEMS.location().toString())
-					.define('S', Items.STICK)
-					.define('C', Items.GREEN_CONCRETE)
-					.pattern("SSS")
-					.pattern("SCS")
-					.pattern("SSS")
-					.unlockedBy("has_stick", has(Items.STICK))
-					.unlockedBy("has_concrete", has(Items.GREEN_CONCRETE))
-					.unlockedBy("has_self", has(CANVAS_ITEMS))
-					.save(exporter);
-			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, WHITEBOARD)
-					.group(CANVAS_ITEMS.location().toString())
-					.define('S', Items.STICK)
-					.define('C', Items.WHITE_CONCRETE)
-					.pattern("SSS")
-					.pattern("SCS")
-					.pattern("SSS")
-					.unlockedBy("has_stick", has(Items.STICK))
-					.unlockedBy("has_concrete", has(Items.WHITE_CONCRETE))
-					.unlockedBy("has_self", has(CANVAS_ITEMS))
-					.save(exporter);
-			ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, GLASSBOARD)
-					.group(CANVAS_ITEMS.location().toString())
-					.define('S', Items.STICK)
-					.define('G', Items.GLASS_PANE)
-					.pattern("SSS")
-					.pattern("SGS")
-					.pattern("SSS")
-					.unlockedBy("has_stick", has(Items.STICK))
-					.unlockedBy("has_glass_pane", has(Items.GLASS_PANE))
-					.unlockedBy("has_self", has(CANVAS_ITEMS))
-					.save(exporter);
-			SpecialRecipeBuilder.special(CanvasCloneRecipe::new)
-					.save(exporter, AurorasCanvas.id("canvas_clone").toString());
+		public RecipeProvider createRecipeProvider(HolderLookup.Provider registryLookup, RecipeOutput exporter) {
+			return new RecipeProvider(registryLookup, exporter) {
+				@Override
+				public void buildRecipes() {
+					this.shaped(RecipeCategory.DECORATIONS, BLACKBOARD)
+							.group(CANVAS_ITEMS.location().toString())
+							.define('S', Items.STICK)
+							.define('C', Items.BLACK_CONCRETE)
+							.pattern("SSS")
+							.pattern("SCS")
+							.pattern("SSS")
+							.unlockedBy("has_stick", has(Items.STICK))
+							.unlockedBy("has_concrete", has(Items.BLACK_CONCRETE))
+							.unlockedBy("has_self", has(CANVAS_ITEMS))
+							.save(exporter);
+					this.shaped(RecipeCategory.DECORATIONS, CHALKBOARD)
+							.group(CANVAS_ITEMS.location().toString())
+							.define('S', Items.STICK)
+							.define('C', Items.GREEN_CONCRETE)
+							.pattern("SSS")
+							.pattern("SCS")
+							.pattern("SSS")
+							.unlockedBy("has_stick", has(Items.STICK))
+							.unlockedBy("has_concrete", has(Items.GREEN_CONCRETE))
+							.unlockedBy("has_self", has(CANVAS_ITEMS))
+							.save(exporter);
+					this.shaped(RecipeCategory.DECORATIONS, WHITEBOARD)
+							.group(CANVAS_ITEMS.location().toString())
+							.define('S', Items.STICK)
+							.define('C', Items.WHITE_CONCRETE)
+							.pattern("SSS")
+							.pattern("SCS")
+							.pattern("SSS")
+							.unlockedBy("has_stick", has(Items.STICK))
+							.unlockedBy("has_concrete", has(Items.WHITE_CONCRETE))
+							.unlockedBy("has_self", has(CANVAS_ITEMS))
+							.save(exporter);
+					this.shaped(RecipeCategory.DECORATIONS, GLASSBOARD)
+							.group(CANVAS_ITEMS.location().toString())
+							.define('S', Items.STICK)
+							.define('G', Items.GLASS_PANE)
+							.pattern("SSS")
+							.pattern("SGS")
+							.pattern("SSS")
+							.unlockedBy("has_stick", has(Items.STICK))
+							.unlockedBy("has_glass_pane", has(Items.GLASS_PANE))
+							.unlockedBy("has_self", has(CANVAS_ITEMS))
+							.save(exporter);
+					SpecialRecipeBuilder.special(() -> new CanvasCloneRecipe(this.tag(CANVAS_ITEMS)))
+							.save(exporter, AurorasCanvas.id("canvas_clone").toString());
+				}
+			};
+		}
+
+		@Override
+		public String getName() {
+			return "Aurora's Canvas Recipe Provider";
 		}
 	}
 
 	private static class ModelProvider extends FabricModelProvider {
 		private static final TextureSlot BOARD_TEXTURE_SLOT = TextureSlot.create("board");
 		private final PackOutput.PathProvider blockStatePathProvider;
-		private final Map<Identifier, Supplier<JsonElement>> blockStates = new HashMap<>();
+		private final Map<Identifier, BlockModelDefinitionGenerator> blockStates = new HashMap<>();
 
-		public ModelProvider(FabricDataOutput output) {
+		public ModelProvider(FabricPackOutput output) {
 			super(output);
 			this.blockStatePathProvider = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "blockstates");
 		}
@@ -410,14 +432,12 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 					template.create(
 							AurorasCanvas.id("block/" + GlassboardModel.getModelPath(prefix, corner, type)),
-							TextureMapping.singleSlot(BOARD_TEXTURE_SLOT, AurorasCanvas.id("block/canvas/glassboard" + type.suffix())),
+							TextureMapping.singleSlot(BOARD_TEXTURE_SLOT, new Material(AurorasCanvas.id("block/canvas/glassboard" + type.suffix()))),
 							generator.modelOutput
 					);
 				}
 			}
 		}
-
-		private static final VariantProperty<Integer> Y_ROT = new VariantProperty<>("y", JsonPrimitive::new);
 
 		private void createCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry) {
 			this.createCanvasBlockStates(generator, entry, entry.key().identifier().withPrefix("block/"));
@@ -425,12 +445,12 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 		private void createCanvasBlockStates(BlockModelGenerators generator, BlockEntry<?> entry, Identifier model) {
 			// We do the item block ourselves.
-			generator.skipAutoItemBlock(entry.value());
-			var blockStateData = MultiVariantGenerator.multiVariant(entry.value())
-					.with(PropertyDispatch.property(GlassCanvasBlock.FACING).generate(
-							direction -> Variant.variant()
-									.with(VariantProperties.MODEL, model)
-									.with(Y_ROT, (int) direction.getOpposite().toYRot())
+			var blockStateData = MultiVariantGenerator.dispatch(entry.value())
+					.with(PropertyDispatch.initial(GlassCanvasBlock.FACING).generate(
+							direction -> new MultiVariant(WeightedList.<Variant>builder()
+									.add(new Variant(model, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
+									.build()
+							)
 					));
 			generator.blockStateOutput.accept(blockStateData);
 
@@ -449,12 +469,14 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 			var baseModelId = baseId.withPrefix("block/");
 			var basePaneId = AurorasCanvas.id("block/glassboard/pane/" + prefix + "glassboard");
 
-			this.blockStates.put(baseId, MultiVariantGenerator.multiVariant(GLASSBOARD.block().value())
-					.with(PropertyDispatch.properties(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
-							(direction, pane) -> Variant.variant()
-									.with(VariantProperties.MODEL, pane ? basePaneId : baseModelId)
-									.with(Y_ROT, (int) direction.getOpposite().toYRot())
-					)));
+			this.blockStates.put(baseId, MultiVariantGenerator.dispatch(GLASSBOARD.block().value())
+					.with(PropertyDispatch.initial(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
+							(direction, pane) -> new MultiVariant(WeightedList.<Variant>builder()
+									.add(new Variant(pane ? basePaneId : baseModelId, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
+									.build()
+							)
+					))
+			);
 
 			for (var corner : GlassboardModel.Corner.CORNERS) {
 				for (var type : GlassboardModel.Type.TYPES) {
@@ -463,22 +485,33 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 					var paneId = AurorasCanvas.id("block/" + GlassboardModel.getModelPath("pane/" + prefix, corner, type));
 
-					var blockState = MultiVariantGenerator.multiVariant(GLASSBOARD.block().value())
-							.with(PropertyDispatch.properties(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
-									(direction, pane) -> Variant.variant()
-											.with(VariantProperties.MODEL, pane ? paneId : modelId)
-											.with(Y_ROT, (int) direction.getOpposite().toYRot())
-							));
+					var blockState = MultiVariantGenerator.dispatch(GLASSBOARD.block().value())
+							.with(PropertyDispatch.initial(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
+									(direction, pane) -> new MultiVariant(WeightedList.<Variant>builder()
+											.add(new Variant(pane ? paneId : modelId, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
+											.build()
+									)));
 					this.blockStates.put(id, blockState);
 				}
 			}
 		}
 
+		private Quadrant yRot(Direction direction) {
+			return switch (direction) {
+				case NORTH -> Quadrant.R180;
+				case EAST -> Quadrant.R270;
+				case WEST -> Quadrant.R90;
+				default -> Quadrant.R0;
+			};
+		}
+
 		@Override
 		public CompletableFuture<?> run(CachedOutput output) {
+			var definitions = Maps.transformValues(this.blockStates, BlockModelDefinitionGenerator::create);
+
 			return CompletableFuture.allOf(
 					super.run(output),
-					this.saveCollection(output, this.blockStates, this.blockStatePathProvider::json)
+					DataProvider.saveAll(output, BlockStateModelDispatcher.CODEC, this.blockStatePathProvider::json, definitions)
 			);
 		}
 

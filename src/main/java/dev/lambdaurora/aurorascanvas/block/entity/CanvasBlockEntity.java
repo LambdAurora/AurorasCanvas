@@ -17,21 +17,22 @@ import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.yumi.commons.event.Event;
 import dev.yumi.mc.core.api.YumiEvents;
-import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
+import net.fabricmc.fabric.api.blockgetter.v2.RenderDataBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
@@ -156,14 +157,10 @@ public abstract class CanvasBlockEntity<P, T extends CanvasHolder<P, T>, S exten
 	/* Serialization */
 
 	@Override
-	public void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-		super.loadAdditional(nbt, registries);
-		if (nbt.contains("custom_name", CompoundTag.TAG_STRING)) {
-			this.customName = parseCustomNameSafe(nbt.getString("custom_name"), registries);
-		} else {
-			this.customName = null;
-		}
-		this.canvasType().fromNbt(nbt.getCompound(CANVAS_KEY)).into(this.canvases, SyncedCanvas::setCanvas);
+	public void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		this.customName = parseCustomNameSafe(input, "custom_name");
+		input.read(CANVAS_KEY, this.canvasType().codec()).orElseGet(() -> this.canvasType().createDefault()).into(this.canvases, SyncedCanvas::setCanvas);
 
 		if (this.level != null && this.level.isClientSide()) {
 			this.sidedData.markChanged();
@@ -171,20 +168,20 @@ public abstract class CanvasBlockEntity<P, T extends CanvasHolder<P, T>, S exten
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-		super.saveAdditional(nbt, registries);
+	public void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
 		if (this.customName != null) {
-			nbt.putString("custom_name", Component.Serializer.toJson(this.customName, registries));
+			output.store("custom_name", ComponentSerialization.CODEC, this.customName);
 		}
 
-		nbt.put(CANVAS_KEY, this.canvasType().toNbt(this.getCanvasHolder()));
+		output.store(CANVAS_KEY, this.canvasType().codec(), this.getCanvasHolder());
 	}
 
 	@Override
-	protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
-		super.applyImplicitComponents(componentInput);
-		this.customName = componentInput.get(DataComponents.CUSTOM_NAME);
-		var data = componentInput.get(this.canvasType().componentType());
+	protected void applyImplicitComponents(DataComponentGetter components) {
+		super.applyImplicitComponents(components);
+		this.customName = components.get(DataComponents.CUSTOM_NAME);
+		var data = components.get(this.canvasType().componentType());
 		if (data != null) {
 			data.into(this.canvases, SyncedCanvas::setCanvas);
 		}
@@ -199,10 +196,10 @@ public abstract class CanvasBlockEntity<P, T extends CanvasHolder<P, T>, S exten
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void removeComponentsFromTag(CompoundTag nbt) {
-		super.removeComponentsFromTag(nbt);
-		nbt.remove(CANVAS_KEY);
-		nbt.remove(CUSTOM_NAME_KEY);
+	public void removeComponentsFromTag(final ValueOutput output) {
+		super.removeComponentsFromTag(output);
+		output.discard(CANVAS_KEY);
+		output.discard(CUSTOM_NAME_KEY);
 	}
 
 	public interface SidedData extends RenderDataBlockEntity {

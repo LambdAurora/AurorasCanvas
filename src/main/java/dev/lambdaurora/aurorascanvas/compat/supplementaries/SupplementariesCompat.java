@@ -18,9 +18,7 @@ import dev.lambdaurora.aurorascanvas.canvas.CanvasColor;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasPixel;
 import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
-import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import dev.yumi.mc.core.api.YumiMods;
-import net.mehvahdjukaar.supplementaries.reg.ModComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -165,7 +163,7 @@ public final class SupplementariesCompat {
 			BuiltInRegistries.BLOCK.addAlias(BLACKBOARD_ID, AurorasCanvasIds.BLACKBOARD_ID);
 			BuiltInRegistries.ITEM.addAlias(BLACKBOARD_ID, AurorasCanvasIds.BLACKBOARD_ID);
 			BuiltInRegistries.DATA_COMPONENT_TYPE.addAlias(BLACKBOARD_ID, AurorasCanvasIds.CANVAS_ID);
-		} else {
+		}/* else {
 			CanvasCloneRecipe.INPUT_GETTER_EVENT.register(stack -> {
 				if (stack.has(ModComponents.BLACKBOARD.get())) {
 					var data = stack.get(ModComponents.BLACKBOARD.get());
@@ -182,7 +180,7 @@ public final class SupplementariesCompat {
 
 				return Optional.empty();
 			});
-		}
+		}*/
 	}
 
 	public record Raw(short[] pixels, boolean glow, boolean waxed) {

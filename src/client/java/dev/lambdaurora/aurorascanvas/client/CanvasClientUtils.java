@@ -33,7 +33,7 @@ public final class CanvasClientUtils {
 
 		for (int y = 0; y < 16; y++) {
 			for (int x = 0; x < 16; x++) {
-				image.setPixelRGBA(x, y, canvas.getColor(x, y));
+				image.setPixel(x, y, canvas.getColor(x, y));
 			}
 		}
 	}

@@ -31,7 +31,7 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasIds.*;
  * Sets up the backwards compatibility of worlds that used Aurora's Decorations.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public final class AurorasDecoDataUpper {
@@ -88,7 +88,7 @@ public final class AurorasDecoDataUpper {
 	 * @param source the source of what contains the result that needs to be fixed
 	 */
 	public static void fixNbt(CompoundTag nbt, FixSource source) {
-		if (!nbt.contains("version", CompoundTag.TAG_INT)) {
+		if (!nbt.contains("version")) {
 			nbt.putInt("version", 0);
 		}
 
@@ -109,7 +109,7 @@ public final class AurorasDecoDataUpper {
 	 * @param source the source of what contains the result that needs to be fixed
 	 */
 	public static void fixGlassNbt(CompoundTag nbt, FixSource source) {
-		if (!nbt.contains("version", CompoundTag.TAG_INT)) {
+		if (!nbt.contains("version")) {
 			nbt.putInt("version", 0);
 		}
 

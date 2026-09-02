@@ -13,14 +13,16 @@ import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.Mesh;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadAtlas;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.util.LightCoordsUtil;
 
 @Environment(EnvType.CLIENT)
 public final class CanvasMeshBaker {
@@ -31,18 +33,14 @@ public final class CanvasMeshBaker {
 	}
 
 	public static Mesh buildMesh(PlacedCanvas canvas) {
-		var sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(WHITE_SPRITE_ID);
-		var renderer = RendererAccess.INSTANCE.getRenderer();
+		var sprite = Minecraft.getInstance().getAtlasManager().get(Sheets.BLOCKS_MAPPER.apply(WHITE_SPRITE_ID));
+		var renderer = Renderer.get();
 
-		var meshBuilder = renderer.meshBuilder();
-		var emitter = meshBuilder.getEmitter();
+		var meshBuilder = renderer.mutableMesh();
+		var emitter = meshBuilder.emitter();
 
-		int light = canvas.isGlowing() ? LightTexture.FULL_BRIGHT : 0;
+		int light = canvas.isGlowing() ? LightCoordsUtil.FULL_BRIGHT : 0;
 
-		var material = renderer.materialFinder()
-				.disableDiffuse(canvas.isGlowing())
-				.ambientOcclusion(canvas.isGlowing() ? TriState.FALSE : TriState.DEFAULT)
-				.find();
 		for (int y = 0; y < 16; y++) {
 			for (int x = 0; x < 16; x++) {
 				int color = canvas.getColor(x, y);
@@ -61,9 +59,11 @@ public final class CanvasMeshBaker {
 									(x + 1) / 16.f, (squareY + 1) / 16.f,
 									canvas.depth()
 							)
-							.spriteBake(sprite, MutableQuadView.BAKE_LOCK_UV)
+							.atlas(QuadAtlas.BLOCK)
+							.materialBake(new Material.Baked(sprite, false), MutableQuadView.BAKE_LOCK_UV)
 							.color(color, color, color, color)
-							.material(material);
+							.ambientOcclusion(canvas.isGlowing() ? TriState.FALSE : TriState.DEFAULT)
+							.diffuseShade(!canvas.isGlowing());
 					if (canvas.isGlowing())
 						emitter.lightmap(light, light, light, light);
 					emitter.emit();
@@ -71,6 +71,6 @@ public final class CanvasMeshBaker {
 			}
 		}
 
-		return meshBuilder.build();
+		return meshBuilder.immutableCopy();
 	}
 }

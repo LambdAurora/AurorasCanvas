@@ -15,11 +15,11 @@ import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
@@ -65,36 +65,27 @@ public class ToolButton extends BaseToolButton {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+	protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
 		var client = Minecraft.getInstance();
-		super.renderWidget(graphics, mouseX, mouseY, partialTick);
+		super.extractContents(graphics, mouseX, mouseY, partialTick);
 		int color = (this.active ? 0x00ffffff : 0x00a0a0a0) | Mth.ceil(this.alpha * 255.0F) << 24;
 
 		var item = drawAction.getOffHandTool(client.level.enabledFeatures());
 		if (this.drawAction == DrawAction.DEFAULT || this.drawAction == DrawAction.FILL || this.drawAction == DrawAction.REPLACE) {
-			graphics.blitSprite((switch (this.drawAction) {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, (switch (this.drawAction) {
 				case FILL -> FILL_SPRITES;
 				case REPLACE -> REPLACE_SPRITE;
 				default -> PENCIL_SPRITES;
 			}).get(this.active), this.getX(), this.getY(), 20, 20);
 		} else if (item != null) {
 			var matrices = graphics.pose();
-			matrices.pushPose();
-			matrices.translate(0.f, 0.f, 232.f);
-			graphics.setColor(
-					FastColor.ARGB32.red(color) / 255.f,
-					FastColor.ARGB32.green(color) / 255.f,
-					FastColor.ARGB32.blue(color) / 255.f,
-					this.alpha
-			);
-			graphics.renderItem(new ItemStack(item), this.getX() + 2, this.getY() + 2);
-			matrices.popPose();
+			graphics.item(new ItemStack(item), this.getX() + 2, this.getY() + 2);
 		} else {
-			this.renderString(graphics, client.font, color);
+			this.extractDefaultLabel(graphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
 		}
 
 		if (this.controller.currentAction == this.drawAction) {
-			graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, this.getX() - 1, this.getY() - 1, 22, 22);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, this.getX() - 1, this.getY() - 1, 22, 22);
 		}
 	}
 

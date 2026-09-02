@@ -28,14 +28,11 @@ import dev.yumi.mc.core.api.ModContainer;
 import dev.yumi.mc.core.api.entrypoint.client.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
@@ -51,11 +48,6 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient(ModContainer mod) {
-		BlockRenderLayerMap.INSTANCE.putBlocks(RenderType.cutout(),
-				GLASSBOARD.block().value(),
-				WAXED_GLASSBOARD.block().value()
-		);
-
 		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, CanvasPressBlockEntityRenderer::new);
 
 		this.registerCanvasItemRenderer(BLACKBOARD.block(), CanvasItemRenderer::new);
@@ -71,7 +63,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 		MenuScreens.register(PAINTER_PALETTE_MENU_TYPE, PainterPaletteScreen::new);
 
-		TooltipComponentCallback.EVENT.register(data -> {
+		ClientTooltipComponentCallback.EVENT.register(data -> {
 			if (data instanceof CanvasTooltipData canvasTooltipData) {
 				return new CanvasTooltipComponent(canvasTooltipData);
 			} else if (data instanceof PainterPaletteInventory inventory) {
@@ -81,13 +73,13 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			}
 		});
 
-		ColorProviderRegistry.ITEM.register(PAINTER_PALETTE_ITEM::getColor, PAINTER_PALETTE_ITEM);
+		/*ColorResolverRegistry.ITEM.register(PAINTER_PALETTE_ITEM::getColor, PAINTER_PALETTE_ITEM);
 
 		ModelLoadingPlugin.register(context -> {
 			CanvasPressBlockEntityRenderer.initModels(context);
 
 			context.modifyModelOnLoad().register((model, ctx) -> {
-				if (ctx.topLevelId() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
+				if (ctx.id() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
 					if (modelId.id().getPath().endsWith("board")) {
 						return UnbakedCanvasModel.of(modelId, model, ctx.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
 					}
@@ -96,9 +88,9 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			});
 
 			ClientCanvasBlockEntityData.markAllMeshesDirty();
-		});
+		});*/
 
-		EntityModelLayerRegistry.registerModelLayer(AurorasCanvasModelLayers.EASEL, EaselEntityModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(AurorasCanvasModelLayers.EASEL, EaselEntityModel::createBodyLayer);
 		EntityRendererRegistry.register(EASEL_ENTITY_TYPE, EaselEntityRenderer::new);
 
 		AurorasCanvasClientNetworking.init();
@@ -106,7 +98,7 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 	private void registerCanvasItemRenderer(BlockEntry<? extends CanvasBlock> canvas, Function<Identifier, CanvasItemRenderer> factory) {
 		var modelId = canvas.key().identifier().withPrefix("item/").withSuffix("_base");
-		BuiltinItemRendererRegistry.INSTANCE.register(canvas.value(), factory.apply(modelId));
-		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));
+		/*BuiltinItemRendererRegistry.INSTANCE.register(canvas.value(), factory.apply(modelId));
+		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));*/
 	}
 }

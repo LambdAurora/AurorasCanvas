@@ -22,7 +22,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * @param scrollDelta the scroll delta
  * @param toolModifier {@code true} if the tool modifier is active, or {@code false} otherwise
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public record PainterPaletteScrollPayload(double scrollDelta, boolean toolModifier) implements CustomPacketPayload {
@@ -39,6 +39,6 @@ public record PainterPaletteScrollPayload(double scrollDelta, boolean toolModifi
 	}
 
 	static {
-		PayloadTypeRegistry.playC2S().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
 	}
 }

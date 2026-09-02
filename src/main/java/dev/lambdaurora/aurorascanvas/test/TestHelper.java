@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.test;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 class TestHelper {
@@ -24,7 +25,7 @@ class TestHelper {
 		context.assertBlockState(
 				pos,
 				s -> s.equals(state),
-				() -> "Expected block state " + state + " at position " + pos.toShortString() + '.'
+				_ -> Component.literal("Expected block state " + state + " at position " + pos.toShortString() + '.')
 		);
 	}
 }

@@ -12,10 +12,11 @@ package dev.lambdaurora.aurorascanvas.canvas;
 import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectOpenHashMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -29,7 +30,7 @@ import java.util.function.Predicate;
  * Represents a canvas color.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public final class CanvasColor extends DrawModifier {
@@ -124,7 +125,7 @@ public final class CanvasColor extends DrawModifier {
 	}
 
 	/**
-	 * {@return the render color in the ABGR format}
+	 * {@return the render color in the ARGB format}
 	 *
 	 * @param shade the shade
 	 * @param saturated {@code true} if the color is saturated, or {@code false} otherwise
@@ -146,7 +147,7 @@ public final class CanvasColor extends DrawModifier {
 		int red = Mth.clamp((color >> 16 & 255) * factor / 255, 0, 255);
 		int green = Mth.clamp((color >> 8 & 255) * factor / 255, 0, 255);
 		int blue = Mth.clamp((color & 255) * factor / 255, 0, 255);
-		return FastColor.ABGR32.color(0xff, blue, green, red);
+		return ARGB.color(0xff, blue, green, red);
 	}
 
 	/**
@@ -194,17 +195,16 @@ public final class CanvasColor extends DrawModifier {
 	}
 
 	private static CanvasColor fromDye(int id, Item item) {
-		if (!(item instanceof DyeItem dyeItem)) {
+		DyeColor dye = item.components().get(DataComponents.DYE);
+		if (dye == null) {
 			throw new IllegalArgumentException("Item must be a DyeItem.");
 		}
-
-		var color = dyeItem.getDyeColor();
 
 		if (COLORS.containsKey((byte) id)) {
 			return COLORS.get((byte) id);
 		}
 
-		return new CanvasColor((byte) id, color.getTextureDiffuseColor(), dyeItem);
+		return new CanvasColor((byte) id, dye.getTextureDiffuseColor(), item);
 	}
 
 	@Override

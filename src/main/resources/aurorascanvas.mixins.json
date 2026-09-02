@@ -1,10 +1,9 @@
 {
 	"required": true,
 	"package": "dev.lambdaurora.aurorascanvas.mixin",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_25",
 	"mixins": [
 		"BlockEntityMixin",
-		"HoneycombItemMixin",
 		"IronBarsBlockMixin",
 		"ItemStackComponentizationFixMixin",
 		"V3328Mixin"

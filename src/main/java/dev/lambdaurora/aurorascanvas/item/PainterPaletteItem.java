@@ -20,7 +20,7 @@ import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
@@ -37,7 +37,7 @@ import java.util.Optional;
  * Represents a painter's palette item which can be used for easier painting on canvases.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class PainterPaletteItem extends Item {
@@ -86,7 +86,7 @@ public class PainterPaletteItem extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+	public InteractionResult use(Level world, Player user, InteractionHand hand) {
 		ItemStack stack = user.getItemInHand(hand);
 
 		if (user.isShiftKeyDown()) {
@@ -97,7 +97,7 @@ public class PainterPaletteItem extends Item {
 				user.openMenu(new PainterPaletteMenu.Factory(stack, NestedMenu.OriginType.PLAYER, index));
 			}
 
-			return InteractionResultHolder.consume(stack);
+			return InteractionResult.CONSUME;
 		}
 
 		return super.use(world, user, hand);
@@ -140,7 +140,7 @@ public class PainterPaletteItem extends Item {
 			var modifier = DrawModifier.fromItem(inventory.getSelectedColor());
 
 			if (!(modifier instanceof CanvasColor) && modifier != null) {
-				player.displayClientMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()), true);
+				player.sendOverlayMessage(Component.translatable(AurorasCanvas.NAMESPACE + ".change_modifier", modifier.getName()));
 			}
 		} else {
 			int nextTool = mutable.scrollTool(scrollDelta < 0);
@@ -163,7 +163,7 @@ public class PainterPaletteItem extends Item {
 
 				if (primaryColor != null && primaryColor != CanvasColor.EMPTY) message.withStyle(style -> style.withColor(primaryColor.getColor()));
 
-				player.displayClientMessage(message, true);
+				player.sendOverlayMessage(message);
 			}
 		}
 	}

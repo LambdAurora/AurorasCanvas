@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,16 +50,16 @@ public class IronBarsBlockMixin {
 			)
 	)
 	private boolean aurorascanvas$onUpdateShape$attachsTo(
-			IronBarsBlock instance, BlockState targetState, boolean solidSide,
+			IronBarsBlock instance, BlockState targetState, boolean faceSolid,
 			Operation<Boolean> original,
-			BlockState state, Direction direction
+			BlockState state, @Local(name = "directionToNeighbour", argsOnly = true) Direction directionToNeighbour
 	) {
 		if (targetState.getBlock() instanceof GlassCanvasBlock
 				&& targetState.getValue(GlassCanvasBlock.PANE)
-				&& targetState.getValue(GlassCanvasBlock.FACING).getClockWise().getAxis() == direction.getAxis()) {
+				&& targetState.getValue(GlassCanvasBlock.FACING).getClockWise().getAxis() == directionToNeighbour.getAxis()) {
 			return true;
 		}
 
-		return original.call(instance, targetState, solidSide);
+		return original.call(instance, targetState, faceSolid);
 	}
 }

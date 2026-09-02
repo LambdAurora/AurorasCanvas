@@ -23,7 +23,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * @param easelEntityId the easel entity identifier of the attached canvas
  * @param canvas the edited canvas data
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?, ?> canvas) implements CustomPacketPayload {
@@ -40,6 +40,6 @@ public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?, ?> canv
 	}
 
 	static {
-		PayloadTypeRegistry.playC2S().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(TYPE, STREAM_CODEC);
 	}
 }

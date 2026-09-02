@@ -25,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
  * Represents the dynamic item renderer of glass canvases.
  *
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -51,14 +51,14 @@ public class GlassCanvasItemRenderer extends CanvasItemRenderer {
 					matrices.translate(0, 0, 1 / 16.f);
 					matrices.rotateAround(Axis.YP.rotationDegrees(180), 0.5f, 0, 0);
 					CanvasTexture.fromCanvas(back)
-							.render(
+							.extract(
 									matrices.last().pose(), vertexConsumers,
 									back.isGlowing() ? LightTexture.FULL_BLOCK : light,
 									false
 							);
 
 					CanvasTexture.fromCanvas(back)
-							.render(
+							.extract(
 									matrices.last().pose(), vertexConsumers,
 									back.isGlowing() ? LightTexture.FULL_BLOCK : light,
 									true
@@ -70,14 +70,14 @@ public class GlassCanvasItemRenderer extends CanvasItemRenderer {
 			var canvas = canvases.front();
 			if (!canvas.isEmpty()) {
 				CanvasTexture.fromCanvas(canvas)
-						.render(
+						.extract(
 								matrices.last().pose(), vertexConsumers,
 								canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
 								false
 						);
 
 				CanvasTexture.fromCanvas(canvas)
-						.render(
+						.extract(
 								matrices.last().pose(), vertexConsumers,
 								canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
 								true

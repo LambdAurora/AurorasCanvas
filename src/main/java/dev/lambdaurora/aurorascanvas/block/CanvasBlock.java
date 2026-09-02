@@ -25,8 +25,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -34,10 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -45,7 +43,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -62,14 +60,14 @@ import java.util.function.BiFunction;
  * Represents a canvas that can be edited by players if not locked.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @SuppressWarnings("deprecation")
 public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final MapCodec<? extends CanvasBlock> CODEC = makeCodec(CanvasBlock::new);
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
 	static <W extends CanvasBlock> MapCodec<W> makeCodec(BiFunction<Properties, Boolean, W> instantiator) {
@@ -182,11 +180,12 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 	@Override
 	public BlockState updateShape(
-			BlockState state, Direction direction, BlockState newState,
-			LevelAccessor world, BlockPos pos, BlockPos posFrom
+			BlockState state, final LevelReader world, final ScheduledTickAccess ticks, BlockPos pos,
+			Direction direction, BlockPos posFrom, BlockState newState,
+			final RandomSource random
 	) {
 		if (state.getValue(WATERLOGGED)) {
-			world.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
 		}
 
 		if (!this.isLocked()) {
@@ -198,7 +197,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 			}
 		}
 
-		return super.updateShape(state, direction, newState, world, pos, posFrom);
+		return super.updateShape(state, world, ticks, pos, direction, posFrom, newState, random);
 	}
 
 	/* Interaction */
@@ -208,7 +207,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		var offhand = player.getItemInHand(InteractionHand.OFF_HAND);
 		var facing = hit.getDirection();
 
@@ -231,7 +230,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 				var modifier = DrawModifier.fromItem(currentStack);
 				if (currentStack.is(Items.WATER_BUCKET) && this.tryClear(world, canvasEntity, player)) {
 					world.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 2.f, 1.f);
-					return ItemInteractionResult.sidedSuccess(world.isClientSide());
+					return InteractionResult.SUCCESS;
 				} else if (this.isPotionWater(currentStack) && this.tryClear(world, canvasEntity, player)) {
 					player.awardStat(Stats.ITEM_USED.get(currentStack.getItem()));
 					if (!player.getAbilities().instabuild) {
@@ -244,7 +243,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						}
 					}
 					world.playSound(null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 2.f, 1.f);
-					return ItemInteractionResult.sidedSuccess(world.isClientSide());
+					return InteractionResult.SUCCESS;
 				} else if (offhand.is(Items.STICK) && (modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
 					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
@@ -268,7 +267,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
 					}
 
-					return ItemInteractionResult.sidedSuccess(world.isClientSide());
+					return InteractionResult.SUCCESS;
 				} else if ((modifier != null) && !state.getValue(WATERLOGGED)) {
 					int x;
 					int y = (int) (Utils.posMod(hit.getLocation().y(), 1) * 16.0);
@@ -300,7 +299,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 
 						player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 						world.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
-						return ItemInteractionResult.sidedSuccess(world.isClientSide());
+						return InteractionResult.SUCCESS;
 					}
 				} else if (currentStack.is(Items.GLOW_INK_SAC) || currentStack.is(Items.INK_SAC)) {
 					boolean lit = currentStack.is(Items.GLOW_INK_SAC);
@@ -317,7 +316,7 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 							currentStack.shrink(1);
 						}
 
-						return ItemInteractionResult.sidedSuccess(world.isClientSide());
+						return InteractionResult.SUCCESS;
 					}
 				}
 			}
@@ -358,14 +357,6 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 		return super.playerWillDestroy(level, pos, state, player);
 	}
 
-	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-		var stack = super.getCloneItemStack(level, pos, state);
-		level.getBlockEntity(pos, this.getBlockEntityType())
-				.ifPresent(canvasEntity -> canvasEntity.saveToItem(stack, level.registryAccess()));
-		return stack;
-	}
-
 	/* Block Entity Stuff */
 
 	@Override
@@ -380,6 +371,11 @@ public class CanvasBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
 	@Override
 	public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return this.getBlockEntityType().create(pos, state);
+	}
+
+	@Override
+	public boolean shouldChangedStateKeepBlockEntity(final BlockState oldState) {
+		return oldState.getBlock().getClass() == this.getClass();
 	}
 
 	public @Nullable CanvasBlockEntity<?, ?, ?> getCanvasEntity(BlockGetter world, BlockPos pos) {

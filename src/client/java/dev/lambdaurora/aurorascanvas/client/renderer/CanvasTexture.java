@@ -15,8 +15,9 @@ import dev.lambdaurora.aurorascanvas.client.CanvasClientUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
@@ -31,7 +32,7 @@ import java.util.Map;
  * Represents a canvas texture.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -44,7 +45,7 @@ public final class CanvasTexture {
 	private final RenderType renderType;
 
 	public CanvasTexture() {
-		this.id = Minecraft.getInstance().getTextureManager().register(AurorasCanvas.NAMESPACE + "/canvas", this.texture);
+		this.id = Minecraft.getInstance().getTextureManager().register(AurorasCanvas.id("canvas"), this.texture);
 		this.renderType = RenderType.text(id);
 	}
 
@@ -72,11 +73,11 @@ public final class CanvasTexture {
 		}
 	}
 
-	public void render(GuiGraphics graphics, int x, int y, int width, int height) {
-		graphics.blit(this.id, x, y, width, height, 0.f, 0.f, 16, 16, 16, 16);
+	public void extract(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
+		graphics.blit(RenderPipelines.GUI_TEXTURED, this.id, x, y, 0.f, 0.f, width, height, 16, 16, 16, 16);
 	}
 
-	public void render(Matrix4f model, MultiBufferSource vertexConsumers, int light, boolean mirror) {
+	public void extract(Matrix4f model, MultiBufferSource vertexConsumers, int light, boolean mirror) {
 		var vertices = vertexConsumers.getBuffer(this.renderType);
 		vertices.addVertex(model, mirror ? 1.f : 0.f, 1.f, 0.f)
 				.setColor(255, 255, 255, 255)

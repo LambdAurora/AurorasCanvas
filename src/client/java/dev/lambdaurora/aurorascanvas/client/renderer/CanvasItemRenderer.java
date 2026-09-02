@@ -14,7 +14,6 @@ import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,7 +26,7 @@ import net.minecraft.world.item.ItemStack;
  * Represents the dynamic item renderer of canvases.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
@@ -116,7 +115,7 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 				this.applyPose(mode, matrices, leftHanded, model);
 
 				CanvasTexture.fromCanvas(canvas)
-						.render(
+						.extract(
 								matrices.last().pose(), vertexConsumers,
 								canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
 								false

@@ -17,7 +17,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -32,8 +31,8 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
@@ -41,6 +40,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ import static dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry.*;
  * It can hold a canvas for display and interaction.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class EaselEntity extends LivingEntity {
@@ -66,8 +67,7 @@ public class EaselEntity extends LivingEntity {
 	private static final String INVISIBLE_KEY = "invisible";
 	private static final String FIXED_KEY = "fixed";
 
-	private static final Predicate<Entity> RIDABLE_MINECARTS = entity -> entity instanceof AbstractMinecart minecart
-			&& minecart.getMinecartType() == AbstractMinecart.Type.RIDEABLE;
+	private static final Predicate<Entity> RIDABLE_MINECARTS = entity -> entity instanceof AbstractMinecart minecart && minecart.isRideable();
 
 	private boolean fixed;
 
@@ -121,30 +121,24 @@ public class EaselEntity extends LivingEntity {
 	/* Serialization */
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag nbt) {
-		CompoundTag itemNbt = nbt.getCompound(ITEM_KEY);
-		if (!itemNbt.isEmpty()) {
-			ItemStack stack = ItemStack.parseOptional(this.registryAccess(), itemNbt);
-			if (stack.isEmpty()) {
-				LOGGER.warn("Unable to load item from: {}", itemNbt);
-			}
+	public void readAdditionalSaveData(ValueInput input) {
+		var stack = input.read(ITEM_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+		this.setItem(stack, false);
 
-			this.setItem(stack, false);
-		}
-
-		this.setInvisible(nbt.getBoolean(INVISIBLE_KEY));
-		this.fixed = nbt.getBoolean(FIXED_KEY);
+		this.setInvisible(input.getBooleanOr(INVISIBLE_KEY, false));
+		this.fixed = input.getBooleanOr(FIXED_KEY, false);
 
 		this.noPhysics = !this.hasPhysics();
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag nbt) {
-		if (!this.getItem().isEmpty()) {
-			nbt.put(ITEM_KEY, this.getItem().saveOptional(this.registryAccess()));
+	public void addAdditionalSaveData(ValueOutput output) {
+		var item = this.getItem();
+		if (!item.isEmpty()) {
+			output.store(ITEM_KEY, ItemStack.CODEC, item);
 		}
-		nbt.putBoolean(INVISIBLE_KEY, this.isInvisible());
-		nbt.putBoolean(FIXED_KEY, this.fixed);
+		output.putBoolean(INVISIBLE_KEY, this.isInvisible());
+		output.putBoolean(FIXED_KEY, this.fixed);
 	}
 
 	/* Movement */
@@ -169,10 +163,9 @@ public class EaselEntity extends LivingEntity {
 	}
 
 	@Override
-	protected float tickHeadTurn(float yRot, float animStep) {
+	protected void tickHeadTurn(float yRot) {
 		this.yBodyRotO = this.yRotO;
 		this.yBodyRot = this.getYRot();
-		return 0.f;
 	}
 
 	/* Interaction */
@@ -227,7 +220,7 @@ public class EaselEntity extends LivingEntity {
 	}
 
 	@Override
-	public InteractionResult interact(Player player, InteractionHand hand) {
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
 		ItemStack handStack = player.getItemInHand(hand);
 		boolean handStackValid = handStack.is(CANVAS_ITEMS) || handStack.is(PAINTER_PALETTE_ITEM) || handStack.isEmpty();
 		if (this.fixed) {
@@ -292,67 +285,63 @@ public class EaselEntity extends LivingEntity {
 	/* Breaking */
 
 	@Override
-	public void kill() {
+	public void kill(ServerLevel level) {
 		this.remove(Entity.RemovalReason.KILLED);
 		this.gameEvent(GameEvent.ENTITY_DIE);
 	}
 
 	@Override
-	public boolean hurt(DamageSource source, float amount) {
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
 		if (this.isRemoved()) {
 			return false;
-		} else if (this.level() instanceof ServerLevel level) {
-			if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-				this.kill();
-				return false;
-			} else if (this.isInvulnerableTo(source) || this.fixed) {
-				return false;
-			} else if (source.is(DamageTypeTags.IS_EXPLOSION)) {
-				this.brokenByAnything(level, source);
-				this.kill();
-				return false;
-			} else if (source.is(AurorasCanvasRegistry.IGNITES_EASELS)) {
-				if (this.isOnFire()) {
-					this.causeDamage(level, source, 0.15f);
-				} else {
-					this.igniteForSeconds(5);
-				}
-
-				return false;
-			} else if (source.is(AurorasCanvasRegistry.BURNS_EASELS) && this.getHealth() > 0.5f) {
-				this.causeDamage(level, source, 4.f);
-				return false;
+		} else if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+			this.kill(level);
+			return false;
+		} else if (this.isInvulnerableTo(level, source) || this.fixed) {
+			return false;
+		} else if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+			this.brokenByAnything(level, source);
+			this.kill(level);
+			return false;
+		} else if (source.is(AurorasCanvasRegistry.IGNITES_EASELS)) {
+			if (this.isOnFire()) {
+				this.causeDamage(level, source, 0.15f);
 			} else {
-				boolean bl = source.getDirectEntity() instanceof AbstractArrow;
-				boolean bl2 = bl && ((AbstractArrow) source.getDirectEntity()).getPierceLevel() > 0;
-				boolean bl3 = "player".equals(source.getMsgId());
-				if (!bl3 && !bl) {
-					return false;
-				} else if (source.getEntity() instanceof Player player && !player.getAbilities().mayBuild) {
-					return false;
-				} else if (source.isCreativePlayer()) {
-					this.playBrokenSound();
-					this.showBreakingParticles();
-					this.kill();
-					return bl2;
-				} else {
-					long currentTime = this.level().getGameTime();
-					if (currentTime - this.lastHit > 5L && !bl) {
-						this.level().broadcastEntityEvent(this, (byte) 32);
-						this.gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
-						this.lastHit = currentTime;
-					} else {
-						this.brokenByPlayer(level, source);
-						this.showBreakingParticles();
-						this.kill();
-					}
+				this.igniteForSeconds(5);
+			}
 
-					return true;
+			return false;
+		} else if (source.is(AurorasCanvasRegistry.BURNS_EASELS) && this.getHealth() > 0.5f) {
+			this.causeDamage(level, source, 4.f);
+			return false;
+		} else {
+			boolean bl = source.getDirectEntity() instanceof AbstractArrow;
+			boolean bl2 = bl && ((AbstractArrow) source.getDirectEntity()).getPierceLevel() > 0;
+			boolean bl3 = "player".equals(source.getMsgId());
+			if (!bl3 && !bl) {
+				return false;
+			} else if (source.getEntity() instanceof Player player && !player.getAbilities().mayBuild) {
+				return false;
+			} else if (source.isCreativePlayer()) {
+				this.playBrokenSound();
+				this.showBreakingParticles();
+				this.kill(level);
+				return bl2;
+			} else {
+				long currentTime = this.level().getGameTime();
+				if (currentTime - this.lastHit > 5L && !bl) {
+					this.level().broadcastEntityEvent(this, (byte) 32);
+					this.gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
+					this.lastHit = currentTime;
+				} else {
+					this.brokenByPlayer(level, source);
+					this.showBreakingParticles();
+					this.kill(level);
 				}
+
+				return true;
 			}
 		}
-
-		return false;
 	}
 
 	@Override
@@ -391,7 +380,7 @@ public class EaselEntity extends LivingEntity {
 		health -= amount;
 		if (health <= 0.5f) {
 			this.brokenByAnything(level, damageSource);
-			this.kill();
+			this.kill(level);
 		} else {
 			this.setHealth(health);
 			this.gameEvent(GameEvent.ENTITY_DAMAGE, damageSource.getEntity());
@@ -460,11 +449,6 @@ public class EaselEntity extends LivingEntity {
 	/* Living Entity stuff */
 
 	@Override
-	public Iterable<ItemStack> getArmorSlots() {
-		return List.of();
-	}
-
-	@Override
 	public ItemStack getItemBySlot(EquipmentSlot slot) {
 		return (slot == EquipmentSlot.MAINHAND) ? this.getItem() : ItemStack.EMPTY;
 	}
@@ -479,12 +463,6 @@ public class EaselEntity extends LivingEntity {
 	@Override
 	public HumanoidArm getMainArm() {
 		return HumanoidArm.RIGHT;
-	}
-
-	@Override
-	public boolean canTakeItem(ItemStack stack) {
-		EquipmentSlot equipmentSlot = this.getEquipmentSlotForItem(stack);
-		return this.getItemBySlot(equipmentSlot).isEmpty() && stack.is(CANVAS_ITEMS);
 	}
 
 	/* Sounds */

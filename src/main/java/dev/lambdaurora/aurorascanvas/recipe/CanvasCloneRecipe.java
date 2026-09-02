@@ -9,29 +9,35 @@
 
 package dev.lambdaurora.aurorascanvas.recipe;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.yumi.commons.event.Event;
 import dev.yumi.mc.core.api.YumiEvents;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * Represents the canvas clone recipe.
  *
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public class CanvasCloneRecipe extends CustomRecipe {
@@ -48,10 +54,6 @@ public class CanvasCloneRecipe extends CustomRecipe {
 				return Optional.empty();
 			});
 
-	private static final Ingredient INPUT = Ingredient.fromValues(Stream.of(
-			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_ITEMS),
-			new Ingredient.TagValue(AurorasCanvasRegistry.CANVAS_COMPATIBLE_ITEMS)
-	));
 	private static final Ingredient OUTPUT = Ingredient.of(
 			AurorasCanvasRegistry.BLACKBOARD,
 			AurorasCanvasRegistry.CHALKBOARD,
@@ -59,19 +61,35 @@ public class CanvasCloneRecipe extends CustomRecipe {
 			AurorasCanvasRegistry.GLASSBOARD
 	);
 
-	public CanvasCloneRecipe(CraftingBookCategory craftingCategory) {
-		super(craftingCategory);
+	public static final MapCodec<CanvasCloneRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+					Ingredient.CODEC.fieldOf("input").forGetter(o -> o.input)
+			).apply(instance, CanvasCloneRecipe::new)
+	);
+	public static final StreamCodec<RegistryFriendlyByteBuf, CanvasCloneRecipe> STREAM_CODEC = StreamCodec.composite(
+			Ingredient.CONTENTS_STREAM_CODEC, recipe -> recipe.input,
+			CanvasCloneRecipe::new
+	);
+	public static final RecipeSerializer<CanvasCloneRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+
+	private final Ingredient input;
+
+	public CanvasCloneRecipe(Ingredient input) {
+		this.input = input;
 	}
 
 	@Override
 	public boolean matches(CraftingInput input, Level level) {
+		if (input.ingredientCount() != 2) {
+			return false;
+		}
+
 		boolean hasInput = false, hasOutput = false;
 		int count = 0;
 
 		for (int slot = 0; slot < input.size(); ++slot) {
 			var stack = input.getItem(slot);
 
-			if (INPUT.test(stack)) {
+			if (this.input.test(stack)) {
 				var inputCanvases = this.getInput(stack);
 
 				if (OUTPUT.test(stack) && inputCanvases.isEmpty())
@@ -85,7 +103,11 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+	public ItemStack assemble(CraftingInput input) {
+		if (input.ingredientCount() != 2) {
+			return ItemStack.EMPTY;
+		}
+
 		ItemStack output = null;
 
 		for (int slot = 0; slot < input.size(); ++slot) {
@@ -144,12 +166,11 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		for (int i = 0; i < defaultedList.size(); ++i) {
 			ItemStack invStack = input.getItem(i);
 			if (!invStack.isEmpty()) {
-				if (invStack.getItem().hasCraftingRemainingItem()) {
-					defaultedList.set(i, new ItemStack(invStack.getItem().getCraftingRemainingItem()));
+				ItemStackTemplate remainder = invStack.getItem().getCraftingRemainder();
+				if (remainder != null) {
+					defaultedList.set(i, remainder.create());
 				} else if (this.getInput(invStack).isPresent()) {
-					ItemStack remainder = invStack.copy();
-					remainder.setCount(1);
-					defaultedList.set(i, remainder);
+					defaultedList.set(i, invStack.copyWithCount(1));
 				}
 			}
 		}
@@ -157,15 +178,9 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		return defaultedList;
 	}
 
-
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 2;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return AurorasCanvasRegistry.CANVAS_CLONE_RECIPE_SERIALIZER;
+	public RecipeSerializer<CanvasCloneRecipe> getSerializer() {
+		return SERIALIZER;
 	}
 
 	public interface InputGetter {

@@ -9,24 +9,21 @@
 
 package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.Tesselator;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawModifier;
 import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import dev.lambdaurora.spruceui.Position;
+import dev.lambdaurora.spruceui.SpruceTextures;
 import dev.lambdaurora.spruceui.border.Border;
+import dev.lambdaurora.spruceui.render.SpruceGuiGraphics;
 import dev.lambdaurora.spruceui.widget.SpruceWidget;
 import dev.lambdaurora.spruceui.widget.container.SpruceEntryListWidget;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Objects;
@@ -34,6 +31,7 @@ import java.util.Objects;
 @Environment(EnvType.CLIENT)
 public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidget.Entry> {
 	private static final Identifier COLOR_SLOTS_SPRITE = AurorasCanvas.id("editor/color_slots");
+	private static final Identifier SLOT_HIGHLIGHT_BACK_SPRITE = Identifier.withDefaultNamespace("container/slot_highlight_back");
 
 	private static final int MARGIN = 7;
 	private final CanvasController controller;
@@ -43,8 +41,8 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 		this.controller = screen.controller;
 
 		this.setBorder(new WidgetBorder());
-		this.setBackground((graphics, widget, vOffset, mouseX, mouseY, delta) -> {
-			graphics.blitSprite(COLOR_SLOTS_SPRITE, widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight());
+		this.setBackground((graphics, widget, _, _, _, _) -> {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, COLOR_SLOTS_SPRITE, widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight());
 		});
 
 		for (var colorStack : screen.controller.getAvailableColors()) {
@@ -71,8 +69,8 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		super.renderWidget(graphics, mouseX, mouseY, delta);
+	protected void extractWidgetRenderState(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
+		super.extractWidgetRenderState(graphics, mouseX, mouseY, delta);
 
 		int left = this.getInnerBorderedX();
 		int right = this.getEndInnerBorderedX();
@@ -87,7 +85,7 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 				int realTop = entry.getY() - 2 < top - 2 ? top : (top - 2);
 				int realBottom = entry.getY() + entry.getHeight() + 2 > bottom + 2 ? bottom : (bottom + 2);
 				graphics.enableScissor(left - 2, realTop, right, realBottom);
-				graphics.blitSprite(SpriteIds.SELECT_HIGHLIGHT_SPRITE, entry.getX() - 2, entry.getY() - 2, 22, 22);
+				graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, entry.getX() - 2, entry.getY() - 2, 22, 22);
 				graphics.disableScissor();
 				break;
 			}
@@ -95,31 +93,34 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 	}
 
 	@Override
-	protected void renderScrollbar(
-			Tesselator tessellator, BufferBuilder buffer,
-			int scrollbarX, int scrollbarEndX,
-			int scrollbarY, int scrollbarHeight
+	protected void extractScrollbar(
+			SpruceGuiGraphics graphics, int mouseX, int mouseY
 	) {
-		scrollbarEndX -= 2;
-		scrollbarY++;
-		scrollbarHeight -= 2;
-		int y = this.getInnerBorderedY();
-		int endY = this.getEndInnerBorderedY();
+		if (this.isScrollbarVisible()) {
+			int top = this.getInnerBorderedY();
+			int height = this.getInnerBorderedHeight();
+			int scrollbarX = this.getScrollbarPositionX();
+			int scrollerHeight = (int) ((float) (height * height) / (float) this.getMaxPosition());
+			scrollerHeight = Mth.clamp(scrollerHeight, 32, height - 8);
+			int scrollbarY = (int) this.getScrollAmount() * (height - scrollerHeight) / this.getMaxScroll() + top;
+			if (scrollbarY < top) {
+				scrollbarY = top;
+			}
 
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		buffer.addVertex(scrollbarX, scrollbarY + scrollbarHeight, 0.0f).setColor(128, 128, 128, 255);
-		buffer.addVertex(scrollbarEndX, scrollbarY + scrollbarHeight, 0.0f).setColor(128, 128, 128, 255);
-		buffer.addVertex(scrollbarEndX, scrollbarY, 0.0f).setColor(128, 128, 128, 255);
-		buffer.addVertex(scrollbarX, scrollbarY, 0.0f).setColor(128, 128, 128, 255);
-		buffer.addVertex(scrollbarX, scrollbarY + scrollbarHeight - 1, 0.0f).setColor(192, 192, 192, 255);
-		buffer.addVertex(scrollbarEndX - 1, scrollbarY + scrollbarHeight - 1, 0.0f).setColor(192, 192, 192, 255);
-		buffer.addVertex(scrollbarEndX - 1, scrollbarY, 0.0f).setColor(192, 192, 192, 255);
-		buffer.addVertex(scrollbarX, scrollbarY, 0.0f).setColor(192, 192, 192, 255);
-		MeshData builtBuffer = buffer.build();
-		if (builtBuffer != null) {
-			BufferUploader.drawWithShader(builtBuffer);
+			scrollbarY++;
+			scrollerHeight -= 2;
+
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpruceTextures.SCROLLER_BACKGROUND,
+					scrollbarX, top, 4, this.getInnerBorderedHeight()
+			);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpruceTextures.SCROLLER,
+					scrollbarX, scrollbarY, 4, scrollerHeight
+			);
+
+			if (this.isOverScrollbar(mouseX, mouseY)) {
+				//graphics.requestCursor(this.scrolling ? CursorTypes.RESIZE_NS : CursorTypes.POINTING_HAND);
+			}
 		}
-		tessellator.clear();
 	}
 
 	public static class Entry extends SpruceEntryListWidget.Entry {
@@ -137,33 +138,28 @@ public class ColorSelectorWidget extends SpruceEntryListWidget<ColorSelectorWidg
 		}
 
 		@Override
-		protected boolean onMouseRelease(double mouseX, double mouseY, int button) {
+		protected boolean onMouseRelease(MouseButtonEvent event) {
 			this.setFocused(true);
 			this.controller.currentModifier = this.modifier;
 
-			return super.onMouseRelease(mouseX, mouseY, button);
+			return super.onMouseRelease(event);
 		}
 
 		@Override
-		protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-			graphics.blitSprite(SpriteIds.SLOT_SPRITE, this.getX(), this.getY(), 18, 18);
+		protected void extractWidgetRenderState(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SLOT_SPRITE, this.getX(), this.getY(), 18, 18);
 
-			var matrices = graphics.pose();
-			matrices.pushPose();
-			matrices.translate(0.f, 0.f, 232.f);
-			graphics.renderItem(this.stack, this.getX() + 1, this.getY() + 1);
+			graphics.vanilla().item(this.stack, this.getX() + 1, this.getY() + 1);
 
 			if (this.isMouseHovered()) {
-				AbstractContainerScreen.renderSlotHighlight(graphics, this.getX() + 1, this.getY() + 1, 0);
+				graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_BACK_SPRITE, this.getX() + 1, this.getY() + 1, 24, 24);
 			}
-
-			matrices.popPose();
 		}
 	}
 
 	public static class WidgetBorder implements Border {
 		@Override
-		public void render(GuiGraphics graphics, SpruceWidget widget, int mouseX, int mouseY, float delta) {
+		public void extractRenderState(SpruceGuiGraphics graphics, SpruceWidget widget, int mouseX, int mouseY, float delta) {
 		}
 
 		@Override

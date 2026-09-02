@@ -12,16 +12,15 @@ package dev.lambdaurora.aurorascanvas.client.screen.canvas;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.DrawAction;
 import dev.lambdaurora.aurorascanvas.network.CanvasEditSubmitPayload;
+import dev.lambdaurora.spruceui.render.SpruceGuiGraphics;
 import dev.lambdaurora.spruceui.screen.SpruceScreen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.networking.v1.FriendlyByteBufs;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.FastColor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class CanvasScreen extends SpruceScreen {
 	public void onClose() {
 		if (!this.controller.canvas.getDefault().history().effectiveCanvas().areContentsEqual(this.controller.root().getDefault())) {
 			// Changed.
-			var buffer = PacketByteBufs.create();
+			var buffer = FriendlyByteBufs.create();
 			var payload = new CanvasEditSubmitPayload(this.controller.id(), this.controller.canvas.mapToCanvas(canvas -> canvas.history().effectiveCanvas()));
 			ClientPlayNetworking.getSender().sendPacket(payload);
 		}
@@ -122,12 +121,12 @@ public class CanvasScreen extends SpruceScreen {
 	}
 
 	@Override
-	public void renderTitle(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+	public void renderTitle(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
 		graphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xffffffff);
 	}
 
 	@Override
-	public void renderWidgets(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+	public void renderWidgets(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
 		super.renderWidgets(graphics, mouseX, mouseY, delta);
 
 		graphics.blit(
@@ -145,12 +144,7 @@ public class CanvasScreen extends SpruceScreen {
 				var effectiveCanvas = this.currentHistory != null ? this.currentHistory : this.controller.canvas.getDefault();
 				int color = effectiveCanvas.getColor(x, y);
 
-				graphics.fill(screenX, screenY, screenX + PIXEL_SIZE, screenY + PIXEL_SIZE, FastColor.ARGB32.color(
-						FastColor.ABGR32.alpha(color),
-						FastColor.ABGR32.red(color),
-						FastColor.ABGR32.green(color),
-						FastColor.ABGR32.blue(color)
-				));
+				graphics.fill(screenX, screenY, screenX + PIXEL_SIZE, screenY + PIXEL_SIZE, color);
 			}
 		}
 	}

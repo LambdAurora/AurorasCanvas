@@ -31,9 +31,10 @@ import dev.lambdaurora.aurorascanvas.item.SimpleCanvasItem;
 import dev.lambdaurora.aurorascanvas.item.component.PainterPaletteInventory;
 import dev.lambdaurora.aurorascanvas.menu.PainterPaletteMenu;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
@@ -47,16 +48,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -195,7 +195,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<SimpleCanvasBlockEntity> CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			CANVAS_ID,
-			BlockEntityType.Builder.of(
+			FabricBlockEntityTypeBuilder.create(
 					SimpleCanvasBlockEntity::new,
 					BLACKBOARD.block.value, CHALKBOARD.block.value, WHITEBOARD.block.value,
 					WAXED_BLACKBOARD.block.value, WAXED_CHALKBOARD.block.value, WAXED_WHITEBOARD.block.value
@@ -204,7 +204,7 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<GlassCanvasBlockEntity> GLASS_CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			GLASSBOARD_ID,
-			BlockEntityType.Builder.of(
+			FabricBlockEntityTypeBuilder.create(
 					GlassCanvasBlockEntity::new,
 					GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value
 			).build()
@@ -212,36 +212,36 @@ public final class AurorasCanvasRegistry {
 	public static final BlockEntityType<CanvasPressBlockEntity> BLACKBOARD_PRESS_BLOCK_ENTITY = Registry.register(
 			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			CANVAS_PRESS_ID,
-			BlockEntityType.Builder.of(
+			FabricBlockEntityTypeBuilder.create(
 					CanvasPressBlockEntity::new,
 					CANVAS_PRESS.block.value
 			).build()
 	);
 
+	public static final ResourceKey<EntityType<?>> EASEL_ENTITY_TYPE_KEY = ResourceKey.create(Registries.ENTITY_TYPE, EASEL_ID);
 	public static final EntityType<EaselEntity> EASEL_ENTITY_TYPE = Registry.register(
 			BuiltInRegistries.ENTITY_TYPE,
-			EASEL_ID,
+			EASEL_ENTITY_TYPE_KEY,
 			EntityType.Builder.of(EaselEntity::new, MobCategory.MISC)
 					.sized(1.f, 2.f)
 					.clientTrackingRange(10)
-					.build()
+					.build(EASEL_ENTITY_TYPE_KEY)
 	);
 
 	public static final MenuType<PainterPaletteMenu> PAINTER_PALETTE_MENU_TYPE = Registry.register(
 			BuiltInRegistries.MENU,
 			PAINTER_PALETTE_ID,
-			new ExtendedScreenHandlerType<>(PainterPaletteMenu::new, PainterPaletteMenu.OpenData.STREAM_CODEC)
+			new ExtendedMenuType<>(PainterPaletteMenu::new, PainterPaletteMenu.OpenData.STREAM_CODEC)
 	);
 
 	public static final RecipeSerializer<CanvasCloneRecipe> CANVAS_CLONE_RECIPE_SERIALIZER = Registry.register(
 			BuiltInRegistries.RECIPE_SERIALIZER,
 			id("crafting_special_canvas_clone"),
-			new SimpleCraftingRecipeSerializer<>(CanvasCloneRecipe::new)
+			CanvasCloneRecipe.SERIALIZER
 	);
 
 	public static final TagKey<Item> CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("canvases"));
 	public static final TagKey<Item> WAXED_CANVAS_ITEMS = TagKey.create(Registries.ITEM, id("waxed_canvases"));
-	public static final TagKey<Item> CANVAS_COMPATIBLE_ITEMS = TagKey.create(Registries.ITEM, id("compatible_canvases"));
 
 	public static final TagKey<Block> CANVAS_BLOCKS = TagKey.create(Registries.BLOCK, id("canvases"));
 	public static final TagKey<Block> GLASSBOARD_BLOCKS = TagKey.create(Registries.BLOCK, id("glassboards"));
@@ -287,10 +287,10 @@ public final class AurorasCanvasRegistry {
 	}
 
 	static void init() {
-		OxidizableBlocksRegistry.registerWaxableBlockPair(BLACKBOARD.block.value, WAXED_BLACKBOARD.block.value);
-		OxidizableBlocksRegistry.registerWaxableBlockPair(CHALKBOARD.block.value, WAXED_CHALKBOARD.block.value);
-		OxidizableBlocksRegistry.registerWaxableBlockPair(WHITEBOARD.block.value, WAXED_WHITEBOARD.block.value);
-		OxidizableBlocksRegistry.registerWaxableBlockPair(GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value);
+		OxidizableBlocksRegistry.registerWaxable(BLACKBOARD.block.value, WAXED_BLACKBOARD.block.value);
+		OxidizableBlocksRegistry.registerWaxable(CHALKBOARD.block.value, WAXED_CHALKBOARD.block.value);
+		OxidizableBlocksRegistry.registerWaxable(WHITEBOARD.block.value, WAXED_WHITEBOARD.block.value);
+		OxidizableBlocksRegistry.registerWaxable(GLASSBOARD.block.value, WAXED_GLASSBOARD.block.value);
 
 		FabricDefaultAttributeRegistry.register(EASEL_ENTITY_TYPE, EaselEntity.createAttributes());
 
@@ -304,7 +304,7 @@ public final class AurorasCanvasRegistry {
 						easel -> easel.setYRot(direction.toYRot()), serverLevel, stack, null
 				);
 				var easel = EASEL_ENTITY_TYPE.spawn(
-						serverLevel, consumer, blockPos, MobSpawnType.DISPENSER, false, false
+						serverLevel, consumer, blockPos, EntitySpawnReason.DISPENSER, false, false
 				);
 				if (easel != null) {
 					stack.shrink(1);

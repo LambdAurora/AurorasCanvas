@@ -24,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
  * @param easelEntityId the easel entity identifier of the attached canvas
  * @param canvas the canvas item to open the GUI of
  * @author LambdAurora
- * @version 1.1.0
+ * @version 1.2.0
  * @since 1.0.0
  */
 public record CanvasOpenGuiPayload(int easelEntityId, ItemStack canvas, ItemStack painterPalette) implements CustomPacketPayload {
@@ -46,6 +46,6 @@ public record CanvasOpenGuiPayload(int easelEntityId, ItemStack canvas, ItemStac
 	}
 
 	static {
-		PayloadTypeRegistry.playS2C().register(TYPE, STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(TYPE, STREAM_CODEC);
 	}
 }
