@@ -14,13 +14,19 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.nio.ByteBuffer;
-
+/**
+ * Provides serialization of canvases.
+ *
+ * @author LambdAurora
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public final class CanvasSerialization {
 	public static int MAX_PIXELS_BYTES = 2 * CanvasHandler.PIXELS_COUNT;
+	private static final int CURRENT_VERSION = 2;
 
 	private static final Codec<RawCanvas> RAW_CANVAS_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-					Codec.INT.optionalFieldOf("version", 0).forGetter(RawCanvas::version),
+					Codec.INT.fieldOf("version").forGetter(RawCanvas::version),
 					Utils.BYTE_ARRAY_CODEC.optionalFieldOf("pixels", new byte[0]).forGetter(RawCanvas::pixels),
 					Codec.BOOL.optionalFieldOf("lit", false).forGetter(RawCanvas::glowing)
 			).apply(instance, RawCanvas::new)
@@ -39,7 +45,7 @@ public final class CanvasSerialization {
 
 				return new Canvas(pixels, raw.glowing);
 			},
-			canvas -> new RawCanvas(2, serializePixels(canvas.getPixels()), canvas.isGlowing())
+			canvas -> new RawCanvas(CURRENT_VERSION, serializePixels(canvas.getPixels()), canvas.isGlowing())
 	);
 
 	public static Canvas fromByteBuf(FriendlyByteBuf buffer) {

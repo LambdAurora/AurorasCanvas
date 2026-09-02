@@ -27,7 +27,6 @@ import net.minecraft.util.FastColor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @Environment(EnvType.CLIENT)
 public class CanvasScreen extends SpruceScreen {
@@ -54,7 +53,7 @@ public class CanvasScreen extends SpruceScreen {
 
 	@Override
 	public void onClose() {
-		if (!Arrays.equals(this.controller.canvas.getDefault().history().effectiveCanvas().getPixels(), this.controller.root().getDefault().getPixels())) {
+		if (!this.controller.canvas.getDefault().history().effectiveCanvas().areContentsEqual(this.controller.root().getDefault())) {
 			// Changed.
 			var buffer = PacketByteBufs.create();
 			var payload = new CanvasEditSubmitPayload(this.controller.id(), this.controller.canvas.mapToCanvas(canvas -> canvas.history().effectiveCanvas()));

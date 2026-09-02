@@ -29,7 +29,7 @@ import java.util.Objects;
 @Environment(EnvType.CLIENT)
 public class CanvasController {
 	private final int id;
-	private final CanvasHolder<?> root;
+	private final CanvasHolder<?, ?> root;
 	private final PainterPaletteInventory painterPalette;
 	private final List<DrawAction> availableTools;
 	final CanvasLikeHolder<TrackedCanvasHandler> canvas;
@@ -38,7 +38,7 @@ public class CanvasController {
 	DrawAction currentAction;
 	DrawModifier currentModifier;
 
-	public CanvasController(int id, Level level, CanvasItem<?> item, PainterPaletteInventory painterPalette, CanvasHolder<?> root) {
+	public CanvasController(int id, Level level, CanvasItem<?> item, PainterPaletteInventory painterPalette, CanvasHolder<?, ?> root) {
 		this.id = id;
 		this.root = root;
 		this.painterPalette = painterPalette;
@@ -54,7 +54,7 @@ public class CanvasController {
 		return this.id;
 	}
 
-	public CanvasHolder<?> root() {
+	public CanvasHolder<?, ?> root() {
 		return this.root;
 	}
 

@@ -76,7 +76,7 @@ public class CanvasHistory {
 
 		var result = this.computeResult();
 
-		if (!Arrays.equals(result.getPixels(), this.effectiveCanvas.getPixels())) {
+		if (!result.areContentsEqual(this.effectiveCanvas)) {
 			this.future.clear();
 			this.effectiveCanvas = result;
 			this.invokeListeners();

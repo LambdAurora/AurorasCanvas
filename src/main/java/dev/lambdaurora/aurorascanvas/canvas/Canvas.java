@@ -44,7 +44,7 @@ public final class Canvas implements CanvasHandler {
 	 *
 	 * @return the pixels
 	 */
-	public short[] getPixels() {
+	short[] getPixels() {
 		return this.pixels;
 	}
 
@@ -187,11 +187,6 @@ public final class Canvas implements CanvasHandler {
 		Arrays.fill(this.pixels, (short) 0);
 	}
 
-	/**
-	 * Returns whether this canvas is empty or not.
-	 *
-	 * @return {@code true} if empty, or {@code false} otherwise
-	 */
 	@Override
 	public boolean isEmpty() {
 		for (short b : this.pixels) {

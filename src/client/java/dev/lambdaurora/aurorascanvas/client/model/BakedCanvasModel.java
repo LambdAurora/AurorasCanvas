@@ -9,10 +9,12 @@
 
 package dev.lambdaurora.aurorascanvas.client.model;
 
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
+import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
@@ -27,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
@@ -58,11 +61,12 @@ public class BakedCanvasModel extends ForwardingBakedModel {
 	public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
 		super.emitItemQuads(stack, randomSupplier, context);
 
-		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null && nbt.contains("pixels", Tag.TAG_BYTE_ARRAY)) {
-			var canvas = Canvas.fromNbt(nbt);
-			CanvasMeshBaker.buildMesh(new PlacedCanvas(canvas, Direction.NORTH))
-					.outputTo(context.getEmitter());
+		if (stack.getItem() instanceof CanvasItem<?> canvasItem) {
+			canvasItem.getCanvases(stack)
+					.streamPlacedDefault()
+					.filter(Predicate.not(CanvasHandler::isEmpty))
+					.map(CanvasMeshBaker::buildMesh)
+					.forEach(mesh -> mesh.outputTo(context.getEmitter()));
 		}
 	}
 }

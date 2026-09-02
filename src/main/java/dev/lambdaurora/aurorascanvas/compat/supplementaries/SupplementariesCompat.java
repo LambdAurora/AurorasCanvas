@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.compat.supplementaries;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasIds;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
@@ -88,9 +89,9 @@ public final class SupplementariesCompat {
 					).apply(instance, Raw::new)
 			)
 	);
-	public static final Codec<Data> BLACKBOARD_CODEC = RAW_BLACKBOARD_CODEC.xmap(
-			raw -> new Data(new Canvas(raw.pixels, raw.glow), raw.waxed),
-			data -> new Raw(data.canvas.getPixels(), data.canvas.isGlowing(), data.waxed)
+	public static final Codec<Data> BLACKBOARD_CODEC = RAW_BLACKBOARD_CODEC.flatXmap(
+			raw -> DataResult.success(new Data(new Canvas(raw.pixels, raw.glow), raw.waxed)),
+			data -> DataResult.error(() -> "Cannot convert from Aurora's Canvas format to Supplementaries'.")
 	);
 
 	public static Optional<Data> fromNbt(CompoundTag nbt) {
@@ -149,8 +150,8 @@ public final class SupplementariesCompat {
 			nbt.remove("glow");
 			nbt.remove("waxed");
 			nbt.remove("Waxed");
-			// Merge the new NBT.
-			nbt.merge(canvases.toNbt());
+			// Put the new NBT.
+			nbt.put("canvas", canvases.toNbt());
 		});
 	}
 

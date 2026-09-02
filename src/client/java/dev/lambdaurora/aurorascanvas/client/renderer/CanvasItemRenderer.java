@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -110,8 +111,8 @@ public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicIt
 			boolean leftHanded, BakedModel model
 	) {
 		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			var canvases = SimpleCanvasHolder.TYPE.fromNbt(nbt);
+		if (nbt != null && nbt.contains("canvas", Tag.TAG_COMPOUND)) {
+			var canvases = SimpleCanvasHolder.TYPE.fromNbt(nbt.getCompound("canvas"));
 			var canvas = canvases.canvas();
 
 			if (!canvas.isEmpty()) {

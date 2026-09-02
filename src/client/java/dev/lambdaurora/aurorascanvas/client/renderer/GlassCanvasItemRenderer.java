@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -42,8 +43,8 @@ public class GlassCanvasItemRenderer extends CanvasItemRenderer {
 			boolean leftHanded, BakedModel model
 	) {
 		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			var canvases = GlassCanvasHolder.TYPE.fromNbt(nbt);
+		if (nbt != null && nbt.contains("canvas", Tag.TAG_COMPOUND)) {
+			var canvases = GlassCanvasHolder.TYPE.fromNbt(nbt.getCompound("canvas"));
 
 			this.applyPose(mode, matrices, leftHanded, model);
 

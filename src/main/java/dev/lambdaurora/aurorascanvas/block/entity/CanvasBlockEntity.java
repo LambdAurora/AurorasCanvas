@@ -34,7 +34,7 @@ import org.jspecify.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.stream.Stream;
 
-public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends CanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>>
+public abstract class CanvasBlockEntity<P, T extends CanvasHolder<P, T>, S extends CanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>>
 		extends BasicBlockEntity implements Nameable, RenderDataBlockEntity {
 	public static final Event<Identifier, SidedLogic> SIDED_LOGIC = AurorasCanvas.EVENT_MANAGER.create(
 			SidedLogic.class,
@@ -46,6 +46,9 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 				return NoOpSidedData.INSTANCE;
 			}
 	);
+
+	private static final String CANVAS_KEY = "canvas";
+	private static final String CUSTOM_NAME_KEY = "custom_name";
 
 	protected final S canvases;
 	private @Nullable Component customName;
@@ -63,12 +66,21 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	 */
 	protected abstract CanvasHolder.Type<T> canvasType();
 
+	protected abstract P getPlacementData();
+
 	/**
 	 * {@return the canvases associated with this block entity}
 	 */
-	public abstract @Unmodifiable Stream<PlacedCanvas> canvases();
+	public @Unmodifiable Stream<PlacedCanvas> canvases() {
+		return this.getCanvasHolder().streamPlaced(this.getPlacementData());
+	}
 
 	public abstract SyncedCanvas getSyncedCanvas(Direction facing);
+
+	@SuppressWarnings("unchecked")
+	private T getCanvasHolder() {
+		return (T) this.canvases.mapToCanvas(SyncedCanvas::getCanvas);
+	}
 
 	/**
 	 * Clears the source.
@@ -87,7 +99,7 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	 * @return {@code true} if empty, or {@code false} otherwise
 	 */
 	public boolean isEmpty() {
-		return this.canvases().allMatch(CanvasHandler::isEmpty);
+		return this.canvases.isEmpty();
 	}
 
 	@Override
@@ -142,16 +154,12 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 	@Override
 	public void load(CompoundTag nbt) {
 		super.load(nbt);
-		this.customName = Component.Serializer.fromJson(nbt.getString("custom_name"));
-		this.loadCanvasNbt(nbt);
+		this.customName = Component.Serializer.fromJson(nbt.getString(CUSTOM_NAME_KEY));
+		this.canvasType().fromNbt(nbt.getCompound(CANVAS_KEY)).into(this.canvases, SyncedCanvas::setCanvas);
 
 		if (this.level != null && this.level.isClientSide()) {
 			this.sidedData.markChanged();
 		}
-	}
-
-	protected void loadCanvasNbt(CompoundTag nbt) {
-		this.canvasType().fromNbt(nbt).into(this.canvases, SyncedCanvas::setCanvas);
 	}
 
 	@Override
@@ -160,14 +168,12 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 		this.writeCanvasNbt(nbt);
 	}
 
-	@SuppressWarnings("unchecked")
 	public CompoundTag writeCanvasNbt(CompoundTag nbt) {
 		if (this.customName != null) {
-			nbt.putString("custom_name", Component.Serializer.toJson(this.customName));
+			nbt.putString(CUSTOM_NAME_KEY, Component.Serializer.toJson(this.customName));
 		}
 
-		var encodedNbt = this.canvasType().toNbt((T) this.canvases.mapToCanvas(SyncedCanvas::getCanvas));
-		nbt.merge(encodedNbt);
+		nbt.put(CANVAS_KEY, this.canvasType().toNbt(this.getCanvasHolder()));
 
 		return nbt;
 	}
@@ -197,18 +203,18 @@ public abstract class CanvasBlockEntity<T extends CanvasHolder<T>, S extends Can
 
 	@FunctionalInterface
 	public interface SidedLogic {
-		SidedData onAdded(CanvasBlockEntity<?, ?> blockEntity);
+		SidedData onAdded(CanvasBlockEntity<?, ?, ?> blockEntity);
 	}
 
 	public static final class SyncedCanvas implements CanvasHandler {
-		private final CanvasBlockEntity<?, ?> parent;
+		private final CanvasBlockEntity<?, ?, ?> parent;
 		private Canvas canvas;
 
 		private @Nullable WeakReference<Player> lastUser = null;
 		private int lastX;
 		private int lastY;
 
-		public SyncedCanvas(CanvasBlockEntity<?, ?> parent, Canvas canvas) {
+		public SyncedCanvas(CanvasBlockEntity<?, ?, ?> parent, Canvas canvas) {
 			this.parent = parent;
 			this.canvas = canvas;
 		}

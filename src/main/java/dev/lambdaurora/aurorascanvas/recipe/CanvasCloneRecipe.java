@@ -10,8 +10,8 @@
 package dev.lambdaurora.aurorascanvas.recipe;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.lambdaurora.aurorascanvas.util.Utils;
@@ -78,7 +78,7 @@ public class CanvasCloneRecipe extends CustomRecipe {
 
 	@Override
 	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
-		CanvasHolder<?> canvases = null;
+		CanvasHolder<?, ?> canvases = null;
 		ItemStack output = null;
 		Component customName = null;
 
@@ -126,9 +126,9 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		return out;
 	}
 
-	private Optional<? extends CanvasHolder<?>> getInput(ItemStack stack) {
-		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?>> canvasItem) {
-			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(canvases -> canvases.stream().allMatch(Canvas::isEmpty)));
+	private Optional<? extends CanvasHolder<?, ?>> getInput(ItemStack stack) {
+		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?, ?>> canvasItem) {
+			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(CanvasLikeHolder::isEmpty));
 		} else if (stack.getItem().getClass().getName().equals("net.mehvahdjukaar.supplementaries.common.items.BlackboardItem")) {
 			var blockEntityData = BlockItem.getBlockEntityData(stack);
 			if (blockEntityData == null) return Optional.empty();

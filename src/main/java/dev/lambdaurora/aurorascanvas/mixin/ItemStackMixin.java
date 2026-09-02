@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.mixin;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasIds;
+import dev.lambdaurora.aurorascanvas.compat.AurorasDecoDataUpper;
 import dev.lambdaurora.aurorascanvas.compat.supplementaries.SupplementariesCompat;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -24,15 +25,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ItemStackMixin {
 	@Inject(method = "of", at = @At(value = "HEAD"))
 	private static void aurorascanvas$of(CompoundTag nbt, CallbackInfoReturnable<ItemStack> cir) {
-		if (SupplementariesCompat.SHOULD_DATAFIX) {
-			if (nbt.getString("id").equals(SupplementariesCompat.NAMESPACE + ":blackboard")) {
-				nbt.putString("id", AurorasCanvasIds.BLACKBOARD_ID.toString());
-				if (nbt.contains("tag", Tag.TAG_COMPOUND)) {
-					var tag = nbt.getCompound("tag");
-					if (tag.contains(BlockItem.BLOCK_ENTITY_TAG, Tag.TAG_COMPOUND)) {
-						var blockEntityTag = tag.getCompound(BlockItem.BLOCK_ENTITY_TAG);
-						SupplementariesCompat.fixNbt(blockEntityTag);
-					}
+		String id = nbt.getString("id");
+
+		if (AurorasDecoDataUpper.OLD_BLACKBOARD_IDS.contains(id)) {
+			if (nbt.contains("tag", Tag.TAG_COMPOUND)) {
+				var tag = nbt.getCompound("tag");
+				if (tag.contains(BlockItem.BLOCK_ENTITY_TAG, Tag.TAG_COMPOUND)) {
+					var blockEntityTag = tag.getCompound(BlockItem.BLOCK_ENTITY_TAG);
+					AurorasDecoDataUpper.fixNbt(blockEntityTag, new AurorasDecoDataUpper.FixSource.ItemStack(id));
+				}
+			}
+		} else if (AurorasDecoDataUpper.OLD_GLASSBOARD_IDS.contains(id)) {
+			if (nbt.contains("tag", Tag.TAG_COMPOUND)) {
+				var tag = nbt.getCompound("tag");
+				if (tag.contains(BlockItem.BLOCK_ENTITY_TAG, Tag.TAG_COMPOUND)) {
+					var blockEntityTag = tag.getCompound(BlockItem.BLOCK_ENTITY_TAG);
+					AurorasDecoDataUpper.fixGlassNbt(blockEntityTag, new AurorasDecoDataUpper.FixSource.ItemStack(id));
+				}
+			}
+		} else if (SupplementariesCompat.SHOULD_DATAFIX && id.equals(SupplementariesCompat.NAMESPACE + ":blackboard")) {
+			nbt.putString("id", AurorasCanvasIds.BLACKBOARD_ID.toString());
+			if (nbt.contains("tag", Tag.TAG_COMPOUND)) {
+				var tag = nbt.getCompound("tag");
+				if (tag.contains(BlockItem.BLOCK_ENTITY_TAG, Tag.TAG_COMPOUND)) {
+					var blockEntityTag = tag.getCompound(BlockItem.BLOCK_ENTITY_TAG);
+					SupplementariesCompat.fixNbt(blockEntityTag);
 				}
 			}
 		}

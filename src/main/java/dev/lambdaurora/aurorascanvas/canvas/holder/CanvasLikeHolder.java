@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  * @version 1.0.0
  * @since 1.0.0
  */
-public interface CanvasLikeHolder<T> {
+public interface CanvasLikeHolder<T extends CanvasHandler> {
 	/**
 	 * {@return the default canvas}
 	 */
@@ -34,9 +35,23 @@ public interface CanvasLikeHolder<T> {
 	 */
 	Stream<T> stream();
 
-	<R> CanvasLikeHolder<R> map(Function<T, R> mapper);
+	/**
+	 * {@return {@code true} if all canvases are empty, or {@code false} otherwise}
+	 */
+	default boolean isEmpty() {
+		return this.stream().allMatch(CanvasHandler::isEmpty);
+	}
 
-	CanvasHolder<?> mapToCanvas(Function<T, Canvas> mapper);
+	/**
+	 * {@return {@code true} if all canvases are unedited, or {@code false} otherwise}
+	 */
+	default boolean isUnedited() {
+		return this.stream().allMatch(CanvasHandler::isUnedited);
+	}
 
-	<I> void into(CanvasLikeHolder<I> other, BiConsumer<I, T> consumer);
+	<R extends CanvasHandler> CanvasLikeHolder<R> map(Function<T, R> mapper);
+
+	CanvasHolder<?, ?> mapToCanvas(Function<T, Canvas> mapper);
+
+	<I extends CanvasHandler> void into(CanvasLikeHolder<I> other, BiConsumer<I, T> consumer);
 }

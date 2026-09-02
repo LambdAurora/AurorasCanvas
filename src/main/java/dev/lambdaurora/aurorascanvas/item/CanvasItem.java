@@ -16,6 +16,8 @@ import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import dev.lambdaurora.aurorascanvas.util.Utils;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
@@ -39,7 +41,7 @@ import java.util.function.Predicate;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
+public abstract class CanvasItem<T extends CanvasHolder<?, T>> extends BlockItem {
 	protected final boolean locked;
 
 	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {
@@ -51,8 +53,8 @@ public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
 
 	public T getCanvases(ItemStack stack) {
 		var nbt = BlockItem.getBlockEntityData(stack);
-		if (nbt != null) {
-			return this.canvasType().fromNbt(nbt);
+		if (nbt != null && nbt.contains("canvas", Tag.TAG_COMPOUND)) {
+			return this.canvasType().fromNbt(nbt.getCompound("canvas"));
 		}
 
 		return this.canvasType().createDefault();
@@ -104,7 +106,13 @@ public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
 		}).count();
 
 		if (cleared > 0) {
-			self.addTagElement(BlockItem.BLOCK_ENTITY_TAG, this.canvasType().toNbt(canvases));
+			if (canvases.isUnedited()) {
+				self.removeTagKey(BlockItem.BLOCK_ENTITY_TAG);
+			} else {
+				var nbt = new CompoundTag();
+				nbt.put("canvas", this.canvasType().toNbt(canvases));
+				self.addTagElement(BlockItem.BLOCK_ENTITY_TAG, nbt);
+			}
 		}
 
 		return cleared > 0;

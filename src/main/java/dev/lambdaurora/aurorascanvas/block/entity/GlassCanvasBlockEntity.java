@@ -11,16 +11,12 @@ package dev.lambdaurora.aurorascanvas.block.entity;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
-import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
 import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasLikeHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Unmodifiable;
-
-import java.util.stream.Stream;
 
 /**
  * Represents a glass canvas block entity, stores the pixels of a canvas.
@@ -29,7 +25,7 @@ import java.util.stream.Stream;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GlassCanvasBlockEntity extends CanvasBlockEntity<GlassCanvasHolder, GlassCanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>> {
+public class GlassCanvasBlockEntity extends CanvasBlockEntity<GlassCanvasHolder.PlacementData, GlassCanvasHolder, GlassCanvasLikeHolder<CanvasBlockEntity.SyncedCanvas>> {
 
 	public GlassCanvasBlockEntity(BlockPos pos, BlockState state) {
 		super(AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE, pos, state);
@@ -41,14 +37,11 @@ public class GlassCanvasBlockEntity extends CanvasBlockEntity<GlassCanvasHolder,
 	}
 
 	@Override
-	public @Unmodifiable Stream<PlacedCanvas> canvases() {
+	protected GlassCanvasHolder.PlacementData getPlacementData() {
 		var state = this.getBlockState();
-		var facing = state.getValue(GlassCanvasBlock.FACING);
-		boolean pane = state.getValue(GlassCanvasBlock.PANE);
-
-		return Stream.of(
-				new PlacedCanvas(this.canvases.front().getCanvas(), facing, pane ? .436f : PlacedCanvas.DEFAULT_DEPTH),
-				new PlacedCanvas(this.canvases.back().getCanvas(), facing.getOpposite(), pane ? .436f : -.005f)
+		return new GlassCanvasHolder.PlacementData(
+				state.getValue(GlassCanvasBlock.FACING),
+				state.getValue(GlassCanvasBlock.PANE)
 		);
 	}
 

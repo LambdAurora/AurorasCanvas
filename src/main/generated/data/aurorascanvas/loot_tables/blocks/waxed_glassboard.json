@@ -16,13 +16,8 @@
               "ops": [
                 {
                   "op": "replace",
-                  "source": "front",
-                  "target": "BlockEntityTag.front"
-                },
-                {
-                  "op": "replace",
-                  "source": "back",
-                  "target": "BlockEntityTag.back"
+                  "source": "canvas",
+                  "target": "BlockEntityTag.canvas"
                 }
               ],
               "source": "block_entity"

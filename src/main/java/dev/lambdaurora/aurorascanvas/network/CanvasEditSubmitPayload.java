@@ -21,7 +21,7 @@ import net.minecraft.network.FriendlyByteBuf;
  * @version 1.0.0
  * @since 1.0.0
  */
-public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?> canvas) {
+public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?, ?> canvas) {
 	public CanvasEditSubmitPayload(FriendlyByteBuf buffer) {
 		this(buffer.readVarInt(), CanvasHolder.fromBuffer(buffer));
 	}

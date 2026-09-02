@@ -32,7 +32,7 @@ public abstract class DrawModifier {
 
 	public static final DrawModifier SHADE_INCREASE = new DrawModifier(AurorasCanvas.NAMESPACE + ".modifier.darken", 0xff444444) {
 		@Override
-		@SuppressWarnings("deprecated")
+		@SuppressWarnings("deprecation")
 		public boolean matchItem(Item item) {
 			return item.builtInRegistryHolder().is(ItemTags.COALS);
 		}
