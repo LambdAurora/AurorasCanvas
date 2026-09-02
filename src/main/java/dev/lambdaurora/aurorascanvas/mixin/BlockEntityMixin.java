@@ -38,10 +38,14 @@ public class BlockEntityMixin {
 			Registry<BlockEntity> instance, Identifier id, Operation<Optional> original, BlockPos pos, BlockState state, CompoundTag nbt
 	) {
 		if (id.getNamespace().equals(AurorasDecoDataUpper.OLD_NAMESPACE) && id.getPath().equals("blackboard")) {
+			var source = new AurorasDecoDataUpper.FixSource.BlockEntity(id.toString(), pos);
+
 			if (state.is(AurorasCanvasRegistry.GLASSBOARD.block().value()) || state.is(AurorasCanvasRegistry.GLASSBOARD.block().value())) {
+				AurorasDecoDataUpper.fixGlassNbt(nbt, source);
 				return Optional.of(AurorasCanvasRegistry.GLASS_CANVAS_BLOCK_ENTITY_TYPE);
 			}
 
+			AurorasDecoDataUpper.fixNbt(nbt, source);
 			return Optional.of(AurorasCanvasRegistry.CANVAS_BLOCK_ENTITY_TYPE);
 		} else if (SupplementariesCompat.SHOULD_DATAFIX && id.equals(SupplementariesCompat.BLACKBOARD_ID)) {
 			SupplementariesCompat.fixNbt(nbt);

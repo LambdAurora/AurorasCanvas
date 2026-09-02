@@ -10,8 +10,8 @@
 package dev.lambdaurora.aurorascanvas.recipe;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasLikeHolder;
 import dev.lambdaurora.aurorascanvas.item.CanvasItem;
 import dev.yumi.commons.event.Event;
 import dev.yumi.mc.core.api.YumiEvents;
@@ -129,9 +129,9 @@ public class CanvasCloneRecipe extends CustomRecipe {
 		return out;
 	}
 
-	private Optional<? extends CanvasHolder<?>> getInput(ItemStack stack) {
-		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?>> canvasItem) {
-			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(canvases -> canvases.stream().allMatch(Canvas::isEmpty)));
+	private Optional<? extends CanvasHolder<?, ?>> getInput(ItemStack stack) {
+		if (stack.getItem() instanceof CanvasItem<? extends CanvasHolder<?, ?>> canvasItem) {
+			return Optional.of(canvasItem.getCanvases(stack)).filter(Predicate.not(CanvasLikeHolder::isEmpty));
 		}
 
 		return INPUT_GETTER_EVENT.invoker().getInput(stack);
@@ -169,6 +169,6 @@ public class CanvasCloneRecipe extends CustomRecipe {
 	}
 
 	public interface InputGetter {
-		Optional<? extends CanvasHolder<?>> getInput(ItemStack stack);
+		Optional<? extends CanvasHolder<?, ?>> getInput(ItemStack stack);
 	}
 }

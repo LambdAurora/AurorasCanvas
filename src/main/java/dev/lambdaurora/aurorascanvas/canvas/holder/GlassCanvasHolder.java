@@ -14,24 +14,32 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> implements CanvasHolder<GlassCanvasHolder> {
-	public static final Codec<GlassCanvasHolder> CODEC = new BackwardCompatibleCanvasesCodec<>(
-			RecordCodecBuilder.create(instance -> instance.group(
+/**
+ * Represents a glass canvas holder that is holding a front and back canvas.
+ *
+ * @author LambdAurora
+ * @version 1.1.0
+ * @since 1.0.0
+ */
+public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> implements CanvasHolder<GlassCanvasHolder.PlacementData, GlassCanvasHolder> {
+	public static final Codec<GlassCanvasHolder> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 					CanvasSerialization.CANVAS_CODEC.optionalFieldOf("front")
 							.xmap(canvas -> canvas.orElseGet(Canvas::new), canvas -> canvas.isUnedited() ? Optional.empty() : Optional.of(canvas))
 							.forGetter(GlassCanvasHolder::front),
 					CanvasSerialization.CANVAS_CODEC.optionalFieldOf("back")
 							.xmap(canvas -> canvas.orElseGet(Canvas::new), canvas -> canvas.isUnedited() ? Optional.empty() : Optional.of(canvas))
 							.forGetter(GlassCanvasHolder::back)
-			).apply(instance, GlassCanvasHolder::new)),
-			canvas -> new GlassCanvasHolder(canvas, new Canvas())
+			).apply(instance, GlassCanvasHolder::new)
 	);
 	public static final StreamCodec<ByteBuf, GlassCanvasHolder> STREAM_CODEC = StreamCodec.composite(
 			CanvasSerialization.CANVAS_STREAM_CODEC, GlassCanvasHolder::front,
@@ -85,8 +93,25 @@ public final class GlassCanvasHolder extends GlassCanvasLikeHolder<Canvas> imple
 	}
 
 	@Override
+	public Stream<PlacedCanvas> streamPlacedDefault() {
+		return this.streamPlaced(PlacementData.DEFAULT);
+	}
+
+	@Override
+	public Stream<PlacedCanvas> streamPlaced(PlacementData placementData) {
+		return Stream.of(
+				new PlacedCanvas(this.front(), placementData.facing, placementData.pane ? .436f : PlacedCanvas.DEFAULT_DEPTH),
+				new PlacedCanvas(this.back(), placementData.facing.getOpposite(), placementData.pane ? .436f : -.005f)
+		);
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof GlassCanvasHolder that)) return false;
 		return Objects.equals(this.front(), that.back());
+	}
+
+	public record PlacementData(Direction facing, boolean pane) {
+		public static final PlacementData DEFAULT = new PlacementData(Direction.NORTH, false);
 	}
 }

@@ -27,7 +27,7 @@ public class ItemStackComponentizationFixMixin {
 					ordinal = 2
 			)
 	)
-	private static void aurorascanvas$onFixItemStack(ItemStackComponentizationFix.ItemStackData itemStackData, Dynamic<?> dynamic, CallbackInfo ci) {
-		ItemStackComponentizationFixer.fixItemStack(itemStackData, dynamic);
+	private static void aurorascanvas$onFixItemStack(ItemStackComponentizationFix.ItemStackData itemStack, Dynamic<?> dynamic, CallbackInfo ci) {
+		ItemStackComponentizationFixer.fixItemStack(itemStack, dynamic);
 	}
 }

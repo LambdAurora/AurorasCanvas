@@ -29,7 +29,7 @@ public final class ExtraCompatibleSimpleCanvasesCodec implements Codec<SimpleCan
 	@Override
 	public <T> DataResult<Pair<SimpleCanvasHolder, T>> decode(final DynamicOps<T> ops, final T input) {
 		return ops.getMap(input).flatMap(map -> {
-			if (map.get("canvas") != null || map.get("pixels") != null || map.get("lit") != null) {
+			if (map.get("pixels") != null || map.get("lit") != null) {
 				return this.actual.decode(ops, input);
 			}
 

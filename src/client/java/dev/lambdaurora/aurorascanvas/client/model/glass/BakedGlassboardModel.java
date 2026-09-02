@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.model.glass;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.model.BakedCanvasModel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.fabricmc.api.EnvType;
@@ -20,10 +21,12 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -153,5 +156,10 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 				default -> direction;
 			});
 		}
+	}
+
+	@Override
+	protected @Nullable CanvasHolder<?, ?> getCanvasHolder(ItemStack stack) {
+		return stack.get(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
 	}
 }

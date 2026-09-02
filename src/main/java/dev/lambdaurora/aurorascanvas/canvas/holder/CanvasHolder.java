@@ -11,6 +11,7 @@ package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import com.mojang.serialization.Codec;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.nbt.CompoundTag;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Represents a holder of canvases.
@@ -29,7 +31,7 @@ import java.util.Map;
  * @version 1.1.0
  * @since 1.0.0
  */
-public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolder<Canvas> {
+public interface CanvasHolder<P, H extends CanvasHolder<P, H>> extends CanvasLikeHolder<Canvas> {
 	/**
 	 * {@return the type of this canvas holder}
 	 */
@@ -43,6 +45,10 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 	 */
 	@Contract(value = "-> new", pure = true)
 	H copy();
+
+	Stream<PlacedCanvas> streamPlacedDefault();
+
+	Stream<PlacedCanvas> streamPlaced(P placementData);
 
 	@SuppressWarnings("unchecked")
 	default void setOnStack(ItemStack stack) {
@@ -65,7 +71,7 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 	 * @version 1.1.0
 	 * @since 1.0.0
 	 */
-	interface Type<H extends CanvasHolder<H>> {
+	interface Type<H extends CanvasHolder<?, H>> {
 		String name();
 
 		Codec<H> codec();
@@ -92,12 +98,12 @@ public interface CanvasHolder<H extends CanvasHolder<H>> extends CanvasLikeHolde
 	}
 
 	final class Registry {
-		public static final Map<String, Type<? extends CanvasHolder<?>>> REGISTRY = Map.of(
+		public static final Map<String, Type<? extends CanvasHolder<?, ?>>> REGISTRY = Map.of(
 				"simple", SimpleCanvasHolder.TYPE,
 				"glass", GlassCanvasHolder.TYPE
 		);
 
-		public static final StreamCodec<ByteBuf, CanvasHolder<?>> STREAM_CODEC = ByteBufCodecs.stringUtf8(32).dispatch(
+		public static final StreamCodec<ByteBuf, CanvasHolder<?, ?>> STREAM_CODEC = ByteBufCodecs.stringUtf8(32).dispatch(
 				canvasHolder -> canvasHolder.type().name(),
 				key -> REGISTRY.get(key).streamCodec()
 		);

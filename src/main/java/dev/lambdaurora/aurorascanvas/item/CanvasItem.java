@@ -36,7 +36,7 @@ import java.util.function.Predicate;
  * @version 1.1.0
  * @since 1.0.0
  */
-public abstract class CanvasItem<T extends CanvasHolder<T>> extends BlockItem {
+public abstract class CanvasItem<T extends CanvasHolder<?, T>> extends BlockItem {
 	protected final boolean locked;
 
 	public CanvasItem(CanvasBlock canvasBlock, Properties settings) {

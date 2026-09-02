@@ -25,13 +25,13 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public final class ClientCanvasBlockEntityData implements CanvasBlockEntity.SidedData {
-	private static final Map<CanvasBlockEntity<?, ?>, ClientCanvasBlockEntityData> ACTIVE_BLACKBOARDS = new Reference2ObjectOpenHashMap<>();
+	private static final Map<CanvasBlockEntity<?, ?, ?>, ClientCanvasBlockEntityData> ACTIVE_BLACKBOARDS = new Reference2ObjectOpenHashMap<>();
 
-	private final CanvasBlockEntity<?, ?> canvasBlockEntity;
+	private final CanvasBlockEntity<?, ?, ?> canvasBlockEntity;
 	private List<Mesh> mesh = List.of();
 	private boolean meshDirty = true;
 
-	public ClientCanvasBlockEntityData(CanvasBlockEntity<?, ?> canvasBlockEntity) {
+	public ClientCanvasBlockEntityData(CanvasBlockEntity<?, ?, ?> canvasBlockEntity) {
 		this.canvasBlockEntity = canvasBlockEntity;
 	}
 

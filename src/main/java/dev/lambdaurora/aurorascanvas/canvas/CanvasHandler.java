@@ -111,6 +111,26 @@ public interface CanvasHandler {
 		this.setGlowing(source.isGlowing());
 	}
 
+	/**
+	 * {@return {@code true} if the contents of this and a given canvas are equal, or {@code false} otherwise}
+	 *
+	 * @param other the other canvas to compare to
+	 */
+	default boolean areContentsEqual(CanvasHandler other) {
+		for (int y = 0; y < 16; y++) {
+			for (int x = 0; x < 16; x++) {
+				if (this.getRawPixel(x, y) != other.getRawPixel(x, y)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * {@return {@code true} if this canvas is empty, or {@code false} otherwise}
+	 */
 	boolean isEmpty();
 
 	/**

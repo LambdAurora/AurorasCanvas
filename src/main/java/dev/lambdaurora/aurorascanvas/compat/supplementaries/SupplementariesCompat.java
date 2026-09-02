@@ -84,9 +84,9 @@ public final class SupplementariesCompat {
 					).apply(instance, Raw::new)
 			)
 	);
-	public static final Codec<Data> BLACKBOARD_CODEC = RAW_BLACKBOARD_CODEC.xmap(
-			raw -> new Data(new Canvas(raw.pixels, raw.glow), raw.waxed),
-			data -> new Raw(data.canvas.getPixels(), data.canvas.isGlowing(), data.waxed)
+	public static final Codec<Data> BLACKBOARD_CODEC = RAW_BLACKBOARD_CODEC.flatXmap(
+			raw -> DataResult.success(new Data(new Canvas(raw.pixels, raw.glow), raw.waxed)),
+			data -> DataResult.error(() -> "Cannot convert from Aurora's Canvas format to Supplementaries'.")
 	);
 	public static final Codec<SimpleCanvasHolder> CODEC = BLACKBOARD_CODEC.flatXmap(
 			data -> DataResult.success(new SimpleCanvasHolder(data.canvas)),
@@ -155,8 +155,8 @@ public final class SupplementariesCompat {
 			nbt.remove("glow");
 			nbt.remove("waxed");
 			nbt.remove("Waxed");
-			// Merge the new NBT.
-			nbt.merge(canvases.toNbt());
+			// Put the new NBT.
+			nbt.put("canvas", canvases.toNbt());
 		});
 	}
 

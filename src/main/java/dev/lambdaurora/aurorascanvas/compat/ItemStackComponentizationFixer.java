@@ -46,16 +46,46 @@ public final class ItemStackComponentizationFixer {
 	/**
 	 * Fixes the item stacks of Aurora's Canvas to move to components.
 	 *
-	 * @param itemStackData the item stack data
+	 * @param itemStack the item stack data
 	 * @param dynamic the dynamic
 	 */
-	public static void fixItemStack(ItemStackComponentizationFix.ItemStackData itemStackData, Dynamic<?> dynamic) {
-		if (itemStackData.is(CANVASES)) {
-			itemStackData.moveTagToComponent("BlockEntityTag", AurorasCanvas.NAMESPACE + ":canvas");
-		} else if (itemStackData.is(GLASS_CANVASES)) {
-			itemStackData.moveTagToComponent("BlockEntityTag", AurorasCanvas.NAMESPACE + ":canvas/glass");
-		} else if (itemStackData.is(PAINTER_PALETTE)) {
-			itemStackData.moveTagToComponent("inventory", AurorasCanvas.NAMESPACE + ":palette_inventory", dynamic.createMap(Map.of()));
+	public static void fixItemStack(ItemStackComponentizationFix.ItemStackData itemStack, Dynamic<?> dynamic) {
+		if (itemStack.is(CANVASES)) {
+			var beData = itemStack.removeTag("BlockEntityTag").result();
+
+			if (beData.isPresent()) {
+				var canvas = beData.get().get("canvas").result();
+
+				if (canvas.isPresent()) {
+					itemStack.setComponent(AurorasCanvas.NAMESPACE + ":canvas", canvas.get());
+				} else {
+					// Aurora's Decorations format.
+					itemStack.setComponent(AurorasCanvas.NAMESPACE + ":canvas", beData.get());
+				}
+			}
+		} else if (itemStack.is(GLASS_CANVASES)) {
+			var beData = itemStack.removeTag("BlockEntityTag").result();
+
+			if (beData.isPresent()) {
+				var canvas = beData.get().get("canvas").result();
+
+				if (canvas.isPresent()) {
+					itemStack.setComponent(AurorasCanvas.NAMESPACE + ":canvas/glass", canvas.get());
+				} else {
+					// Aurora's Decorations format.
+					var data = dynamic.emptyMap();
+					Dynamic.copyField(beData.get(), "version", data, "version");
+					Dynamic.copyField(beData.get(), "pixels", data, "pixels");
+					Dynamic.copyField(beData.get(), "lit", data, "lit");
+
+					var root = dynamic.emptyMap();
+					root.set("front", data);
+
+					itemStack.setComponent(AurorasCanvas.NAMESPACE + ":canvas/glass", root);
+				}
+			}
+		} else if (itemStack.is(PAINTER_PALETTE)) {
+			itemStack.moveTagToComponent("inventory", AurorasCanvas.NAMESPACE + ":palette_inventory", dynamic.createMap(Map.of()));
 		}
 	}
 

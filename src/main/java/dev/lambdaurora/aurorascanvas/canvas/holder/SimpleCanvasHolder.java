@@ -10,26 +10,27 @@
 package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
 import dev.lambdaurora.aurorascanvas.canvas.CanvasSerialization;
+import dev.lambdaurora.aurorascanvas.canvas.PlacedCanvas;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Stream;
 
-public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> implements CanvasHolder<SimpleCanvasHolder> {
-	public static final Codec<SimpleCanvasHolder> CODEC = new BackwardCompatibleCanvasesCodec<>(
-			RecordCodecBuilder.create(instance -> instance.group(
-					CanvasSerialization.CANVAS_CODEC.optionalFieldOf("canvas")
-							.xmap(canvas -> canvas.orElseGet(Canvas::new), canvas -> canvas.isUnedited() ? Optional.empty() : Optional.of(canvas))
-							.forGetter(SimpleCanvasHolder::canvas)
-			).apply(instance, SimpleCanvasHolder::new)),
-			SimpleCanvasHolder::new
-	);
+/**
+ * Represents a canvas holder that is holding only one canvas.
+ *
+ * @author LambdAurora
+ * @version 1.1.0
+ * @since 1.0.0
+ */
+public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> implements CanvasHolder<Direction, SimpleCanvasHolder> {
+	public static final Codec<SimpleCanvasHolder> CODEC = CanvasSerialization.CANVAS_CODEC.xmap(SimpleCanvasHolder::new, SimpleCanvasHolder::canvas);
 	public static final StreamCodec<ByteBuf, SimpleCanvasHolder> STREAM_CODEC = CanvasSerialization.CANVAS_STREAM_CODEC.map(SimpleCanvasHolder::new, SimpleCanvasHolder::canvas);
 
 	public static final Type<SimpleCanvasHolder> TYPE = new Type<>() {
@@ -73,6 +74,16 @@ public final class SimpleCanvasHolder extends SimpleCanvasLikeHolder<Canvas> imp
 		var clone = new Canvas();
 		clone.copy(this.canvas());
 		return new SimpleCanvasHolder(clone);
+	}
+
+	@Override
+	public Stream<PlacedCanvas> streamPlacedDefault() {
+		return this.streamPlaced(Direction.NORTH);
+	}
+
+	@Override
+	public Stream<PlacedCanvas> streamPlaced(Direction facing) {
+		return Stream.of(new PlacedCanvas(this.canvas(), facing));
 	}
 
 	@Override

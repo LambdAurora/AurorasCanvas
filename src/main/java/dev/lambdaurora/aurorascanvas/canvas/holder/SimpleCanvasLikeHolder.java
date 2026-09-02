@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.canvas.holder;
 
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
+import dev.lambdaurora.aurorascanvas.canvas.CanvasHandler;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Objects;
@@ -17,7 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class SimpleCanvasLikeHolder<T> implements CanvasLikeHolder<T> {
+public class SimpleCanvasLikeHolder<T extends CanvasHandler> implements CanvasLikeHolder<T> {
 	private final T canvas;
 
 	public SimpleCanvasLikeHolder(T canvas) {this.canvas = canvas;}
@@ -38,7 +39,7 @@ public class SimpleCanvasLikeHolder<T> implements CanvasLikeHolder<T> {
 	}
 
 	@Override
-	public <R> SimpleCanvasLikeHolder<R> map(Function<T, R> mapper) {
+	public <R extends CanvasHandler> SimpleCanvasLikeHolder<R> map(Function<T, R> mapper) {
 		return new SimpleCanvasLikeHolder<>(mapper.apply(this.canvas));
 	}
 
@@ -48,7 +49,7 @@ public class SimpleCanvasLikeHolder<T> implements CanvasLikeHolder<T> {
 	}
 
 	@Override
-	public <I> void into(CanvasLikeHolder<I> other, BiConsumer<I, T> consumer) {
+	public <I extends CanvasHandler> void into(CanvasLikeHolder<I> other, BiConsumer<I, T> consumer) {
 		if (other instanceof SimpleCanvasLikeHolder<I> actualOther) {
 			consumer.accept(actualOther.canvas, this.canvas);
 		}

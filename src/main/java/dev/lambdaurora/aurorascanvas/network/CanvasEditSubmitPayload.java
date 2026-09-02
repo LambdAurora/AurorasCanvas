@@ -26,7 +26,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * @version 1.1.0
  * @since 1.0.0
  */
-public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?> canvas) implements CustomPacketPayload {
+public record CanvasEditSubmitPayload(int easelEntityId, CanvasHolder<?, ?> canvas) implements CustomPacketPayload {
 	public static Type<CanvasEditSubmitPayload> TYPE = new Type<>(AurorasCanvas.id("canvas/open_gui"));
 	public static final StreamCodec<FriendlyByteBuf, CanvasEditSubmitPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.VAR_INT, CanvasEditSubmitPayload::easelEntityId,
