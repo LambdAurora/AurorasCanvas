@@ -12,138 +12,99 @@ package dev.lambdaurora.aurorascanvas.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
-import dev.lambdaurora.aurorascanvas.AurorasCanvas;
-import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.block.CanvasPressBlock;
 import dev.lambdaurora.aurorascanvas.block.entity.CanvasPressBlockEntity;
-import dev.lambdaurora.aurorascanvas.client.model.UnbakedVariantModel;
+import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasBlockStateDefinitions;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.BlockModelDefinition;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.RandomSupport;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.List;
-
 @Environment(EnvType.CLIENT)
-public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<CanvasPressBlockEntity> {
+public class CanvasPressBlockEntityRenderer implements BlockEntityRenderer<CanvasPressBlockEntity, CanvasPressBlockEntityRenderState> {
 	private static final Logger LOGGER = LogUtils.getLogger();
-	public static final Identifier PRESS_PLATE_ID = AurorasCanvas.id("blockstates/canvas_press/press_plate.json");
-	public static final Identifier SCREW_ID = AurorasCanvas.id("blockstates/canvas_press/screw.json");
-	public static final ModelResourceLocation PRESS_PLATE_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("canvas_press/press_plate"), "special");
-	public static final ModelResourceLocation SCREW_MODEL_ID = new ModelResourceLocation(AurorasCanvas.id("canvas_press/screw"), "special");
 	private static final RandomSource RANDOM = new LegacyRandomSource(RandomSupport.generateUniqueSeed());
-	private final Minecraft client = Minecraft.getInstance();
+	private final BlockModelResolver blockModelResolver;
 
-	public CanvasPressBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {}
+	public CanvasPressBlockEntityRenderer(BlockEntityRendererProvider.Context ctx) {
+		this.blockModelResolver = ctx.blockModelResolver();
+	}
 
 	@Override
-	public void render(
-			CanvasPressBlockEntity entity, float tickDelta,
-			PoseStack matrices, MultiBufferSource vertexConsumers,
-			int light, int overlay
+	public CanvasPressBlockEntityRenderState createRenderState() {
+		return new CanvasPressBlockEntityRenderState();
+	}
+
+	@Override
+	public void extractRenderState(
+			CanvasPressBlockEntity blockEntity,
+			CanvasPressBlockEntityRenderState state,
+			float partialTicks, Vec3 cameraPosition,
+			ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress
 	) {
-		var level = entity.getLevel();
+		BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
-		if (level == null) return;
+		var parentBlockState = blockEntity.getBlockState();
 
-		BlockState state = entity.getBlockState();
-		BlockPos pos = entity.getBlockPos();
+		var pressPlateState = AurorasCanvasBlockStateDefinitions.CANVAS_PRESS_PRESS_PLATE_FAKE_STATE.any();
+		for (var property : parentBlockState.getProperties()) {
+			pressPlateState = this.setState(pressPlateState, parentBlockState, property);
+		}
+		this.blockModelResolver.update(state.pressPlateModel, pressPlateState, BlockDisplayContext.create());
 
-		var pressPlateModel = client.getModelManager().getModel(PRESS_PLATE_MODEL_ID);
-		var screwModel = client.getModelManager().getModel(SCREW_MODEL_ID);
+		var screwState = AurorasCanvasBlockStateDefinitions.CANVAS_PRESS_SCREW_FAKE_STATE.any();
+		for (var property : parentBlockState.getProperties()) {
+			screwState = this.setState(screwState, parentBlockState, property);
+		}
+		this.blockModelResolver.update(state.pressPlateModel, screwState, BlockDisplayContext.create());
 
+		state.gameTime = blockEntity.getLevel().getGameTime();
+	}
+
+	private <T extends Comparable<T>> BlockState setState(BlockState toMutate, BlockState parent, Property<T> property) {
+		return toMutate.setValue(property, parent.getValue(property));
+	}
+
+	@Override
+	public void submit(CanvasPressBlockEntityRenderState state, PoseStack matrices, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
 		{
 			matrices.pushPose();
 
 			// Woooo,,,, witness the WIP/debug code,,,,, -Lavender
-			long aaa = 6 - level.getGameTime() % 12;
+			long aaa = 6 - state.gameTime % 12;
 			if (aaa > 0) {
 				aaa = -aaa;
 			}
 			matrices.translate(0, aaa / 32.f, 0);
 
-			client.getBlockRenderer().getModelRenderer().tesselateBlock(
-					level, pressPlateModel, state, pos,
-					matrices, vertexConsumers.getBuffer(RenderType.solid()), true,
-					RANDOM, state.getSeed(pos), OverlayTexture.NO_OVERLAY
-			);
+			state.pressPlateModel.submit(matrices, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
 			{
 				matrices.pushPose();
 
 				matrices.translate(0.5, 0, 0.5);
-				matrices.mulPose(Axis.YP.rotationDegrees(-(level.getGameTime() % 360)));
+				matrices.mulPose(Axis.YP.rotationDegrees(-(state.gameTime % 360)));
 				matrices.translate(-0.5, 0, -0.5);
 
-				client.getBlockRenderer().getModelRenderer().tesselateBlock(
-						level, screwModel, state, pos,
-						matrices, vertexConsumers.getBuffer(RenderType.solid()), true,
-						RANDOM, state.getSeed(pos), OverlayTexture.NO_OVERLAY
-				);
+				state.screwModel.submit(matrices, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
 				matrices.popPose();
 			}
 
 			matrices.popPose();
-		}
-	}
-
-	public static void initModels(ModelLoadingPlugin.Context context) {
-		boolean[] firstRun = {true};
-
-		context.modifyModelOnLoad().register((model, ctx) -> {
-			if (firstRun[0]) {
-				firstRun[0] = false;
-
-				var modelLoader = ctx.loader();
-
-				var pressModel = initModel(PRESS_PLATE_ID, PRESS_PLATE_MODEL_ID);
-				modelLoader.registerModelAndLoadDependencies(PRESS_PLATE_MODEL_ID, pressModel);
-
-				var screwModel = initModel(SCREW_ID, SCREW_MODEL_ID);
-				modelLoader.registerModelAndLoadDependencies(SCREW_MODEL_ID, screwModel);
-			}
-
-			return model;
-		});
-	}
-
-	private static @Nullable UnbakedModel initModel(Identifier resourceId, ModelResourceLocation modelId) {
-		var model = Minecraft.getInstance().getResourceManager().getResource(resourceId).map(resource -> {
-			try (var reader = new InputStreamReader(resource.open())) {
-				var context = new BlockModelDefinition.Context();
-				context.setDefinition(AurorasCanvasRegistry.CANVAS_PRESS.block().value().getStateDefinition());
-				var map = BlockModelDefinition.fromStream(context, reader);
-				return new UnbakedVariantModel<>(AurorasCanvasRegistry.CANVAS_PRESS.block().value(), map.getVariants(), List.of(CanvasPressBlock.WATERLOGGED));
-			} catch (IOException e) {
-				LOGGER.warn("Failed to load the blackboard \"{}\" model.", modelId, e);
-				return null;
-			}
-		});
-
-		if (model.isEmpty()) {
-			LOGGER.warn("Failed to load the blackboard \"{}\" model: missing file.", modelId);
-			return null;
-		} else {
-			return model.get();
 		}
 	}
 }

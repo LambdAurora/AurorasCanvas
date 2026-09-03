@@ -11,31 +11,31 @@ package dev.lambdaurora.aurorascanvas.client.model.glass;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
-import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.model.BakedCanvasModel;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.minecraft.client.resources.model.BakedModel;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.client.renderer.v1.model.FabricBlockStateModel;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Predicate;
 
 @Environment(EnvType.CLIENT)
 public class BakedGlassboardModel extends BakedCanvasModel {
-	private final Int2ObjectMap<List<BakedModel>> models;
+	private final Int2ObjectMap<FabricBlockStateModel> models;
 
-	public BakedGlassboardModel(BakedModel baseModel, Int2ObjectMap<List<BakedModel>> models) {
+	public BakedGlassboardModel(BlockStateModel baseModel, Int2ObjectMap<FabricBlockStateModel> models) {
 		super(baseModel);
 		this.models = models;
 	}
@@ -54,9 +54,9 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 	}
 
 	@Override
-	public void emitBlockQuads(
-			BlockAndTintGetter world, BlockState state, BlockPos pos,
-			Supplier<RandomSource> randomSupplier, RenderContext context
+	public void emitQuads(
+			QuadEmitter emitter, BlockAndTintGetter world, BlockPos pos, BlockState state,
+			RandomSource random, Predicate<@Nullable Direction> cullTest
 	) {
 		var facing = state.getValue(GlassCanvasBlock.FACING);
 		boolean pane = state.getValue(GlassCanvasBlock.PANE);
@@ -82,7 +82,7 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 
 		final int fixedMask = mask;
 
-		context.pushTransform(quad -> {
+		emitter.pushTransform(quad -> {
 			var cullFace = quad.cullFace();
 			if (cullFace != null) {
 				var adjacentPos = pos.relative(cullFace);
@@ -98,13 +98,13 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 			return true;
 		});
 
-		this.models.get(fixedMask).forEach(model -> model.emitBlockQuads(world, state, pos, randomSupplier, context));
+		this.models.get(fixedMask).emitQuads(emitter, world, pos, state, random, cullTest);
 
-		context.popTransform();
+		emitter.popTransform();
 
-		this.emitBlockMesh(world, pos, context);
+		this.emitBlockMesh(world, pos, emitter);
 
-		context.pushTransform(quad -> {
+		emitter.pushTransform(quad -> {
 			quad.nominalFace(quad.lightFace().getClockWise());
 			Direction direction = quad.lightFace();
 			var quadPos = new Vector3f();
@@ -138,8 +138,8 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 			return true;
 		});
 
-		this.emitBlockMesh(world, pos, context);
-		context.popTransform();
+		this.emitBlockMesh(world, pos, emitter);
+		emitter.popTransform();
 	}
 
 	private void move(BlockPos.MutableBlockPos pos, Direction facing, Direction direction) {
@@ -158,8 +158,13 @@ public class BakedGlassboardModel extends BakedCanvasModel {
 		}
 	}
 
-	@Override
-	protected @Nullable CanvasHolder<?, ?> getCanvasHolder(ItemStack stack) {
-		return stack.get(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
+	public record Part(List<BlockStateModelPart> contents) implements FabricBlockStateModel {
+		@Override
+		public void emitQuads(
+				QuadEmitter emitter, BlockAndTintGetter world, BlockPos pos, BlockState state,
+				RandomSource random, Predicate<@Nullable Direction> cullTest
+		) {
+			this.contents.forEach(model -> model.emitQuads(emitter, cullTest));
+		}
 	}
 }

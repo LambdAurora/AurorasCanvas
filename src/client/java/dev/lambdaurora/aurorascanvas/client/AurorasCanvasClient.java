@@ -12,13 +12,16 @@ package dev.lambdaurora.aurorascanvas.client;
 import com.mojang.logging.LogUtils;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.block.CanvasBlock;
+import dev.lambdaurora.aurorascanvas.client.item.ItemDisplayContextConditionalProperty;
+import dev.lambdaurora.aurorascanvas.client.item.PainterPaletteTintSource;
 import dev.lambdaurora.aurorascanvas.client.model.AurorasCanvasModelLayers;
 import dev.lambdaurora.aurorascanvas.client.model.UnbakedCanvasModel;
 import dev.lambdaurora.aurorascanvas.client.model.entity.EaselEntityModel;
+import dev.lambdaurora.aurorascanvas.client.model.glass.UnbakedGlassboardModel;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.renderer.CanvasPressBlockEntityRenderer;
+import dev.lambdaurora.aurorascanvas.client.renderer.CanvasTextureManager;
 import dev.lambdaurora.aurorascanvas.client.renderer.EaselEntityRenderer;
-import dev.lambdaurora.aurorascanvas.client.renderer.GlassCanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.client.screen.PainterPaletteScreen;
 import dev.lambdaurora.aurorascanvas.client.tooltip.CanvasTooltipComponent;
 import dev.lambdaurora.aurorascanvas.client.tooltip.PainterPaletteTooltipComponent;
@@ -29,10 +32,14 @@ import dev.yumi.mc.core.api.entrypoint.client.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.fabricmc.fabric.api.client.rendering.v1.*;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties;
+import net.minecraft.client.renderer.special.SpecialModelRenderers;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
@@ -46,18 +53,14 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 
 	public static final Identifier BLACKBOARD_MASK = AurorasCanvas.id("item/blackboard_mask");
 
+	public static final CanvasTextureManager CANVAS_TEXTURE_MANAGER = new CanvasTextureManager();
+
 	@Override
 	public void onInitializeClient(ModContainer mod) {
 		BlockEntityRenderers.register(BLACKBOARD_PRESS_BLOCK_ENTITY, CanvasPressBlockEntityRenderer::new);
 
-		this.registerCanvasItemRenderer(BLACKBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(CHALKBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WHITEBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(GLASSBOARD.block(), GlassCanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_BLACKBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_CHALKBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_WHITEBOARD.block(), CanvasItemRenderer::new);
-		this.registerCanvasItemRenderer(WAXED_GLASSBOARD.block(), GlassCanvasItemRenderer::new);
+		SpecialModelRenderers.ID_MAPPER.put(AurorasCanvas.id("special/canvas"), CanvasItemRenderer.UnbakedSimple.MAP_CODEC);
+		SpecialModelRenderers.ID_MAPPER.put(AurorasCanvas.id("special/glass_canvas"), CanvasItemRenderer.UnbakedGlass.MAP_CODEC);
 
 		ClientCanvasBlockEntityData.init();
 
@@ -73,25 +76,25 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 			}
 		});
 
-		/*ColorResolverRegistry.ITEM.register(PAINTER_PALETTE_ITEM::getColor, PAINTER_PALETTE_ITEM);
+		ConditionalItemModelProperties.ID_MAPPER.put(AurorasCanvas.id("display_context"), ItemDisplayContextConditionalProperty.CODEC);
+		ItemTintSources.ID_MAPPER.put(AurorasCanvas.id("painter_palette"), PainterPaletteTintSource.MAP_CODEC);
 
 		ModelLoadingPlugin.register(context -> {
-			CanvasPressBlockEntityRenderer.initModels(context);
-
-			context.modifyModelOnLoad().register((model, ctx) -> {
-				if (ctx.id() instanceof ModelResourceLocation modelId && !modelId.getVariant().equals("inventory"))
-					if (modelId.id().getPath().endsWith("board")) {
-						return UnbakedCanvasModel.of(modelId, model, ctx.getOrLoadModel(ModelBakery.MISSING_MODEL_LOCATION));
-					}
+			context.modifyBlockModelOnLoad().register((model, ctx) -> {
+				if (SIMPLE_CANVAS_BLOCKS.contains(ctx.state().getBlock())) {
+					return new UnbakedCanvasModel(model);
+				} else if (ctx.state().is(GLASSBOARD.block().value()) || ctx.state().is(WAXED_GLASSBOARD.block().value())) {
+					return new UnbakedGlassboardModel(model, ctx.state().is(WAXED_GLASSBOARD.block().value()));
+				}
 
 				return model;
 			});
+		});
 
-			ClientCanvasBlockEntityData.markAllMeshesDirty();
-		});*/
+		ModelLoadingPlugin.register(_ -> ClientCanvasBlockEntityData.markAllMeshesDirty());
 
 		ModelLayerRegistry.registerModelLayer(AurorasCanvasModelLayers.EASEL, EaselEntityModel::createBodyLayer);
-		EntityRendererRegistry.register(EASEL_ENTITY_TYPE, EaselEntityRenderer::new);
+		EntityRenderers.register(EASEL_ENTITY_TYPE, EaselEntityRenderer::new);
 
 		AurorasCanvasClientNetworking.init();
 	}
@@ -99,6 +102,6 @@ public final class AurorasCanvasClient implements ClientModInitializer {
 	private void registerCanvasItemRenderer(BlockEntry<? extends CanvasBlock> canvas, Function<Identifier, CanvasItemRenderer> factory) {
 		var modelId = canvas.key().identifier().withPrefix("item/").withSuffix("_base");
 		/*BuiltinItemRendererRegistry.INSTANCE.register(canvas.value(), factory.apply(modelId));
-		ModelLoadingPlugin.register(context -> context.addModels(modelId, BLACKBOARD_MASK));*/
+		ModelLoadingPlugin.register(targetDisplayContext -> targetDisplayContext.addModels(modelId, BLACKBOARD_MASK));*/
 	}
 }

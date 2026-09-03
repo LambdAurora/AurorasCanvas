@@ -3,6 +3,7 @@
 	"package": "dev.lambdaurora.aurorascanvas.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"BlockStateDefinitionsMixin",
 		"MinecraftMixin",
 		"MouseHandlerMixin"
 	],

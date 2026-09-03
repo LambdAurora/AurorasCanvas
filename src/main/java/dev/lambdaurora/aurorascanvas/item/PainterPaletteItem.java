@@ -168,28 +168,6 @@ public class PainterPaletteItem extends Item {
 		}
 	}
 
-	public int getColor(ItemStack paletteStack, int tintIndex) {
-		var inventory = paletteStack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);
-
-		DrawModifier primaryColor = null;
-		DrawModifier previousColor = null;
-		DrawModifier nextColor = null;
-
-		if (inventory != null) {
-			primaryColor = DrawModifier.fromItem(inventory.getSelectedColor());
-			previousColor = inventory.getPreviousColor();
-			nextColor = inventory.getNextColor();
-		}
-
-		return switch (tintIndex) {
-			case 1 -> primaryColor == null ? DEFAULT_BACKGROUND_COLOR : primaryColor.getColor();
-			case 2 -> primaryColor == null ? 0xffffffff : primaryColor.getColor();
-			case 3 -> previousColor == null ? DEFAULT_BACKGROUND_COLOR : previousColor.getColor();
-			case 4 -> nextColor == null ? DEFAULT_BACKGROUND_COLOR : nextColor.getColor();
-			default -> 0xffffffff;
-		};
-	}
-
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
 		var inventory = stack.get(AurorasCanvasRegistry.PAINTER_PALETTE_INVENTORY_COMPONENT_TYPE);

@@ -83,38 +83,33 @@ public class PainterPaletteTooltipComponent implements ClientTooltipComponent {
 		byte nextColorIndex = this.inventory.findFirstNextColor();
 		ItemStack nextColorStack = this.inventory.getNextColorStack();
 
-		matrices.pushMatrix();
 		y += 12;
 
-		matrices.translate(x, y);
-		this.extractSlot(graphics, previousColorStack, previousColorIndex, true, false);
+		this.extractSlot(graphics, previousColorStack, -1, x, y);
 
-		matrices.translate(18, 0);
-		this.extractSlot(graphics, primaryColorStack, inventory.getSelectedColorSlot(), false, false);
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_HIGHLIGHT_FRONT_SPRITE, 2, 2, 24, 24);
+		this.extractSlot(graphics, primaryColorStack, 0, x += 20, y);
 
-		matrices.translate(18, 0);
-		this.extractSlot(graphics, nextColorStack, nextColorIndex, false, true);
+		this.extractSlot(graphics, nextColorStack, 1, x + 20, y);
 
-		matrices.popMatrix();
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, x - 2, y - 2, 24, 24);
 	}
 
 	private void extractSlot(
 			GuiGraphicsExtractor graphics, ItemStack stack,
-			int index, boolean start, boolean end
+			int index, int x, int y
 	) {
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SLOT_SPRITE, 1, 1, 0, 18, 18);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SLOT_SPRITE, x + 1, y + 1, 18, 18);
 
 		if (!stack.isEmpty()) {
-			graphics.item(stack, 2, 2, index);
-			this.drawColorOverlay(graphics, stack);
+			graphics.item(stack, x + 2, y + 2, index);
+			this.drawColorOverlay(graphics, stack, x, y);
 		}
 	}
 
-	private void drawColorOverlay(GuiGraphicsExtractor graphics, ItemStack stack) {
+	private void drawColorOverlay(GuiGraphicsExtractor graphics, ItemStack stack, int x, int y) {
 		var color = CanvasColor.fromItem(stack.getItem());
 		if (color != null) {
-			graphics.fill(14, 14, 4, 4, color.getColor());
+			graphics.fill(x + 14, y + 14, x + 18, y + 18, color.getColor());
 		}
 	}
 }

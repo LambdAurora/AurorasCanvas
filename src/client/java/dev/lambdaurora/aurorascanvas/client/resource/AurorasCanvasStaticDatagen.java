@@ -11,12 +11,14 @@ package dev.lambdaurora.aurorascanvas.client.resource;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
-import com.mojang.math.Quadrant;
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.advancement.DrawOnCanvasTrigger;
 import dev.lambdaurora.aurorascanvas.advancement.PutCanvasOnEaselTrigger;
 import dev.lambdaurora.aurorascanvas.block.GlassCanvasBlock;
+import dev.lambdaurora.aurorascanvas.client.item.ItemDisplayContextConditionalProperty;
+import dev.lambdaurora.aurorascanvas.client.item.PainterPaletteTintSource;
 import dev.lambdaurora.aurorascanvas.client.model.glass.GlassboardModel;
+import dev.lambdaurora.aurorascanvas.client.renderer.CanvasItemRenderer;
 import dev.lambdaurora.aurorascanvas.recipe.CanvasCloneRecipe;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
@@ -30,6 +32,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.MultiVariant;
@@ -40,7 +43,6 @@ import net.minecraft.client.data.models.model.*;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
 import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
@@ -56,6 +58,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -365,6 +368,28 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 
 		@Override
 		public void generateItemModels(ItemModelGenerators itemModelGenerator) {
+			this.createCanvasItem(itemModelGenerator, BLACKBOARD.item());
+			this.createCanvasItem(itemModelGenerator, WAXED_BLACKBOARD.item());
+			this.createCanvasItem(itemModelGenerator, CHALKBOARD.item());
+			this.createCanvasItem(itemModelGenerator, WAXED_CHALKBOARD.item());
+			this.createCanvasItem(itemModelGenerator, WHITEBOARD.item());
+			this.createCanvasItem(itemModelGenerator, WAXED_WHITEBOARD.item());
+			this.createCanvasItem(itemModelGenerator, GLASSBOARD.item());
+			this.createCanvasItem(itemModelGenerator, WAXED_GLASSBOARD.item());
+
+			itemModelGenerator.itemModelOutput.accept(CANVAS_PRESS.asItem(), ItemModelUtils.composite(
+					ItemModelUtils.plainModel(AurorasCanvas.id("block/canvas_press/base")),
+					ItemModelUtils.plainModel(AurorasCanvas.id("block/canvas_press/press_plate")),
+					ItemModelUtils.plainModel(AurorasCanvas.id("block/canvas_press/screw"))
+			));
+			itemModelGenerator.itemModelOutput.accept(PAINTER_PALETTE_ITEM, ItemModelUtils.tintedModel(
+					AurorasCanvas.id("item/painter_palette"),
+					new Constant(0xffffffff),
+					new PainterPaletteTintSource(PainterPaletteTintSource.Slot.CURRENT, PainterPaletteTintSource.DEFAULT_BACKGROUND_COLOR),
+					new PainterPaletteTintSource(PainterPaletteTintSource.Slot.BRUSH, 0xffffffff),
+					new PainterPaletteTintSource(PainterPaletteTintSource.Slot.PREVIOUS, PainterPaletteTintSource.DEFAULT_BACKGROUND_COLOR),
+					new PainterPaletteTintSource(PainterPaletteTintSource.Slot.NEXT, PainterPaletteTintSource.DEFAULT_BACKGROUND_COLOR)
+			));
 			itemModelGenerator.generateFlatItem(EASEL_ITEM, ModelTemplates.FLAT_ITEM);
 		}
 
@@ -448,7 +473,7 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 			var blockStateData = MultiVariantGenerator.dispatch(entry.value())
 					.with(PropertyDispatch.initial(GlassCanvasBlock.FACING).generate(
 							direction -> new MultiVariant(WeightedList.<Variant>builder()
-									.add(new Variant(model, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
+									.add(new Variant(model, Variant.SimpleModelState.DEFAULT.withY(GlassboardModel.yRot(direction.getOpposite()))))
 									.build()
 							)
 					));
@@ -472,37 +497,30 @@ public final class AurorasCanvasStaticDatagen implements DataGeneratorEntrypoint
 			this.blockStates.put(baseId, MultiVariantGenerator.dispatch(GLASSBOARD.block().value())
 					.with(PropertyDispatch.initial(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
 							(direction, pane) -> new MultiVariant(WeightedList.<Variant>builder()
-									.add(new Variant(pane ? basePaneId : baseModelId, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
+									.add(new Variant(pane ? basePaneId : baseModelId, Variant.SimpleModelState.DEFAULT.withY(GlassboardModel.yRot(direction.getOpposite()))))
 									.build()
 							)
 					))
 			);
-
-			for (var corner : GlassboardModel.Corner.CORNERS) {
-				for (var type : GlassboardModel.Type.TYPES) {
-					var id = AurorasCanvas.id(GlassboardModel.getModelPath(prefix, corner, type));
-					var modelId = id.withPrefix("block/");
-
-					var paneId = AurorasCanvas.id("block/" + GlassboardModel.getModelPath("pane/" + prefix, corner, type));
-
-					var blockState = MultiVariantGenerator.dispatch(GLASSBOARD.block().value())
-							.with(PropertyDispatch.initial(GlassCanvasBlock.FACING, GlassCanvasBlock.PANE).generate(
-									(direction, pane) -> new MultiVariant(WeightedList.<Variant>builder()
-											.add(new Variant(pane ? paneId : modelId, Variant.SimpleModelState.DEFAULT.withY(this.yRot(direction.getOpposite()))))
-											.build()
-									)));
-					this.blockStates.put(id, blockState);
-				}
-			}
 		}
 
-		private Quadrant yRot(Direction direction) {
-			return switch (direction) {
-				case NORTH -> Quadrant.R180;
-				case EAST -> Quadrant.R270;
-				case WEST -> Quadrant.R90;
-				default -> Quadrant.R0;
-			};
+		private void createCanvasItem(ItemModelGenerators generators, ItemEntry<?> item) {
+			var modelId = item.key().identifier().withPath(path -> "block/" + path.replace("waxed_", ""));
+			var specialModel = ItemModelUtils.specialModel(modelId,
+					item.key().identifier().getPath().contains("glass") ? CanvasItemRenderer.UnbakedGlass.INSTANCE : CanvasItemRenderer.UnbakedSimple.INSTANCE
+			);
+
+			generators.itemModelOutput.accept(item.asItem(), ItemModelUtils.conditional(new ItemDisplayContextConditionalProperty(ItemDisplayContext.HEAD),
+					ItemModelUtils.composite(
+							ItemModelUtils.plainModel(modelId),
+							specialModel,
+							ItemModelUtils.plainModel(AurorasCanvas.id("item/blackboard_mask"))
+					),
+					ItemModelUtils.composite(
+							ItemModelUtils.plainModel(modelId),
+							specialModel
+					)
+			));
 		}
 
 		@Override

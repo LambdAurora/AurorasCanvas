@@ -11,7 +11,7 @@ package dev.lambdaurora.aurorascanvas.client.tooltip;
 
 import dev.lambdaurora.aurorascanvas.AurorasCanvas;
 import dev.lambdaurora.aurorascanvas.canvas.Canvas;
-import dev.lambdaurora.aurorascanvas.client.renderer.CanvasTexture;
+import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import dev.lambdaurora.aurorascanvas.client.screen.SpriteIds;
 import dev.lambdaurora.aurorascanvas.tooltip.CanvasTooltipData;
 import net.fabricmc.api.EnvType;
@@ -42,7 +42,7 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 
 	public CanvasTooltipComponent(String background, @Unmodifiable List<Canvas> canvases, boolean locked) {
 		this.background = AurorasCanvas.id("textures/block/canvas/" + background + ".png");
-		this.canvases = canvases.stream().map(canvas -> new Entry(CanvasTexture.fromCanvas(canvas), canvas.isGlowing())).toList();
+		this.canvases = canvases.stream().map(canvas -> new Entry(AurorasCanvasClient.CANVAS_TEXTURE_MANAGER.prepareCanvasTexture(canvas), canvas.isGlowing())).toList();
 		this.locked = locked;
 	}
 
@@ -62,10 +62,10 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 
 	@Override
 	public void extractImage(Font font, int x, int y, int width, int height, GuiGraphicsExtractor graphics) {
-		graphics.blit(RenderPipelines.GUI_TEXTURED, this.background, x, y, 128, 128, 0, 0, 16, 16, 16, 16);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, this.background, x, y, 0, 0, 128, 128, 16, 16, 16, 16);
 
 		var entry = this.selectEntry();
-		entry.texture.extract(graphics, x, y, 128, 128);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, entry.texture, x, y, 0.f, 0.f, 128, 128, 16, 16, 16, 16);
 
 		if (this.locked) {
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.LOCKED_SPRITE, x + 112, y + 112, 16, 16);
@@ -78,7 +78,7 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 
 	private Entry selectEntry() {
 		if (this.canvases.size() == 1) {
-			return this.canvases.get(0);
+			return this.canvases.getFirst();
 		}
 
 		int period = 5;
@@ -88,5 +88,5 @@ public class CanvasTooltipComponent implements ClientTooltipComponent {
 		return this.canvases.get(index);
 	}
 
-	private record Entry(CanvasTexture texture, boolean glowing) {}
+	private record Entry(Identifier texture, boolean glowing) {}
 }

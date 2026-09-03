@@ -9,62 +9,37 @@
 
 package dev.lambdaurora.aurorascanvas.client.model;
 
-import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
-import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
-import dev.lambdaurora.aurorascanvas.client.renderer.CanvasMeshBaker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.minecraft.client.resources.model.BakedModel;
+import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Supplier;
+import java.util.function.Predicate;
 
 @Environment(EnvType.CLIENT)
-public class BakedCanvasModel extends ForwardingBakedModel {
-	public BakedCanvasModel(BakedModel baseModel) {
+public class BakedCanvasModel extends WrapperBlockStateModel {
+	public BakedCanvasModel(BlockStateModel baseModel) {
 		this.wrapped = baseModel;
 	}
 
 	@Override
-	public boolean isVanillaAdapter() {
-		return false;
+	public void emitQuads(QuadEmitter emitter, BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, Predicate<@Nullable Direction> cullTest) {
+		super.emitQuads(emitter, level, pos, state, random, cullTest);
+		this.emitBlockMesh(level, pos, emitter);
 	}
 
-	@Override
-	public void emitBlockQuads(BlockAndTintGetter world, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
-		super.emitBlockQuads(world, state, pos, randomSupplier, context);
-
-		this.emitBlockMesh(world, pos, context);
-	}
-
-	protected void emitBlockMesh(BlockAndTintGetter world, BlockPos pos, RenderContext context) {
+	protected void emitBlockMesh(BlockAndTintGetter world, BlockPos pos, QuadEmitter emitter) {
 		var attachment = world.getBlockEntityRenderData(pos);
 		if (attachment instanceof ClientCanvasBlockEntityData.RenderAttachmentData(var meshes)) {
-			meshes.forEach(mesh -> mesh.outputTo(context.getEmitter()));
+			meshes.forEach(mesh -> mesh.outputTo(emitter));
 		}
-	}
-
-	@Override
-	public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
-		super.emitItemQuads(stack, randomSupplier, context);
-
-		var canvases = this.getCanvasHolder(stack);
-		if (canvases != null && !canvases.isEmpty()) {
-			canvases.streamPlacedDefault()
-					.map(CanvasMeshBaker::buildMesh)
-					.forEach(mesh -> mesh.outputTo(context.getEmitter()));
-		}
-	}
-
-	protected @Nullable CanvasHolder<?, ?> getCanvasHolder(ItemStack stack) {
-		return stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
 	}
 }

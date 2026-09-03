@@ -10,6 +10,7 @@
 package dev.lambdaurora.aurorascanvas.client.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
 import dev.lambdaurora.aurorascanvas.network.PainterPaletteScrollPayload;
 import net.fabricmc.api.EnvType;
@@ -17,7 +18,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.InputQuirks;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,7 +40,7 @@ public class MouseHandlerMixin {
 	)
 	private void onScroll(
 			long window, double scrollDeltaX, double scrollDeltaY, CallbackInfo ci,
-			@Local(ordinal = 2) int scrollDelta
+			@Local(name = "wheel") int wheel
 	) {
 		var player = this.minecraft.player;
 
@@ -49,7 +50,13 @@ public class MouseHandlerMixin {
 
 			if (inventory != null) {
 				if (!inventory.isPaletteEmpty()) {
-					var payload = new PainterPaletteScrollPayload(scrollDelta, Screen.hasControlDown());
+					var controlDown = InputQuirks.REPLACE_CTRL_KEY_WITH_CMD_KEY
+							? InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), 343)
+							  || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), 347)
+							: InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), 341)
+							  || InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), 345);
+
+					var payload = new PainterPaletteScrollPayload(wheel, controlDown);
 					ClientPlayNetworking.send(payload);
 
 					ci.cancel();

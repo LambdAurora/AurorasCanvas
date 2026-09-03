@@ -9,11 +9,11 @@
 
 package dev.lambdaurora.aurorascanvas.client.mixin;
 
+import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import dev.lambdaurora.aurorascanvas.client.ClientCanvasBlockEntityData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.ReceivingLevelScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,7 +24,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
 	@Inject(method = "setLevel", at = @At("HEAD"))
-	private void aurorascanvas$onSetLevel(ClientLevel level, ReceivingLevelScreen.Reason reason, CallbackInfo ci) {
+	private void aurorascanvas$onSetLevel(ClientLevel level, CallbackInfo ci) {
 		ClientCanvasBlockEntityData.onLevelChange(level);
+	}
+
+	@Inject(method = "close", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/MapTextureManager;close()V"))
+	private void aurorascanvas$onClose(CallbackInfo ci) {
+		AurorasCanvasClient.CANVAS_TEXTURE_MANAGER.close();
 	}
 }

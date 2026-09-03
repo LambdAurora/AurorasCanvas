@@ -10,17 +10,25 @@
 package dev.lambdaurora.aurorascanvas.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.serialization.MapCodec;
 import dev.lambdaurora.aurorascanvas.AurorasCanvasRegistry;
+import dev.lambdaurora.aurorascanvas.canvas.holder.CanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.GlassCanvasHolder;
+import dev.lambdaurora.aurorascanvas.canvas.holder.SimpleCanvasHolder;
 import dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
+import net.minecraft.core.Direction;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector3fc;
+import org.jspecify.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 /**
  * Represents the dynamic item renderer of canvases.
@@ -30,97 +38,163 @@ import net.minecraft.world.item.ItemStack;
  * @since 1.0.0
  */
 @Environment(EnvType.CLIENT)
-public class CanvasItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
-	private final Identifier modelId;
+public class CanvasItemRenderer<T extends CanvasHolder<?, T>> implements SpecialModelRenderer<T> {
+	@Override
+	public void submit(@Nullable T argument, PoseStack matrices, SubmitNodeCollector submitNodeCollector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
+		if (argument == null) return;
 
-	public CanvasItemRenderer(Identifier modelId) {
-		this.modelId = modelId;
+		matrices.pushPose();
+		argument.streamPlacedDefault().forEach(canvas -> {
+			if (!canvas.isEmpty()) {
+				var canvasTextureId = AurorasCanvasClient.CANVAS_TEXTURE_MANAGER.prepareCanvasTexture(canvas.canvas());
+				final int canvasLight = canvas.isGlowing() ? LightCoordsUtil.FULL_BRIGHT : lightCoords;
+
+				submitNodeCollector.submitCustomGeometry(matrices, RenderTypes.text(canvasTextureId), (model, vertices) -> {
+					this.quad(model, vertices, canvas.facing(), 0, 0, 1, 1, canvas.depth(), false, canvasLight);
+
+					if (argument instanceof GlassCanvasHolder) {
+						this.quad(model, vertices, canvas.facing().getOpposite(), 0, 0, 1, 1, canvas.depth(), true, canvasLight);
+					}
+				});
+			}
+		});
+		matrices.popPose();
+	}
+
+	private void quad(
+			PoseStack.Pose model, VertexConsumer vertices,
+			Direction nominalFace, float left, float bottom, float right, float top, float depth, boolean mirror, int light
+	) {
+		if (mirror) {
+			depth = .99f - depth;
+		}
+
+		switch (nominalFace) {
+			case UP:
+				depth = 1 - depth;
+				top = 1 - top;
+				bottom = 1 - bottom;
+
+			case DOWN:
+				vertices.addVertex(model, left, depth, top)
+						.setColor(255, 255, 255, 255)
+						.setUv(0.f, 1.f)
+						.setLight(light);
+				vertices.addVertex(model, left, depth, bottom)
+						.setColor(255, 255, 255, 255)
+						.setUv(1.f, 1.f)
+						.setLight(light);
+				vertices.addVertex(model, right, depth, bottom)
+						.setColor(255, 255, 255, 255)
+						.setUv(0.f, 0.f)
+						.setLight(light);
+				vertices.addVertex(model, right, depth, top)
+						.setColor(255, 255, 255, 255)
+						.setUv(1.f, 0.f)
+						.setLight(light);
+				break;
+
+			case EAST:
+				depth = 1 - depth;
+				left = 1 - left;
+				right = 1 - right;
+
+			case WEST:
+				vertices.addVertex(model, depth, top, left)
+						.setColor(255, 255, 255, 255)
+						.setUv(0.f, 1.f)
+						.setLight(light);
+				vertices.addVertex(model, depth, bottom, left)
+						.setColor(255, 255, 255, 255)
+						.setUv(0.f, 0.f)
+						.setLight(light);
+				vertices.addVertex(model, depth, bottom, right)
+						.setColor(255, 255, 255, 255)
+						.setUv(1.f, 0.f)
+						.setLight(light);
+				vertices.addVertex(model, depth, top, right)
+						.setColor(255, 255, 255, 255)
+						.setUv(1.f, 1.f)
+						.setLight(light);
+				break;
+
+			case SOUTH:
+				depth = 1 - depth;
+				left = 1 - left;
+				right = 1 - right;
+
+			case NORTH:
+				vertices.addVertex(model, 1 - left, top, depth)
+						.setColor(255, 255, 255, 255)
+						.setUv(mirror ? 0.f : 1.f, 0.f)
+						.setLight(light);
+				vertices.addVertex(model, 1 - left, bottom, depth)
+						.setColor(255, 255, 255, 255)
+						.setUv(mirror ? 0.f : 1.f, 1.f)
+						.setLight(light);
+				vertices.addVertex(model, 1 - right, bottom, depth)
+						.setColor(255, 255, 255, 255)
+						.setUv(mirror ? 1.f : 0.f, 1.f)
+						.setLight(light);
+				vertices.addVertex(model, 1 - right, top, depth)
+						.setColor(255, 255, 255, 255)
+						.setUv(mirror ? 1.f : 0.f, 0.f)
+						.setLight(light);
+				break;
+		}
 	}
 
 	@Override
-	public void render(
-			ItemStack stack, ItemDisplayContext mode, PoseStack matrices,
-			MultiBufferSource vertexConsumers, int light, int overlay
-	) {
-		var modelManager = Minecraft.getInstance().getModelManager();
-		var itemRenderer = Minecraft.getInstance().getItemRenderer();
-
-		var model = modelManager.getModel(this.modelId);
-
-		matrices.pushPose();
-
-		matrices.translate(0.5, 0.5, 0.5);
-		boolean leftHanded = mode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
-		if (mode == ItemDisplayContext.HEAD) {
-			var maskModel = modelManager.getModel(AurorasCanvasClient.BLACKBOARD_MASK);
-			itemRenderer.render(
-					stack, mode,
-					false, matrices, vertexConsumers, light, overlay, maskModel
-			);
-		}
-
-		matrices.pushPose();
-		this.renderCanvas(stack, mode, matrices, vertexConsumers, light, leftHanded, model);
-		matrices.popPose();
-
-		itemRenderer.render(
-				stack, mode,
-				leftHanded,
-				matrices, vertexConsumers, light, overlay, model
-		);
-
-		matrices.popPose();
+	public void getExtents(Consumer<Vector3fc> output) {
 	}
 
-	protected void applyPose(ItemDisplayContext mode, PoseStack matrices, boolean leftHanded, BakedModel model) {
-		float z = .933f;
-		if (mode == ItemDisplayContext.HEAD) {
-			matrices.translate(0.5, 0.5, z);
-			matrices.scale(-1, -1, 1);
-		} else if (mode == ItemDisplayContext.GUI) {
-			matrices.translate(0.27, -0.08, 0);
-			matrices.scale(-1, -1, 1);
-		} else if (mode == ItemDisplayContext.GROUND) {
-			matrices.translate(0.125, 0.5, 0.23333333);
-			matrices.scale(-1, -1, 1);
-		} else if (mode == ItemDisplayContext.FIXED) {
-			matrices.translate(0.5, 0.5, 15 / 16.0 - 0.01);
-			matrices.scale(-1, -1, 1);
-		} else if (mode != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-				&& mode != ItemDisplayContext.THIRD_PERSON_LEFT_HAND && !mode.firstPerson()) {
-			matrices.scale(-1, -1, 1);
-		}
+	@SuppressWarnings("unchecked")
+	@Override
+	public @Nullable T extractArgument(ItemStack stack) {
+		return (T) stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
+	}
 
-		model.getTransforms().getTransform(mode).apply(leftHanded, matrices);
-		matrices.translate(0, 0, -0.5);
-
-		if (mode == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-				|| mode == ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-				|| mode.firstPerson()) {
-			matrices.translate(0.5, 0.5, z);
-			matrices.scale(-1, -1, 1);
+	public static class Simple extends CanvasItemRenderer<SimpleCanvasHolder> {
+		@Override
+		public @Nullable SimpleCanvasHolder extractArgument(ItemStack stack) {
+			return stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
 		}
 	}
 
-	protected void renderCanvas(
-			ItemStack stack, ItemDisplayContext mode, PoseStack matrices,
-			MultiBufferSource vertexConsumers, int light,
-			boolean leftHanded, BakedModel model
-	) {
-		var canvases = stack.get(AurorasCanvasRegistry.CANVAS_COMPONENT_TYPE);
-		if (canvases != null) {
-			var canvas = canvases.canvas();
+	public static class Glass extends CanvasItemRenderer<GlassCanvasHolder> {
+		@Override
+		public @Nullable GlassCanvasHolder extractArgument(ItemStack stack) {
+			return stack.get(AurorasCanvasRegistry.GLASS_CANVAS_COMPONENT_TYPE);
+		}
+	}
 
-			if (!canvas.isEmpty()) {
-				this.applyPose(mode, matrices, leftHanded, model);
+	public record UnbakedSimple() implements SpecialModelRenderer.Unbaked<SimpleCanvasHolder> {
+		public static final UnbakedSimple INSTANCE = new UnbakedSimple();
+		public static final MapCodec<UnbakedSimple> MAP_CODEC = MapCodec.unit(INSTANCE);
 
-				CanvasTexture.fromCanvas(canvas)
-						.extract(
-								matrices.last().pose(), vertexConsumers,
-								canvas.isGlowing() ? LightTexture.FULL_BLOCK : light,
-								false
-						);
-			}
+		@Override
+		public SpecialModelRenderer<SimpleCanvasHolder> bake(BakingContext context) {
+			return new CanvasItemRenderer.Simple();
+		}
+
+		@Override
+		public MapCodec<UnbakedSimple> type() {
+			return MAP_CODEC;
+		}
+	}
+
+	public record UnbakedGlass() implements SpecialModelRenderer.Unbaked<GlassCanvasHolder> {
+		public static final UnbakedGlass INSTANCE = new UnbakedGlass();
+		public static final MapCodec<UnbakedGlass> MAP_CODEC = MapCodec.unit(INSTANCE);
+
+		@Override
+		public SpecialModelRenderer<GlassCanvasHolder> bake(BakingContext context) {
+			return new CanvasItemRenderer.Glass();
+		}
+
+		@Override
+		public MapCodec<UnbakedGlass> type() {
+			return MAP_CODEC;
 		}
 	}
 }

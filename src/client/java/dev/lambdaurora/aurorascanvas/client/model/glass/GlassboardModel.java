@@ -9,6 +9,9 @@
 
 package dev.lambdaurora.aurorascanvas.client.model.glass;
 
+import com.mojang.math.Quadrant;
+import net.minecraft.core.Direction;
+
 import java.util.List;
 
 public final class GlassboardModel {
@@ -26,8 +29,26 @@ public final class GlassboardModel {
 		return "glassboard/" + prefix + "glassboard_" + corner.getShortName() + type.suffix();
 	}
 
-	static int getCornerDataIndex(Corner corner, Type type) {
+	public static int getCornerDataIndex(Corner corner, Type type) {
 		return corner.ordinal() | (type.ordinal() << 2);
+	}
+
+	public static Quadrant yRot(Direction direction) {
+		return switch (direction) {
+			case NORTH -> Quadrant.R180;
+			case EAST -> Quadrant.R270;
+			case WEST -> Quadrant.R90;
+			default -> Quadrant.R0;
+		};
+	}
+
+	public static Quadrant partYRot(Direction direction) {
+		return switch (direction) {
+			case SOUTH -> Quadrant.R180;
+			case WEST -> Quadrant.R270;
+			case EAST -> Quadrant.R90;
+			default -> Quadrant.R0;
+		};
 	}
 
 	public enum Corner {

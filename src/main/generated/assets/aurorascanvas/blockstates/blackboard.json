@@ -5,8 +5,7 @@
       "y": 90
     },
     "facing=north": {
-      "model": "aurorascanvas:block/blackboard",
-      "y": 0
+      "model": "aurorascanvas:block/blackboard"
     },
     "facing=south": {
       "model": "aurorascanvas:block/blackboard",

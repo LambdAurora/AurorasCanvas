@@ -9,12 +9,10 @@
       "y": 90
     },
     "facing=north,pane=false": {
-      "model": "aurorascanvas:block/glassboard",
-      "y": 0
+      "model": "aurorascanvas:block/glassboard"
     },
     "facing=north,pane=true": {
-      "model": "aurorascanvas:block/glassboard/pane/glassboard",
-      "y": 0
+      "model": "aurorascanvas:block/glassboard/pane/glassboard"
     },
     "facing=south,pane=false": {
       "model": "aurorascanvas:block/glassboard",

@@ -126,7 +126,7 @@ dependencies {
 	implementation(libs.spruceui)
 	include(libs.spruceui)
 
-	"implementation"(libs.trinkets) {
+	localRuntime(libs.trinkets) {
 		exclude(group = libs.fabric.loader.get().group)
 		exclude(group = libs.fabric.api.get().group)
 	}
@@ -158,7 +158,6 @@ lambdamcdev {
 			withEntrypoints("yumi:init", "dev.lambdaurora.aurorascanvas.AurorasCanvas")
 			withEntrypoints("yumi:client_init",
 				"dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient",
-				"dev.lambdaurora.aurorascanvas.client.trinkets.TrinketsHooks",
 			)
 			withEntrypoints("fabric-datagen", "dev.lambdaurora.aurorascanvas.client.resource.AurorasCanvasStaticDatagen")
 			withAccessWidener("${namespace.get()}.classtweaker")

@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "aurorascanvas:canvases",
   "key": {
-    "C": {
-      "item": "minecraft:black_concrete"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
+    "C": "minecraft:black_concrete",
+    "S": "minecraft:stick"
   },
   "pattern": [
     "SSS",
@@ -16,7 +12,6 @@
     "SSS"
   ],
   "result": {
-    "count": 1,
     "id": "aurorascanvas:blackboard"
   }
 }

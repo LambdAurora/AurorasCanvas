@@ -49,10 +49,10 @@ public class ItemTree extends ItemTreeGroupNode {
 
 	public static ItemTree fromStacks(List<ItemStack> displayStacks, List<ItemStack> searchStacks) {
 		var tree = new ItemTree();
-		var nodes = new ArrayList<ItemTreeItemNode>();
+		var nodes = new ArrayList<ItemTreeNode.Item>();
 
 		for (var stack : displayStacks) {
-			nodes.add(new ItemTreeItemNode(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
+			nodes.add(new ItemTreeResolvedItemNode(stack, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY));
 		}
 
 		for (int i = 0; i < searchStacks.size(); i++) {
@@ -61,7 +61,7 @@ public class ItemTree extends ItemTreeGroupNode {
 			int foundIndex = -1;
 
 			for (int j = 0; j < nodes.size(); j++) {
-				ItemTreeItemNode node = nodes.get(j);
+				var node = nodes.get(j);
 
 				if (ItemStack.isSameItemSameComponents(node.stack(), current)) {
 					node.setVisibility(CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
@@ -73,7 +73,7 @@ public class ItemTree extends ItemTreeGroupNode {
 			}
 
 			if (foundIndex != -1) {
-				nodes.add(foundIndex, new ItemTreeItemNode(current, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
+				nodes.add(foundIndex, new ItemTreeResolvedItemNode(current, CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY));
 			}
 		}
 

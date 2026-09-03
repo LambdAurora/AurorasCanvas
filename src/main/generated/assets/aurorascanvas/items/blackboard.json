@@ -1,0 +1,43 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "minecraft:composite",
+      "models": [
+        {
+          "type": "minecraft:model",
+          "model": "aurorascanvas:block/blackboard"
+        },
+        {
+          "type": "minecraft:special",
+          "base": "aurorascanvas:block/blackboard",
+          "model": {
+            "type": "aurorascanvas:special/canvas"
+          }
+        }
+      ]
+    },
+    "on_true": {
+      "type": "minecraft:composite",
+      "models": [
+        {
+          "type": "minecraft:model",
+          "model": "aurorascanvas:block/blackboard"
+        },
+        {
+          "type": "minecraft:special",
+          "base": "aurorascanvas:block/blackboard",
+          "model": {
+            "type": "aurorascanvas:special/canvas"
+          }
+        },
+        {
+          "type": "minecraft:model",
+          "model": "aurorascanvas:item/blackboard_mask"
+        }
+      ]
+    },
+    "property": "aurorascanvas:display_context",
+    "target": "head"
+  }
+}

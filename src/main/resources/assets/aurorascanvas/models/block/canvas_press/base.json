@@ -2,11 +2,13 @@
 	"credit": "Made by april",
 	"parent": "minecraft:block/block",
 	"textures": {
+		"particle": "minecraft:block/smithing_table_bottom",
 		"bottom": "minecraft:block/smithing_table_bottom",
 		"bottom_side": "minecraft:block/smithing_table_side",
 		"chassis_plate": "aurorascanvas:block/canvas/press/chassis_plate",
 		"press_plate": "aurorascanvas:block/canvas/press/press_plate",
-		"screw": "aurorascanvas:block/canvas/press/screw"
+		"screw": "aurorascanvas:block/canvas/press/screw",
+		"missing": "aurorascanvas:block/canvas/special/white"
 	},
 	"elements": [
 		{

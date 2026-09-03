@@ -39,6 +39,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -56,7 +57,9 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -66,6 +69,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -108,6 +112,7 @@ public final class AurorasCanvasRegistry {
 	);
 	//endregion
 
+	//region Canvas
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> BLACKBOARD = registerBlockWithItem(
 			BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, false),
@@ -117,14 +122,20 @@ public final class AurorasCanvasRegistry {
 					.pushReaction(PushReaction.DESTROY)
 					.sound(SoundType.WOOD),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_BLACKBOARD = registerBlockWithItem(
 			WAXED_BLACKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> CHALKBOARD = registerBlockWithItem(
@@ -132,14 +143,20 @@ public final class AurorasCanvasRegistry {
 			properties -> new CanvasBlock(properties, false),
 			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_CHALKBOARD = registerBlockWithItem(
 			WAXED_CHALKBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			BlockBehaviour.Properties.ofFullCopy(CHALKBOARD.block.value),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WHITEBOARD = registerBlockWithItem(
@@ -147,14 +164,20 @@ public final class AurorasCanvasRegistry {
 			properties -> new CanvasBlock(properties, false),
 			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 	public static final BlockItemEntry<CanvasBlock, SimpleCanvasItem> WAXED_WHITEBOARD = registerBlockWithItem(
 			WAXED_WHITEBOARD_ID,
 			properties -> new CanvasBlock(properties, true),
 			BlockBehaviour.Properties.ofFullCopy(WHITEBOARD.block.value),
 			SimpleCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 
 	public static final BlockItemEntry<GlassCanvasBlock, GlassCanvasItem> GLASSBOARD = registerBlockWithItem(
@@ -162,14 +185,37 @@ public final class AurorasCanvasRegistry {
 			properties -> new GlassCanvasBlock(properties, false),
 			BlockBehaviour.Properties.ofFullCopy(BLACKBOARD.block.value).noOcclusion().sound(SoundType.GLASS),
 			GlassCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
 	);
 	public static final BlockItemEntry<GlassCanvasBlock, GlassCanvasItem> WAXED_GLASSBOARD = registerBlockWithItem(
 			WAXED_GLASSBOARD_ID,
 			properties -> new GlassCanvasBlock(properties, true),
 			BlockBehaviour.Properties.ofFullCopy(GLASSBOARD.block.value),
 			GlassCanvasItem::new,
-			new Item.Properties().equipmentSlot((entity, stack) -> EquipmentSlot.HEAD)
+			new Item.Properties().component(
+					DataComponents.EQUIPPABLE,
+					Equippable.builder(EquipmentSlot.HEAD).setSwappable(false).build()
+			)
+	);
+	//endregion
+
+	/// A set of "simple" canvas blocks.
+	public static final Set<Block> SIMPLE_CANVAS_BLOCKS = Set.of(
+			BLACKBOARD.block.value,
+			WAXED_BLACKBOARD.block.value,
+			CHALKBOARD.block.value,
+			WAXED_CHALKBOARD.block.value,
+			WHITEBOARD.block.value,
+			WAXED_WHITEBOARD.block.value
+	);
+
+	/// A set of "glass" canvas blocks.
+	public static final Set<Block> GLASS_CANVAS_BLOCKS = Set.of(
+			GLASSBOARD.block.value,
+			WAXED_GLASSBOARD.block.value
 	);
 
 	public static final BlockItemEntry<CanvasPressBlock, BlockItem> CANVAS_PRESS = registerBlockWithItem(
@@ -180,16 +226,16 @@ public final class AurorasCanvasRegistry {
 			new Item.Properties()
 	);
 
-	public static final EaselEntityItem EASEL_ITEM = Registry.register(
-			BuiltInRegistries.ITEM,
-			EASEL_ID,
-			new EaselEntityItem(new Item.Properties().stacksTo(16))
+	public static final Item EASEL_ITEM = Items.registerItem(
+			ResourceKey.create(Registries.ITEM, EASEL_ID),
+			EaselEntityItem::new,
+			new Item.Properties().stacksTo(16)
 	);
 
-	public static final PainterPaletteItem PAINTER_PALETTE_ITEM = Registry.register(
-			BuiltInRegistries.ITEM,
-			PAINTER_PALETTE_ID,
-			new PainterPaletteItem(new Item.Properties().stacksTo(1))
+	public static final Item PAINTER_PALETTE_ITEM = Items.registerItem(
+			ResourceKey.create(Registries.ITEM, PAINTER_PALETTE_ID),
+			PainterPaletteItem::new,
+			new Item.Properties().stacksTo(1)
 	);
 
 	public static final BlockEntityType<SimpleCanvasBlockEntity> CANVAS_BLOCK_ENTITY_TYPE = Registry.register(
@@ -253,7 +299,7 @@ public final class AurorasCanvasRegistry {
 			Identifier id, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties
 	) {
 		var key = ResourceKey.create(Registries.BLOCK, id);
-		var block = factory.apply(properties);
+		var block = factory.apply(properties.setId(key));
 		return new BlockEntry<>(key, Registry.register(BuiltInRegistries.BLOCK, key, block));
 	}
 
@@ -264,7 +310,12 @@ public final class AurorasCanvasRegistry {
 		var block = registerBlock(id, factory, properties);
 
 		var key = ResourceKey.create(Registries.ITEM, id);
-		var item = Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(block.value, itemProperties));
+		var item = Registry.register(BuiltInRegistries.ITEM, key, itemFactory.apply(
+				block.value,
+				itemProperties.useBlockDescriptionPrefix()
+						.requiredFeatures(block.value.requiredFeatures())
+						.setId(key)
+		));
 
 		return new BlockItemEntry<>(block, new ItemEntry<>(key, item));
 	}

@@ -18,13 +18,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-
-import java.awt.event.MouseEvent;
 
 /**
  * Represents the painter's palette container screen.
@@ -59,8 +58,6 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-		graphics.pose().pushPose();
-		graphics.pose().translate(0, 0, 1);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof CanvasToolSlot) {
 				int x = this.getBackgroundX() + slot.x + 24 - 1;
@@ -73,41 +70,33 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 				}
 			}
 		}
-		graphics.pose().popPose();
 
 		super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-		var matrices = graphics.pose();
-		matrices.pushPose();
-		matrices.translate(this.getBackgroundX(), this.getBackgroundY(), 275);
 		for (var slot : this.menu.slots) {
 			if (slot instanceof LockedSlot) {
 				graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.LOCKED_SPRITE, slot.x + 24 + 9, slot.y + 9, 8, 8);
 			} else if ((slot instanceof ColorSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedColorSlot())
 					|| (slot instanceof CanvasToolSlot && slot.getContainerSlot() == this.menu.getInventory().getSelectedToolSlot())) {
-				matrices.pushPose();
-				matrices.translate(slot.x + 24, slot.y, 0);
-				this.extractSelectedIndicator(graphics);
-				matrices.popPose();
+				this.extractSelectedIndicator(graphics, slot.x + 24, slot.y);
 			}
 		}
-		matrices.popPose();
 	}
 
-	private void extractSelectedIndicator(GuiGraphicsExtractor graphics) {
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, -3, -3, 22, 22);
+	private void extractSelectedIndicator(GuiGraphicsExtractor graphics, int x, int y) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SpriteIds.SELECT_HIGHLIGHT_SPRITE, x - 3, y - 3, 22, 22);
 	}
 
 	@Override
-	public boolean mouseClicked(MouseEvent event) {
-		if (event.getButton() == 2) {
-			if (this.hasClickedOutside(event.getX(), event.getY(), this.leftPos, this.topPos, event.getButton())) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		if (event.button() == 2) {
+			if (this.hasClickedOutside(event.x(), event.y(), this.leftPos, this.topPos)) {
 				if (this.menu.clickMenuButton(this.minecraft.player, this.menu.getInventory().getContainerSize())) {
 					this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, this.menu.getInventory().getContainerSize());
 					return true;
 				}
 			} else {
-				int slot = this.getSlotAt(event.getX(), event.getY());
+				int slot = this.getSlotAt(event.x(), event.y());
 
 				if (slot != -1 && this.menu.clickMenuButton(this.minecraft.player, slot)) {
 					this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot);
@@ -116,7 +105,7 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 			}
 		}
 
-		return super.mouseClicked(event);
+		return super.mouseClicked(event, doubleClick);
 	}
 
 	private int getSlotAt(double x, double y) {
@@ -135,8 +124,8 @@ public class PainterPaletteScreen extends AbstractContainerScreen<PainterPalette
 	}
 
 	@Override
-	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
-		return super.hasClickedOutside(mouseX, mouseY, left, top, button)
+	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
+		return super.hasClickedOutside(mouseX, mouseY, left, top)
 				&& (mouseX < this.getBackgroundX() || mouseY < this.getBackgroundY() || mouseY > this.getBackgroundY() + 86 || mouseY > this.getBackgroundX() + 10);
 	}
 }

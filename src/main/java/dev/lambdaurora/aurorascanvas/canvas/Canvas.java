@@ -210,8 +210,13 @@ public final class Canvas implements CanvasHandler {
 		return this.glowing == canvas.glowing && Arrays.equals(this.pixels, canvas.pixels);
 	}
 
+	/// {@return the hash code value for the pixels of this canvas}
+	public int pixelsHashCode() {
+		return Arrays.hashCode(this.pixels);
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(Arrays.hashCode(this.pixels), this.glowing);
+		return Objects.hash(this.pixelsHashCode(), this.glowing);
 	}
 }

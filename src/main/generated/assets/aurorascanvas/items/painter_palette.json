@@ -1,0 +1,32 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "aurorascanvas:item/painter_palette",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -1
+      },
+      {
+        "type": "aurorascanvas:painter_palette",
+        "default": -6917055,
+        "slot": "current"
+      },
+      {
+        "type": "aurorascanvas:painter_palette",
+        "default": -1,
+        "slot": "brush"
+      },
+      {
+        "type": "aurorascanvas:painter_palette",
+        "default": -6917055,
+        "slot": "previous"
+      },
+      {
+        "type": "aurorascanvas:painter_palette",
+        "default": -6917055,
+        "slot": "next"
+      }
+    ]
+  }
+}

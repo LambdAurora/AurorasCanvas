@@ -19,4 +19,10 @@ public interface ItemTreeNode {
 	CreativeModeTab.TabVisibility getVisibility();
 
 	void build(Collection<ItemStack> stacks, FeatureFlagSet enabledFeatures, CreativeModeTab.TabVisibility visibility);
+
+	interface Item extends ItemTreeNode {
+		ItemStack stack();
+
+		void setVisibility(CreativeModeTab.TabVisibility visibility);
+	}
 }

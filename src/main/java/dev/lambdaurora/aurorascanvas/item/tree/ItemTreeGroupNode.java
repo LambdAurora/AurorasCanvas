@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ItemLike;
 import org.jspecify.annotations.Nullable;
 
@@ -40,28 +41,28 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		return group;
 	}
 
-	public void add(ItemStack stack, CreativeModeTab.TabVisibility visibility) {
+	public void add(ItemStackTemplate stack, CreativeModeTab.TabVisibility visibility) {
 		this.nodes.add(new ItemTreeItemNode(stack, visibility));
 	}
 
-	public void add(ItemStack stack) {
+	public void add(ItemStackTemplate stack) {
 		this.add(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 
-	public void add(int index, ItemStack stack, CreativeModeTab.TabVisibility visibility) {
+	public void add(int index, ItemStackTemplate stack, CreativeModeTab.TabVisibility visibility) {
 		this.nodes.add(index, new ItemTreeItemNode(stack, visibility));
 	}
 
-	public void add(int index, ItemStack stack) {
+	public void add(int index, ItemStackTemplate stack) {
 		this.add(index, stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 
 	public void add(ItemLike item) {
-		this.add(new ItemStack(item));
+		this.add(new ItemStackTemplate(item.asItem()));
 	}
 
 	public void add(ItemLike item, CreativeModeTab.TabVisibility visibility) {
-		this.add(new ItemStack(item), visibility);
+		this.add(new ItemStackTemplate(item.asItem()), visibility);
 	}
 
 	public void add(ItemTreeGroupNode groupNode) {
@@ -78,10 +79,10 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		this.groupNodes.putAll(groupNode.groupNodes);
 	}
 
-	private int addRelative(ItemStack toFind, ItemTreeNode node, int offset) {
+	private int addRelative(ItemStackTemplate toFind, ItemTreeNode node, int offset) {
 		for (int i = 0; i < this.nodes.size(); i++) {
 			if (this.nodes.get(i) instanceof ItemTreeItemNode item) {
-				if (ItemStack.isSameItemSameComponents(item.stack(), toFind)) {
+				if (item.templateStack().item().equals(toFind.item()) && item.templateStack().components().equals(toFind.components())) {
 					this.nodes.add(i + offset, node);
 					return i + offset;
 				}
@@ -91,24 +92,24 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		return -1;
 	}
 
-	public int addAfter(ItemStack toFind, ItemTreeNode node) {
+	public int addAfter(ItemStackTemplate toFind, ItemTreeNode node) {
 		return this.addRelative(toFind, node, 1);
 	}
 
-	public int addAfter(ItemStack toFind, ItemStack toAdd, CreativeModeTab.TabVisibility visibility) {
+	public int addAfter(ItemStackTemplate toFind, ItemStackTemplate toAdd, CreativeModeTab.TabVisibility visibility) {
 		return this.addAfter(toFind, new ItemTreeItemNode(toAdd, visibility));
 	}
 
-	public int addAfter(ItemStack toFind, ItemStack toAdd) {
+	public int addAfter(ItemStackTemplate toFind, ItemStackTemplate toAdd) {
 		return this.addAfter(toFind, toAdd, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 
-	public void addAfter(ItemStack toFind, ItemLike toAdd) {
-		this.addAfter(toFind, new ItemStack(toAdd));
+	public void addAfter(ItemStackTemplate toFind, ItemLike toAdd) {
+		this.addAfter(toFind, new ItemStackTemplate(toAdd.asItem()));
 	}
 
 	public void addAfter(ItemLike toFind, ItemLike toAdd) {
-		this.addAfter(new ItemStack(toFind), toAdd);
+		this.addAfter(new ItemStackTemplate(toFind.asItem()), toAdd);
 	}
 
 	public void addAfter(ItemTreeGroupNode toFind, ItemTreeGroupNode toAdd) {
@@ -124,7 +125,7 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		int start = -1, end = -1;
 
 		for (int i = 0; i < this.nodes.size(); i++) {
-			if (this.nodes.get(i) instanceof ItemTreeItemNode item) {
+			if (this.nodes.get(i) instanceof ItemTreeNode.Item item) {
 				if (ItemStack.isSameItemSameComponents(item.stack(), from)) {
 					start = i;
 				}
@@ -145,7 +146,7 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		int start = -1, end = -1;
 
 		for (int i = 0; i < this.nodes.size(); i++) {
-			if (this.nodes.get(i) instanceof ItemTreeItemNode item) {
+			if (this.nodes.get(i) instanceof ItemTreeNode.Item item) {
 				if (collector.test(item.stack())) {
 					if (start == -1) {
 						start = i;

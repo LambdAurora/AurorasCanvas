@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "aurorascanvas:canvases",
   "key": {
-    "G": {
-      "item": "minecraft:glass_pane"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
+    "G": "minecraft:glass_pane",
+    "S": "minecraft:stick"
   },
   "pattern": [
     "SSS",
@@ -16,7 +12,6 @@
     "SSS"
   ],
   "result": {
-    "count": 1,
     "id": "aurorascanvas:glassboard"
   }
 }

@@ -144,10 +144,10 @@ public final class CanvasColor extends DrawModifier {
 		};
 
 		int color = saturated ? this.getSaturated() : this.getColor();
-		int red = Mth.clamp((color >> 16 & 255) * factor / 255, 0, 255);
-		int green = Mth.clamp((color >> 8 & 255) * factor / 255, 0, 255);
-		int blue = Mth.clamp((color & 255) * factor / 255, 0, 255);
-		return ARGB.color(0xff, blue, green, red);
+		int red = Mth.clamp(ARGB.red(color) * factor / 255, 0, 255);
+		int green = Mth.clamp(ARGB.green(color) * factor / 255, 0, 255);
+		int blue = Mth.clamp(ARGB.blue(color) * factor / 255, 0, 255);
+		return ARGB.color(0xff, red, green, blue);
 	}
 
 	/**
@@ -191,7 +191,7 @@ public final class CanvasColor extends DrawModifier {
 		green = Mth.clamp((int) (-gray * value + green * (1 + value)), 0, 255);
 		blue = Mth.clamp((int) (-gray * value + blue * (1 + value)), 0, 255);
 
-		return 0xff000000 | red << 16 | green << 8 | blue;
+		return ARGB.color(0xff, red, green, blue);
 	}
 
 	private static CanvasColor fromDye(int id, Item item) {

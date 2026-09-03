@@ -26,7 +26,7 @@ import net.minecraft.util.LightCoordsUtil;
 
 @Environment(EnvType.CLIENT)
 public final class CanvasMeshBaker {
-	private static final Identifier WHITE_SPRITE_ID = AurorasCanvas.id("block/canvas/special/white");
+	private static final Identifier WHITE_SPRITE_ID = AurorasCanvas.id("canvas/special/white");
 
 	private CanvasMeshBaker() {
 		throw new UnsupportedOperationException("CanvasMesher only contains static definitions.");
@@ -45,13 +45,6 @@ public final class CanvasMeshBaker {
 			for (int x = 0; x < 16; x++) {
 				int color = canvas.getColor(x, y);
 				if (color != 0) {
-					{
-						int red = color & 255;
-						int green = (color >> 8) & 255;
-						int blue = (color >> 16) & 255;
-						color = 0xff000000 | (red << 16) | (green << 8) | blue;
-					}
-
 					int squareY = 15 - y;
 					emitter.square(
 									canvas.facing(),

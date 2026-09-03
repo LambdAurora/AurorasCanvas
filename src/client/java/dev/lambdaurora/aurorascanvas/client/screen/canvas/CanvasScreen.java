@@ -19,6 +19,8 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.FriendlyByteBufs;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
@@ -120,19 +122,19 @@ public class CanvasScreen extends SpruceScreen {
 		this.controller.canvas.stream().map(TrackedCanvasHandler::history).forEach(CanvasHistory::invokeListeners);
 	}
 
-	@Override
-	public void renderTitle(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		graphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xffffffff);
+	public void extractTitle(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
+		graphics.centeredShadowedText(this.font, this.title, this.width / 2, 20, 0xffffffff);
 	}
 
 	@Override
-	public void renderWidgets(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
-		super.renderWidgets(graphics, mouseX, mouseY, delta);
+	public void extractRenderState(SpruceGuiGraphics graphics, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-		graphics.blit(
+		graphics.vanilla().blit(
+				RenderPipelines.GUI_TEXTURED,
 				this.controller.backgroundTexture,
-				this.canvasStartX, this.canvasStartY, PIXEL_SIZE * 16, PIXEL_SIZE * 16,
-				0, 0, 16, 16,
+				this.canvasStartX, this.canvasStartY, 0, 0,
+				PIXEL_SIZE * 16, PIXEL_SIZE * 16, 16, 16,
 				16, 16
 		);
 
@@ -150,22 +152,22 @@ public class CanvasScreen extends SpruceScreen {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (button == 0) {
-			if (mouseX >= this.canvasStartX && mouseX < this.canvasEndX() && mouseY >= this.canvasStartY && mouseY < this.canvasEndY()) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		if (event.button() == 0) {
+			if (event.x() >= this.canvasStartX && event.x() < this.canvasEndX() && event.y() >= this.canvasStartY && event.y() < this.canvasEndY()) {
 				this.currentHistory = new TrackedCanvasHandler(this.controller.canvas.getDefault());
 			}
 		}
 
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(event, doubleClick);
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-		if (button == 0) {
-			if (mouseX >= this.canvasStartX && mouseX < this.canvasEndX() && mouseY >= this.canvasStartY && mouseY < this.canvasEndY()) {
-				int x = Math.min((int) ((mouseX - this.canvasStartX) / PIXEL_SIZE), 15);
-				int y = Math.min((int) ((mouseY - this.canvasStartY) / PIXEL_SIZE), 15);
+	public boolean mouseDragged(final MouseButtonEvent event, double dragX, double dragY) {
+		if (event.button() == 0) {
+			if (event.x() >= this.canvasStartX && event.x() < this.canvasEndX() && event.y() >= this.canvasStartY && event.y() < this.canvasEndY()) {
+				int x = Math.min((int) ((event.x() - this.canvasStartX) / PIXEL_SIZE), 15);
+				int y = Math.min((int) ((event.y() - this.canvasStartY) / PIXEL_SIZE), 15);
 
 				if (this.currentHistory != null) {
 					this.controller.currentAction.execute(this.currentHistory, x, y, this.controller.currentModifier);
@@ -178,15 +180,15 @@ public class CanvasScreen extends SpruceScreen {
 			}
 		}
 
-		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+		return super.mouseDragged(event, dragX, dragY);
 	}
 
 	@Override
-	public boolean mouseReleased(double mouseX, double mouseY, int button) {
-		if (button == 0) {
-			if (mouseX >= this.canvasStartX && mouseX < this.canvasEndX() && mouseY >= this.canvasStartY && mouseY < this.canvasEndY()) {
-				int x = Math.min((int) ((mouseX - this.canvasStartX) / PIXEL_SIZE), 15);
-				int y = Math.min((int) ((mouseY - this.canvasStartY) / PIXEL_SIZE), 15);
+	public boolean mouseReleased(MouseButtonEvent event) {
+		if (event.button() == 0) {
+			if (event.x() >= this.canvasStartX && event.x() < this.canvasEndX() && event.y() >= this.canvasStartY && event.y() < this.canvasEndY()) {
+				int x = Math.min((int) ((event.x() - this.canvasStartX) / PIXEL_SIZE), 15);
+				int y = Math.min((int) ((event.y() - this.canvasStartY) / PIXEL_SIZE), 15);
 
 				if (this.currentHistory != null) {
 					this.controller.currentAction.execute(this.currentHistory, x, y, this.controller.currentModifier);
@@ -203,6 +205,6 @@ public class CanvasScreen extends SpruceScreen {
 			}
 		}
 
-		return super.mouseReleased(mouseX, mouseY, button);
+		return super.mouseReleased(event);
 	}
 }

@@ -9,57 +9,40 @@
 
 package dev.lambdaurora.aurorascanvas.client.model;
 
-import dev.lambdaurora.aurorascanvas.client.model.glass.UnbakedGlassboardModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
-public class UnbakedCanvasModel implements UnbakedModel {
-	protected final UnbakedModel baseModel;
+public class UnbakedCanvasModel implements BlockStateModel.UnbakedRoot {
+	protected final BlockStateModel.UnbakedRoot baseModel;
 
-	public static UnbakedCanvasModel of(
-			ModelResourceLocation id, UnbakedModel baseModel,
-			UnbakedModel missingModel
-	) {
-		if (id.id().getPath().contains("glass")) {
-			return new UnbakedGlassboardModel(id, baseModel, missingModel, Minecraft.getInstance().getResourceManager());
-		} else {
-			return new UnbakedCanvasModel(baseModel);
-		}
-	}
-
-	protected UnbakedCanvasModel(UnbakedModel baseModel) {
+	public UnbakedCanvasModel(BlockStateModel.UnbakedRoot baseModel) {
 		this.baseModel = baseModel;
 	}
 
 	@Override
-	public Collection<Identifier> getDependencies() {
-		return this.baseModel.getDependencies();
+	public void resolveDependencies(Resolver resolver) {
+		this.baseModel.resolveDependencies(resolver);
 	}
 
 	@Override
-	public void resolveParents(Function<Identifier, UnbakedModel> models) {
-		this.baseModel.resolveParents(models);
+	public Object visualEqualityGroup(BlockState blockState) {
+		return this.baseModel.visualEqualityGroup(blockState);
 	}
 
 	@Override
-	public BakedModel bake(
-			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
-	) {
-		return new BakedCanvasModel(this.bakeBaseModel(baker, spriteGetter, state));
+	public BlockStateModel bake(BlockState blockState, ModelBaker modelBakery) {
+		return new BakedCanvasModel(this.bakeBaseModel(blockState, modelBakery));
 	}
 
-	protected BakedModel bakeBaseModel(
-			ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState state
+	protected BlockStateModel bakeBaseModel(
+			BlockState blockState, ModelBaker modelBakery
 	) {
-		return Objects.requireNonNull(this.baseModel.bake(baker, spriteGetter, state));
+		return Objects.requireNonNull(this.baseModel.bake(blockState, modelBakery));
 	}
 }

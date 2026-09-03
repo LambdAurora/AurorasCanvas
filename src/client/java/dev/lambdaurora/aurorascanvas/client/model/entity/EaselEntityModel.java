@@ -9,9 +9,7 @@
 
 package dev.lambdaurora.aurorascanvas.client.model.entity;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.lambdaurora.aurorascanvas.entity.EaselEntity;
+import dev.lambdaurora.aurorascanvas.client.renderer.EaselEntityRenderState;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -22,15 +20,14 @@ import net.minecraft.client.model.geom.builders.*;
  *
  * @param <T> the easel entity type
  * @author LambdAurora
- * @version 1.0.0
+ * @version 1.2.0
  * @since 1.0.0
  */
-public class EaselEntityModel<T extends EaselEntity> extends EntityModel<T> {
+public class EaselEntityModel<T extends EaselEntityRenderState> extends EntityModel<T> {
 	public static final PartPose FRONT_PART_POSE = PartPose.offsetAndRotation(0.f, 24.f, -9.f, -0.2618f, 0.f, 0.f);
-	private final ModelPart root;
 
 	public EaselEntityModel(ModelPart root) {
-		this.root = root;
+		super(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -68,16 +65,5 @@ public class EaselEntityModel<T extends EaselEntity> extends EntityModel<T> {
 		);
 
 		return LayerDefinition.create(mesh, 64, 64);
-	}
-
-	@Override
-	public void setupAnim(EaselEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-	}
-
-	@Override
-	public void renderToBuffer(
-			PoseStack matrices, VertexConsumer buffer, int packedLight, int packedOverlay, int color
-	) {
-		this.root.render(matrices, buffer, packedLight, packedOverlay, color);
 	}
 }

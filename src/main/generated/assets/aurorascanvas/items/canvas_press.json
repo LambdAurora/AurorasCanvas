@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "aurorascanvas:block/canvas_press/base"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "aurorascanvas:block/canvas_press/press_plate"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "aurorascanvas:block/canvas_press/screw"
+      }
+    ]
+  }
+}
