@@ -130,6 +130,12 @@ dependencies {
 		exclude(group = libs.fabric.loader.get().group)
 		exclude(group = libs.fabric.api.get().group)
 	}
+
+	if (supportNeoforge) {
+		"neoforgeCompileOnly"(libs.neoforge.loader)
+		"neoforgeCompileOnly"(variantOf(libs.neoforge.api) { classifier("universal") })
+		"neoforgeImplementation"(sourceSets.main.get().output)
+	}
 }
 
 java {
@@ -189,6 +195,7 @@ lambdamcdev {
 				withYumiEntrypoints(
 					"yumi:init",
 					"dev.lambdaurora.aurorascanvas.AurorasCanvas",
+					"dev.lambdaurora.aurorascanvas.platform.neoforge.NeoAurorasCanvas"
 				)
 				withYumiEntrypoints("yumi:client_init", "dev.lambdaurora.aurorascanvas.client.AurorasCanvasClient")
 				withAccessTransformer("META-INF/accesstransformer.cfg")
