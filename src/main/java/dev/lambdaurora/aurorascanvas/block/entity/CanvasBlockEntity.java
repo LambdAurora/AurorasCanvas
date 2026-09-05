@@ -191,7 +191,10 @@ public abstract class CanvasBlockEntity<P, T extends CanvasHolder<P, T>, S exten
 	protected void collectImplicitComponents(DataComponentMap.Builder components) {
 		super.collectImplicitComponents(components);
 		components.set(DataComponents.CUSTOM_NAME, this.customName);
-		components.set(this.canvasType().componentType(), this.getCanvasHolder());
+
+		if (!this.canvases.isUnedited()) {
+			components.set(this.canvasType().componentType(), this.getCanvasHolder());
+		}
 	}
 
 	@SuppressWarnings("deprecation")
