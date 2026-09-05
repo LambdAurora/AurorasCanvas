@@ -15,10 +15,7 @@ import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +27,14 @@ public class ItemTree extends ItemTreeGroupNode {
 	private static final ItemTreeGroupNode BLACKBOARDS = ItemTreeGroupNode.create(
 			AurorasCanvasIds.CANVAS_ID,
 			groupNode -> {
-				groupNode.add(BLACKBOARD.item().value());
-				groupNode.add(WAXED_BLACKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
-				groupNode.add(CHALKBOARD.item().value());
-				groupNode.add(WAXED_CHALKBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
-				groupNode.add(WHITEBOARD.item().value());
-				groupNode.add(WAXED_WHITEBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
-				groupNode.add(GLASSBOARD.item().value());
-				groupNode.add(WAXED_GLASSBOARD.item().value(), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(new ItemStackTemplate(BLACKBOARD.item().value()));
+				groupNode.add(new ItemStackTemplate(WAXED_BLACKBOARD.item().value()), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(new ItemStackTemplate(CHALKBOARD.item().value()));
+				groupNode.add(new ItemStackTemplate(WAXED_CHALKBOARD.item().value()), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(new ItemStackTemplate(WHITEBOARD.item().value()));
+				groupNode.add(new ItemStackTemplate(WAXED_WHITEBOARD.item().value()), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
+				groupNode.add(new ItemStackTemplate(GLASSBOARD.item().value()));
+				groupNode.add(new ItemStackTemplate(WAXED_GLASSBOARD.item().value()), CreativeModeTab.TabVisibility.SEARCH_TAB_ONLY);
 				//groupNode.add(BLACKBOARD_PRESS_BLOCK);
 			}
 	);

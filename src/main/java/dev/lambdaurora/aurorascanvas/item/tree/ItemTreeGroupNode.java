@@ -45,12 +45,24 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		this.nodes.add(new ItemTreeItemNode(stack, visibility));
 	}
 
+	public void add(ItemStack stack, CreativeModeTab.TabVisibility visibility) {
+		this.nodes.add(new ItemTreeResolvedItemNode(stack, visibility));
+	}
+
 	public void add(ItemStackTemplate stack) {
+		this.add(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+	}
+
+	public void add(ItemStack stack) {
 		this.add(stack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 
 	public void add(int index, ItemStackTemplate stack, CreativeModeTab.TabVisibility visibility) {
 		this.nodes.add(index, new ItemTreeItemNode(stack, visibility));
+	}
+
+	public void add(int index, ItemStack stack, CreativeModeTab.TabVisibility visibility) {
+		this.nodes.add(index, new ItemTreeResolvedItemNode(stack, visibility));
 	}
 
 	public void add(int index, ItemStackTemplate stack) {
@@ -79,10 +91,10 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		this.groupNodes.putAll(groupNode.groupNodes);
 	}
 
-	private int addRelative(ItemStackTemplate toFind, ItemTreeNode node, int offset) {
+	private int addRelative(ItemStack toFind, ItemTreeNode node, int offset) {
 		for (int i = 0; i < this.nodes.size(); i++) {
-			if (this.nodes.get(i) instanceof ItemTreeItemNode item) {
-				if (item.templateStack().item().equals(toFind.item()) && item.templateStack().components().equals(toFind.components())) {
+			if (this.nodes.get(i) instanceof ItemTreeNode.Item item) {
+				if (ItemStack.isSameItemSameComponents(toFind, item.stack())) {
 					this.nodes.add(i + offset, node);
 					return i + offset;
 				}
@@ -92,24 +104,24 @@ public class ItemTreeGroupNode implements ItemTreeNode {
 		return -1;
 	}
 
-	public int addAfter(ItemStackTemplate toFind, ItemTreeNode node) {
+	public int addAfter(ItemStack toFind, ItemTreeNode node) {
 		return this.addRelative(toFind, node, 1);
 	}
 
-	public int addAfter(ItemStackTemplate toFind, ItemStackTemplate toAdd, CreativeModeTab.TabVisibility visibility) {
-		return this.addAfter(toFind, new ItemTreeItemNode(toAdd, visibility));
+	public int addAfter(ItemStack toFind, ItemStack toAdd, CreativeModeTab.TabVisibility visibility) {
+		return this.addAfter(toFind, new ItemTreeResolvedItemNode(toAdd, visibility));
 	}
 
-	public int addAfter(ItemStackTemplate toFind, ItemStackTemplate toAdd) {
+	public int addAfter(ItemStack toFind, ItemStack toAdd) {
 		return this.addAfter(toFind, toAdd, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
 	}
 
-	public void addAfter(ItemStackTemplate toFind, ItemLike toAdd) {
-		this.addAfter(toFind, new ItemStackTemplate(toAdd.asItem()));
+	public void addAfter(ItemStack toFind, ItemLike toAdd) {
+		this.addAfter(toFind, new ItemStack(toAdd.asItem()));
 	}
 
 	public void addAfter(ItemLike toFind, ItemLike toAdd) {
-		this.addAfter(new ItemStackTemplate(toFind.asItem()), toAdd);
+		this.addAfter(new ItemStack(toFind.asItem()), toAdd);
 	}
 
 	public void addAfter(ItemTreeGroupNode toFind, ItemTreeGroupNode toAdd) {
